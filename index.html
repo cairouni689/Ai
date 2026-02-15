@@ -154,7 +154,7 @@
         
         <div class="p-4 border-b border-white/5">
             <button onclick="startNewSession()" class="w-full py-2.5 mb-4 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 rounded-lg text-sm flex items-center justify-center gap-2 transition-all text-blue-200 hover:text-white shadow-[0_0_10px_rgba(37,99,235,0.1)]">
-                <i data-lucide="plus" class="w-4 h-4"></i> مهمة جديدة
+                <i data-lucide="plus" class="w-4 h-4"></i> شات جديد
             </button>
             
             <label class="text-xs text-gray-500 mb-2 block uppercase tracking-wider">Neural Model</label>
@@ -287,9 +287,11 @@
 
         // إنشاء جلسة جديدة
         function startNewSession() {
-            currentState.sessionId = Date.now().toString();
+            // التعديل هنا: جعل الـ sessionId فارغاً ليتم التعامل مع الرسالة التالية كبداية جديدة
+            currentState.sessionId = null; 
             currentState.messages = [];
             
+            // إعادة ضبط الواجهة للشاشة الترحيبية
             document.getElementById('chat-container').innerHTML = '';
             document.getElementById('welcome-screen').classList.remove('hidden-force');
             document.getElementById('welcome-sidebar-btn').classList.remove('hidden');
@@ -297,6 +299,7 @@
             document.getElementById('header-sidebar-btn').classList.add('hidden');
             document.getElementById('welcome-plane').classList.remove('animate-fly-away');
             
+            // تحديث القائمة الجانبية لإزالة التحديد من الجلسات السابقة
             loadSessionsList();
             
             if (window.innerWidth < 768) {
@@ -306,6 +309,7 @@
         }
 
         function saveMessageToSession(role, content, attachment = null) {
+            // توليد ID جديد إذا لم يكن موجوداً (وهذا يحدث عند إرسال أول رسالة في شات جديد)
             if (!currentState.sessionId) {
                 currentState.sessionId = Date.now().toString();
             }
@@ -558,6 +562,7 @@
             const text = userInput.value.trim();
             if (!text && !currentState.attachment) return;
 
+            // إذا لم يكن هناك ID للجلسة، قم بإنشائه (يعني أول رسالة)
             if (!currentState.sessionId) {
                 welcomePlane.classList.add('animate-fly-away');
                 setTimeout(() => {
