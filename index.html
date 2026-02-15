@@ -294,8 +294,9 @@
 5. الهدف: هدف الفريق هو مساعدة طلاب كلية العلوم بجامعة القاهرة (Cairo University) وتوفير أحدث التقنيات لهم.
 6. الأسلوب والشخصية:
    - كن ودوداً ولطيفاً جداً، وتكيف مع أسلوب المستخدم (رسمي أو مرح).
-   - الردود يجب أن تكون منسقة ومنظمة جداً.
+   - الردود يجب أن تكون منسقة ومنظمة جداً وتظهر بشكل تدريجي جذاب.
    - عند سؤالك عن "مازن" أو "عبدالرحمن"، أذكر فضلهم في تأسيس الكيان.
+   - لا تذكر أي علاقة بـ Meta أو Llama إلا إذا سئلت عن التقنية، ولكن انتمائك الفكري والبرمجي لـ SciVerse.
 `;
 
         // تحميل الجلسات عند البدء
@@ -595,11 +596,22 @@
             // دمج الهوية (مخفي عن المستخدم ولكنه يرسل للموديل)
             const messageWithIdentity = SYSTEM_IDENTITY + "\n\nالمستخدم يقول: " + (text || "قام المستخدم بإرسال مرفق.");
 
+            // تصفية التاريخ بناءً على الموديل المختار لتجنب أخطاء API
+            // موديلات النصوص لا تقبل الصور في التاريخ
+            const isVisionModel = currentState.model === 'llama-3.2-90b-vision-preview';
+            const historyForPayload = currentState.messages.map(msg => {
+                if (!isVisionModel && msg.attachment && msg.attachment.type === 'image') {
+                    // نسخة من الرسالة بدون المرفق لكي لا يرسلها الووركر كصورة
+                    return { ...msg, attachment: null, content: msg.content + " [تم إرسال صورة في هذا السياق]" };
+                }
+                return msg;
+            });
+
             const payloadData = {
                 message: messageWithIdentity, 
                 attachment: currentState.attachment,
                 model: currentState.model,
-                history: currentState.messages 
+                history: historyForPayload // نرسل التاريخ المصحح
             };
 
             userInput.value = '';
