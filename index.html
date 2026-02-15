@@ -64,7 +64,7 @@
 
         /* تصميم الزجاج للقائمة الجانبية فقط */
         .glass-sidebar {
-            background: rgba(10, 10, 10, 0.8);
+            background: rgba(10, 10, 10, 0.9);
             backdrop-filter: blur(12px);
             border-left: 1px solid rgba(255, 255, 255, 0.08);
         }
@@ -112,6 +112,12 @@
             background-color: #000000;
             color: #fff;
         }
+
+        /* ستايل عنصر القائمة النشط */
+        .history-item.active {
+            background: rgba(59, 130, 246, 0.15);
+            border-right: 2px solid #3b82f6;
+        }
     </style>
 </head>
 <body class="h-screen flex flex-col font-sans selection:bg-quark-primary selection:text-white">
@@ -147,7 +153,7 @@
         </div>
         
         <div class="p-4 border-b border-white/5">
-            <button class="w-full py-2.5 mb-4 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 rounded-lg text-sm flex items-center justify-center gap-2 transition-all text-blue-200 hover:text-white shadow-[0_0_10px_rgba(37,99,235,0.1)]">
+            <button onclick="startNewSession()" class="w-full py-2.5 mb-4 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 rounded-lg text-sm flex items-center justify-center gap-2 transition-all text-blue-200 hover:text-white shadow-[0_0_10px_rgba(37,99,235,0.1)]">
                 <i data-lucide="plus" class="w-4 h-4"></i> مهمة جديدة
             </button>
             
@@ -165,15 +171,18 @@
             </div>
         </div>
 
-        <div class="p-4 flex-1 overflow-y-auto custom-scrollbar">
-            <div class="flex flex-col items-center justify-center h-40 text-gray-600 gap-2">
-                <i data-lucide="radar" class="w-8 h-8 opacity-40"></i>
-                <span class="text-xs font-mono">NO ACTIVE SIGNALS</span>
+        <div class="p-2 bg-black/50 text-[10px] text-gray-500 uppercase tracking-widest text-center py-1">Mission Log</div>
+        
+        <!-- حاوية قائمة المحادثات -->
+        <div id="history-list" class="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1">
+            <div class="flex flex-col items-center justify-center h-20 text-gray-600 gap-2 mt-4">
+                <i data-lucide="radar" class="w-6 h-6 opacity-40"></i>
+                <span class="text-xs font-mono">NO DATA</span>
             </div>
         </div>
 
-        <!-- فوتر السايد بار الجديد -->
-        <div class="p-6 border-t border-white/5 bg-black/40 text-center">
+        <!-- فوتر السايد بار -->
+        <div class="p-6 border-t border-white/5 bg-black/40 text-center mt-auto">
             <h3 class="text-lg font-bold text-white font-mono tracking-wider drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">AI SciVerse</h3>
             <p class="text-[10px] text-gray-500 uppercase tracking-[0.2em] mt-1 font-light">Cairo University</p>
         </div>
@@ -243,13 +252,11 @@
 
                 <textarea id="user-input" rows="1" class="flex-1 bg-transparent border-none focus:ring-0 text-white placeholder-gray-500 resize-none py-3 px-3 max-h-32 text-base leading-relaxed font-sans" placeholder="اسأل كوارك..."></textarea>
 
-                <!-- زر الإرسال -->
                 <button onclick="sendMessage()" id="send-btn" class="p-2.5 bg-white hover:bg-gray-200 text-black rounded-full shadow-lg transition-all transform hover:scale-105 disabled:opacity-50 flex items-center justify-center">
                     <i data-lucide="send" class="w-5 h-5 transform rotate-180 -translate-x-0.5"></i>
                 </button>
             </div>
 
-            <!-- جملة التحذير -->
             <div class="text-center mt-3">
                 <p class="text-[11px] text-gray-500 font-normal">
                     قد يعرض Quark معلومات غير دقيقة، بما في ذلك معلومات حول الأشخاص، لذا يرجى التحقق من ردوده.
@@ -262,13 +269,145 @@
         lucide.createIcons();
 
         /* =========================================
-           إعدادات النظام
+           إعدادات النظام وإدارة الجلسات
            ========================================= */
         let currentState = {
             model: 'llama-3.3-70b-versatile',
             attachment: null,
-            history: [] 
+            sessionId: null,
+            messages: []
         };
+
+        // تحميل الجلسات عند البدء
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSessionsList();
+            initStars();    // تهيئة النجوم
+            animateStars(); // بدء الأنيميشن
+        });
+
+        // إنشاء جلسة جديدة
+        function startNewSession() {
+            currentState.sessionId = Date.now().toString();
+            currentState.messages = [];
+            
+            document.getElementById('chat-container').innerHTML = '';
+            document.getElementById('welcome-screen').classList.remove('hidden-force');
+            document.getElementById('welcome-sidebar-btn').classList.remove('hidden');
+            document.getElementById('chat-container').classList.add('hidden');
+            document.getElementById('header-sidebar-btn').classList.add('hidden');
+            document.getElementById('welcome-plane').classList.remove('animate-fly-away');
+            
+            loadSessionsList();
+            
+            if (window.innerWidth < 768) {
+                const sidebar = document.getElementById('sidebar');
+                if (!sidebar.classList.contains('translate-x-full')) toggleSidebar();
+            }
+        }
+
+        function saveMessageToSession(role, content, attachment = null) {
+            if (!currentState.sessionId) {
+                currentState.sessionId = Date.now().toString();
+            }
+
+            const msgObj = { role, content, attachment, timestamp: Date.now() };
+            currentState.messages.push(msgObj);
+
+            let sessions = JSON.parse(localStorage.getItem('quark_sessions') || '{}');
+            
+            if (!sessions[currentState.sessionId]) {
+                let title = content.substring(0, 30) + (content.length > 30 ? '...' : '');
+                if (attachment && !content) title = "مرفق ملف/صورة";
+                
+                sessions[currentState.sessionId] = {
+                    id: currentState.sessionId,
+                    title: title || "محادثة جديدة",
+                    timestamp: Date.now(),
+                    messages: []
+                };
+            }
+            
+            sessions[currentState.sessionId].messages = currentState.messages;
+            sessions[currentState.sessionId].timestamp = Date.now();
+
+            localStorage.setItem('quark_sessions', JSON.stringify(sessions));
+            loadSessionsList();
+        }
+
+        function loadSessionsList() {
+            const sessionsMap = JSON.parse(localStorage.getItem('quark_sessions') || '{}');
+            const sessionsArr = Object.values(sessionsMap).sort((a, b) => b.timestamp - a.timestamp);
+            
+            const listContainer = document.getElementById('history-list');
+            listContainer.innerHTML = '';
+
+            if (sessionsArr.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="flex flex-col items-center justify-center h-20 text-gray-600 gap-2 mt-4">
+                        <i data-lucide="radar" class="w-6 h-6 opacity-40"></i>
+                        <span class="text-xs font-mono">NO DATA</span>
+                    </div>
+                `;
+                return;
+            }
+
+            sessionsArr.forEach(session => {
+                const isActive = session.id === currentState.sessionId;
+                const btn = document.createElement('button');
+                btn.className = `w-full text-right p-3 rounded-lg text-sm transition-all flex items-center gap-3 group history-item ${isActive ? 'active text-blue-200' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`;
+                btn.onclick = () => loadSession(session.id);
+                
+                btn.innerHTML = `
+                    <i data-lucide="message-square" class="w-4 h-4 opacity-70 group-hover:text-blue-400"></i>
+                    <span class="truncate font-sans flex-1">${session.title}</span>
+                    <button onclick="deleteSession(event, '${session.id}')" class="opacity-0 group-hover:opacity-100 p-1 hover:text-red-400 transition-opacity">
+                        <i data-lucide="trash-2" class="w-3 h-3"></i>
+                    </button>
+                `;
+                listContainer.appendChild(btn);
+            });
+            lucide.createIcons();
+        }
+
+        function loadSession(id) {
+            const sessions = JSON.parse(localStorage.getItem('quark_sessions') || '{}');
+            const session = sessions[id];
+            if (!session) return;
+
+            currentState.sessionId = session.id;
+            currentState.messages = session.messages || [];
+            
+            document.getElementById('welcome-screen').classList.add('hidden-force');
+            document.getElementById('welcome-sidebar-btn').classList.add('hidden');
+            document.getElementById('chat-container').classList.remove('hidden');
+            document.getElementById('header-sidebar-btn').classList.remove('hidden');
+            document.getElementById('chat-container').innerHTML = '';
+
+            currentState.messages.forEach(msg => {
+                addMessage(msg.content, msg.role, msg.attachment, false);
+            });
+
+            loadSessionsList();
+            
+            if (window.innerWidth < 768) {
+                toggleSidebar();
+            }
+        }
+
+        function deleteSession(e, id) {
+            e.stopPropagation();
+            if(confirm('هل أنت متأكد من حذف هذا السجل؟')) {
+                let sessions = JSON.parse(localStorage.getItem('quark_sessions') || '{}');
+                delete sessions[id];
+                localStorage.setItem('quark_sessions', JSON.stringify(sessions));
+                
+                if (currentState.sessionId === id) {
+                    startNewSession();
+                } else {
+                    loadSessionsList();
+                }
+            }
+        }
 
         function changeModel(modelName) {
             currentState.model = modelName;
@@ -276,13 +415,13 @@
         }
 
         /* =========================================
-           نظام النجوم
+           نظام النجوم (تم الإصلاح)
            ========================================= */
         const canvas = document.getElementById('space-canvas');
         const ctx = canvas.getContext('2d');
         let width, height;
         let stars = [];
-        
+
         function initStars() {
             width = window.innerWidth;
             height = window.innerHeight;
@@ -302,6 +441,7 @@
                 });
             }
         }
+
         function animateStars() {
             ctx.clearRect(0, 0, width, height);
             stars.forEach(star => {
@@ -320,20 +460,17 @@
             });
             requestAnimationFrame(animateStars);
         }
+        
+        // إعادة تهيئة النجوم عند تغيير حجم النافذة
         window.addEventListener('resize', initStars);
-        initStars();
-        animateStars();
 
         /* =========================================
            إدارة الواجهة
            ========================================= */
-        const welcomeScreen = document.getElementById('welcome-screen');
-        const chatContainer = document.getElementById('chat-container');
         const userInput = document.getElementById('user-input');
         const attachmentMenu = document.getElementById('attachment-menu');
         const previewContainer = document.getElementById('attachment-preview');
         const welcomePlane = document.getElementById('welcome-plane');
-        let isFirstMessage = true;
 
         userInput.addEventListener('input', function() {
             this.style.height = 'auto';
@@ -421,24 +558,25 @@
             const text = userInput.value.trim();
             if (!text && !currentState.attachment) return;
 
-            if (isFirstMessage) {
+            if (!currentState.sessionId) {
                 welcomePlane.classList.add('animate-fly-away');
                 setTimeout(() => {
-                    welcomeScreen.classList.add('hidden-force');
+                    document.getElementById('welcome-screen').classList.add('hidden-force');
                     document.getElementById('welcome-sidebar-btn').classList.add('hidden');
-                    chatContainer.classList.remove('hidden');
-                    chatContainer.classList.add('fade-in');
+                    document.getElementById('chat-container').classList.remove('hidden');
+                    document.getElementById('chat-container').classList.add('fade-in');
                     document.getElementById('header-sidebar-btn').classList.remove('hidden');
                 }, 800);
-                isFirstMessage = false;
             }
 
             addMessage(text, 'user', currentState.attachment);
-            
+            saveMessageToSession('user', text, currentState.attachment);
+
             const payloadData = {
                 message: text,
                 attachment: currentState.attachment,
-                model: currentState.model
+                model: currentState.model,
+                history: currentState.messages
             };
 
             userInput.value = '';
@@ -451,31 +589,47 @@
                 const response = await callGroqAPI(payloadData);
                 removeTypingIndicator();
                 addMessage(response, 'ai');
+                saveMessageToSession('ai', response);
+
             } catch (error) {
                 removeTypingIndicator();
-                addMessage("حدث خطأ في الاتصال، يرجى المحاولة مرة أخرى.", 'ai');
+                addMessage("حدث خطأ في الاتصال بالسيرفر. تأكد من إعدادات Worker.", 'ai');
                 console.error(error);
             }
         }
 
         async function callGroqAPI(data) {
-            // محاكاة للرد (يتم استبدالها بالـ Worker الفعلي)
-            return new Promise(resolve => {
-                setTimeout(() => {
-                    if (data.attachment && data.attachment.type === 'image') {
-                        resolve(`أرى الصورة "${data.attachment.name}". بناءً على تحليل ${data.model}، يبدو أنها تحتوي على بيانات بصرية مثيرة للاهتمام.`);
-                    } else {
-                        resolve(`تم استلام: "${data.message}" ومعالجته بواسطة [${data.model}].\nالنظام يعمل بكفاءة.`);
-                    }
-                }, 1500);
+            const WORKER_URL = "YOUR_CLOUDFLARE_WORKER_URL_HERE"; 
+            
+            if (WORKER_URL === "YOUR_CLOUDFLARE_WORKER_URL_HERE") {
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                         if (data.attachment && data.attachment.type === 'image') {
+                            resolve(`أرى الصورة "${data.attachment.name}". تحليل ${data.model} جاري... (هذه محاكاة لأن الووركر غير مربوط).`);
+                        } else {
+                            resolve(`[محاكاة] الرد من الموديل ${data.model} على: "${data.message}"`);
+                        }
+                    }, 1500);
+                });
+            }
+
+            const res = await fetch(WORKER_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
             });
+
+            if (!res.ok) throw new Error('Worker Error');
+            const json = await res.json();
+            return json.content;
         }
 
-        function addMessage(text, sender, attachment = null) {
+        function addMessage(text, sender, attachment = null, animate = true) {
+            const chatContainer = document.getElementById('chat-container');
             const div = document.createElement('div');
             const isUser = sender === 'user';
             
-            div.className = `flex w-full mb-6 ${isUser ? 'justify-start' : 'justify-end'} fade-in`;
+            div.className = `flex w-full mb-6 ${isUser ? 'justify-start' : 'justify-end'} ${animate ? 'fade-in' : ''}`;
             
             const textStyle = isUser 
                 ? 'text-gray-200 font-sans text-base md:text-lg drop-shadow-md text-right' 
@@ -532,10 +686,15 @@
             div.innerHTML = innerHTML;
             chatContainer.appendChild(div);
             lucide.createIcons();
-            scrollToBottom();
+            
+            if (animate) {
+                const lastMessage = chatContainer.lastElementChild;
+                if (lastMessage) lastMessage.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            }
         }
 
         function showTypingIndicator() {
+            const chatContainer = document.getElementById('chat-container');
             const div = document.createElement('div');
             div.id = 'typing-indicator';
             div.className = 'flex w-full mb-4 justify-end fade-in';
@@ -555,19 +714,12 @@
             `;
             chatContainer.appendChild(div);
             lucide.createIcons();
-            scrollToBottom();
+            div.scrollIntoView({ behavior: 'smooth', block: 'end' });
         }
 
         function removeTypingIndicator() {
             const indicator = document.getElementById('typing-indicator');
             if (indicator) indicator.remove();
-        }
-
-        function scrollToBottom() {
-            const lastMessage = chatContainer.lastElementChild;
-            if (lastMessage) {
-                lastMessage.scrollIntoView({ behavior: 'smooth', block: 'end' });
-            }
         }
 
         function escapeHtml(text) {
