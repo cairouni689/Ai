@@ -202,10 +202,6 @@
             
             <h2 class="text-5xl md:text-7xl font-bold text-center mb-6 tracking-tighter text-white drop-shadow-2xl font-mono">QUARK</h2>
             <p class="text-gray-400 text-center max-w-lg text-lg tracking-[0.05em] font-light">Advanced Neural Interface</p>
-            
-            <button id="welcome-sidebar-btn" onclick="toggleSidebar()" class="fixed bottom-8 right-8 p-4 bg-white/5 hover:bg-white/10 rounded-full shadow-lg border border-white/5 transition-all z-40 group text-gray-400 hover:text-white">
-                <i data-lucide="layout-grid" class="w-6 h-6"></i>
-            </button>
         </div>
 
         <!-- حاوية الشات -->
@@ -214,53 +210,63 @@
 
     <!-- === منطقة الإدخال === -->
     <div class="fixed bottom-0 left-0 right-0 w-full z-40 bg-gradient-to-t from-black via-black/95 to-transparent pt-4 pb-6 px-4">
-        <div class="max-w-3xl mx-auto relative">
+        <!-- عدلنا هذا الحاوية لتستخدم Flexbox لوضع الزر بجانب الصندوق -->
+        <div class="max-w-3xl mx-auto flex items-end gap-2">
             
-            <!-- منطقة معاينة المرفقات -->
-            <div id="attachment-preview" class="hidden mb-2 flex items-center gap-2 px-2 fade-in">
-                <div class="relative group">
-                    <img id="preview-img" src="" class="h-16 w-16 object-cover rounded-lg border border-white/20 shadow-lg hidden">
-                    <div id="preview-file" class="h-16 w-16 bg-white/10 rounded-lg border border-white/20 flex items-center justify-center hidden">
-                        <i data-lucide="file-text" class="w-8 h-8 text-blue-400"></i>
+            <!-- زر السايد بار الجديد للشاشة الترحيبية (بجانب صندوق الكتابة) -->
+            <button id="bottom-sidebar-btn" onclick="toggleSidebar()" class="p-3 bg-[#1e1e1e] hover:bg-white/10 text-gray-400 hover:text-white rounded-full transition-all shadow-lg border border-white/5 group mb-8">
+                <i data-lucide="layout-grid" class="w-5 h-5"></i>
+            </button>
+
+            <!-- حاوية الصندوق والمرفقات (تأخذ باقي المساحة) -->
+            <div class="flex-1 relative">
+                
+                <!-- منطقة معاينة المرفقات -->
+                <div id="attachment-preview" class="hidden mb-2 flex items-center gap-2 px-2 fade-in">
+                    <div class="relative group">
+                        <img id="preview-img" src="" class="h-16 w-16 object-cover rounded-lg border border-white/20 shadow-lg hidden">
+                        <div id="preview-file" class="h-16 w-16 bg-white/10 rounded-lg border border-white/20 flex items-center justify-center hidden">
+                            <i data-lucide="file-text" class="w-8 h-8 text-blue-400"></i>
+                        </div>
+                        <button onclick="clearAttachment()" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-0.5 shadow-md hover:bg-red-600">
+                            <i data-lucide="x" class="w-3 h-3"></i>
+                        </button>
                     </div>
-                    <button onclick="clearAttachment()" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-0.5 shadow-md hover:bg-red-600">
-                        <i data-lucide="x" class="w-3 h-3"></i>
+                    <span id="preview-name" class="text-xs text-gray-400 truncate max-w-[200px]"></span>
+                </div>
+
+                <!-- قائمة المرفقات -->
+                <div id="attachment-menu" class="hidden absolute bottom-full mb-3 right-2 bg-[#111] rounded-xl shadow-2xl overflow-hidden min-w-[160px] fade-in border border-white/10">
+                    <button onclick="document.getElementById('image-input').click()" class="w-full text-right px-4 py-3 hover:bg-white/5 flex items-center gap-3 text-sm transition-colors text-gray-200">
+                        <i data-lucide="image" class="w-4 h-4 text-emerald-400"></i> تحليل صورة
+                    </button>
+                    <div class="h-px bg-white/5 w-full"></div>
+                    <button onclick="document.getElementById('file-input').click()" class="w-full text-right px-4 py-3 hover:bg-white/5 flex items-center gap-3 text-sm transition-colors text-gray-200">
+                        <i data-lucide="file-code" class="w-4 h-4 text-amber-400"></i> ملف بيانات
+                    </button>
+                    <input type="file" id="image-input" accept="image/*" class="hidden" onchange="handleFileSelect(this, 'image')">
+                    <input type="file" id="file-input" class="hidden" onchange="handleFileSelect(this, 'file')">
+                </div>
+
+                <!-- صندوق الإدخال -->
+                <div class="rounded-[2rem] flex items-end p-2 bg-[#1e1e1e] transition-all duration-300">
+                    
+                    <button onclick="toggleAttachments()" class="p-3 text-gray-400 hover:text-white hover:bg-white/10 rounded-full transition-all relative group" title="إرفاق">
+                        <i data-lucide="plus" class="w-5 h-5 group-hover:rotate-90 transition-transform"></i>
+                    </button>
+
+                    <textarea id="user-input" rows="1" class="flex-1 bg-transparent border-none focus:ring-0 text-white placeholder-gray-500 resize-none py-3 px-3 max-h-32 text-base leading-relaxed font-sans" placeholder="اسأل كوارك..."></textarea>
+
+                    <button onclick="sendMessage()" id="send-btn" class="p-2.5 bg-white hover:bg-gray-200 text-black rounded-full shadow-lg transition-all transform hover:scale-105 disabled:opacity-50 flex items-center justify-center">
+                        <i data-lucide="send" class="w-5 h-5 transform rotate-180 -translate-x-0.5"></i>
                     </button>
                 </div>
-                <span id="preview-name" class="text-xs text-gray-400 truncate max-w-[200px]"></span>
-            </div>
 
-            <!-- قائمة المرفقات -->
-            <div id="attachment-menu" class="hidden absolute bottom-full mb-3 right-2 bg-[#111] rounded-xl shadow-2xl overflow-hidden min-w-[160px] fade-in border border-white/10">
-                <button onclick="document.getElementById('image-input').click()" class="w-full text-right px-4 py-3 hover:bg-white/5 flex items-center gap-3 text-sm transition-colors text-gray-200">
-                    <i data-lucide="image" class="w-4 h-4 text-emerald-400"></i> تحليل صورة
-                </button>
-                <div class="h-px bg-white/5 w-full"></div>
-                <button onclick="document.getElementById('file-input').click()" class="w-full text-right px-4 py-3 hover:bg-white/5 flex items-center gap-3 text-sm transition-colors text-gray-200">
-                    <i data-lucide="file-code" class="w-4 h-4 text-amber-400"></i> ملف بيانات
-                </button>
-                <input type="file" id="image-input" accept="image/*" class="hidden" onchange="handleFileSelect(this, 'image')">
-                <input type="file" id="file-input" class="hidden" onchange="handleFileSelect(this, 'file')">
-            </div>
-
-            <!-- صندوق الإدخال -->
-            <div class="rounded-[2rem] flex items-end p-2 bg-[#1e1e1e] transition-all duration-300">
-                
-                <button onclick="toggleAttachments()" class="p-3 text-gray-400 hover:text-white hover:bg-white/10 rounded-full transition-all relative group" title="إرفاق">
-                    <i data-lucide="plus" class="w-5 h-5 group-hover:rotate-90 transition-transform"></i>
-                </button>
-
-                <textarea id="user-input" rows="1" class="flex-1 bg-transparent border-none focus:ring-0 text-white placeholder-gray-500 resize-none py-3 px-3 max-h-32 text-base leading-relaxed font-sans" placeholder="اسأل كوارك..."></textarea>
-
-                <button onclick="sendMessage()" id="send-btn" class="p-2.5 bg-white hover:bg-gray-200 text-black rounded-full shadow-lg transition-all transform hover:scale-105 disabled:opacity-50 flex items-center justify-center">
-                    <i data-lucide="send" class="w-5 h-5 transform rotate-180 -translate-x-0.5"></i>
-                </button>
-            </div>
-
-            <div class="text-center mt-3">
-                <p class="text-[11px] text-gray-500 font-normal">
-                    قد يعرض Quark معلومات غير دقيقة، بما في ذلك معلومات حول الأشخاص، لذا يرجى التحقق من ردوده.
-                </p>
+                <div class="text-center mt-3">
+                    <p class="text-[11px] text-gray-500 font-normal">
+                        قد يعرض Quark معلومات غير دقيقة، بما في ذلك معلومات حول الأشخاص، لذا يرجى التحقق من ردوده.
+                    </p>
+                </div>
             </div>
         </div>
     </div>
@@ -294,7 +300,7 @@
             // إعادة ضبط الواجهة للشاشة الترحيبية
             document.getElementById('chat-container').innerHTML = '';
             document.getElementById('welcome-screen').classList.remove('hidden-force');
-            document.getElementById('welcome-sidebar-btn').classList.remove('hidden');
+            document.getElementById('bottom-sidebar-btn').classList.remove('hidden'); // إظهار الزر السفلي
             document.getElementById('chat-container').classList.add('hidden');
             document.getElementById('header-sidebar-btn').classList.add('hidden');
             document.getElementById('welcome-plane').classList.remove('animate-fly-away');
@@ -382,7 +388,7 @@
             currentState.messages = session.messages || [];
             
             document.getElementById('welcome-screen').classList.add('hidden-force');
-            document.getElementById('welcome-sidebar-btn').classList.add('hidden');
+            document.getElementById('bottom-sidebar-btn').classList.add('hidden'); // إخفاء الزر السفلي عند تحميل شات
             document.getElementById('chat-container').classList.remove('hidden');
             document.getElementById('header-sidebar-btn').classList.remove('hidden');
             document.getElementById('chat-container').innerHTML = '';
@@ -567,7 +573,7 @@
                 welcomePlane.classList.add('animate-fly-away');
                 setTimeout(() => {
                     document.getElementById('welcome-screen').classList.add('hidden-force');
-                    document.getElementById('welcome-sidebar-btn').classList.add('hidden');
+                    document.getElementById('bottom-sidebar-btn').classList.add('hidden'); // إخفاء الزر السفلي
                     document.getElementById('chat-container').classList.remove('hidden');
                     document.getElementById('chat-container').classList.add('fade-in');
                     document.getElementById('header-sidebar-btn').classList.remove('hidden');
