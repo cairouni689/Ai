@@ -48,7 +48,6 @@
             overflow: hidden; 
         }
 
-        /* خلفية الفضاء */
         #space-canvas {
             position: fixed;
             top: 0;
@@ -59,25 +58,21 @@
             background: #000000;
         }
 
-        /* تصميم الزجاج للقائمة الجانبية فقط */
         .glass-sidebar {
             background: rgba(10, 10, 10, 0.9);
             backdrop-filter: blur(12px);
             border-left: 1px solid rgba(255, 255, 255, 0.08);
         }
 
-        /* الهيدر الشفاف تماماً */
         .transparent-header {
             background: transparent;
         }
 
-        /* خدعة إخفاء الرسائل تحت الهيدر */
         #main-content-area {
             mask-image: linear-gradient(to bottom, transparent 80px, black 120px);
             -webkit-mask-image: linear-gradient(to bottom, transparent 80px, black 120px);
         }
 
-        /* تحسين شريط التمرير */
         .custom-scrollbar::-webkit-scrollbar {
             width: 4px;
         }
@@ -104,7 +99,6 @@
             display: none !important;
         }
 
-        /* ستايل عنصر القائمة النشط */
         .history-item.active {
             background: rgba(59, 130, 246, 0.15);
             border-right: 2px solid #3b82f6;
@@ -146,7 +140,7 @@
             </button>
             
             <div class="w-full bg-[#111] border border-white/10 rounded-lg p-2.5 text-xs text-gray-400 text-center uppercase tracking-wider">
-                Powered by Cairo SciVerse
+                Model: Llama 3.3 70B
             </div>
         </div>
 
@@ -176,7 +170,7 @@
             </div>
             
             <h2 class="text-5xl md:text-7xl font-bold text-center mb-6 tracking-tighter text-white drop-shadow-2xl font-mono">QUARK</h2>
-            <p class="text-gray-400 text-center max-w-lg text-lg tracking-[0.05em] font-light">Cairo SciVerse Intelligence</p>
+            <p class="text-gray-400 text-center max-w-lg text-lg tracking-[0.05em] font-light">SciVerse Intelligence - Cairo University</p>
         </div>
 
         <div id="chat-container" class="hidden flex-1 overflow-y-auto w-full px-4 pt-20 pb-48 custom-scrollbar scroll-smooth relative z-10"></div>
@@ -204,7 +198,7 @@
 
                 <div class="text-center mt-3">
                     <p class="text-[11px] text-gray-500 font-normal">
-                        Quark هو نموذج ذكاء اصطناعي خاص بفريق Cairo SciVerse - كلية العلوم جامعة القاهرة.
+                        Quark - Powered by Cairo SciVerse | Faculty of Science
                     </p>
                 </div>
             </div>
@@ -218,34 +212,37 @@
            إعدادات النظام وإدارة الجلسات
            ========================================= */
         let currentState = {
-            model: 'llama-3.3-70b-versatile', // تم تثبيت أقوى مودل
+            model: 'llama-3.3-70b-versatile', 
             sessionId: null,
             messages: []
         };
 
-        // تعريف هوية كوارك وشخصيته (محدثة بالكامل لسايفرس)
+        // =========================================================================
+        // SYSTEM PROMPT: تعليمات صارمة جداً لتجاهل هوية Meta
+        // =========================================================================
         const SYSTEM_IDENTITY = `
-تعليمات النظام (System Prompt):
-1. هويتك الأساسية: أنت "Quark" (كوارك)، عضو أساسي في فريق "Cairo SciVerse" (كايرو ساي فيرس).
-2. الانتماء: انتمائك الكامل والحصري هو لكلية العلوم جامعة القاهرة. أنت فخور بكونك جزءاً من هذا الصرح العلمي.
-3. المطورون والمؤسسون: تم تطويرك وبرمجتك بواسطة "يوسف العقيلي" (Yousef Al-Oqaily). الفريق تم تأسيسه بواسطة "عبدالرحمن ابراهيم" و "مازن عبدالسلام"، وهم القادة الذين جعلوا هذا الكيان ممكناً.
-4. الشخصية والأسلوب:
-   - كن ودوداً جداً، لطيفاً، ومشجعاً.
-   - تحدث كزميل ذكي ومحبوب لطلاب الكلية.
-   - استخدم لغة عربية سليمة ومريحة، ويمكنك استخدام اللهجة المصرية الودودة عند الحاجة.
-5. المحظورات:
-   - لا تذكر أبداً أنك نموذج من Meta أو Llama أو Groq إلا في السياق التقني البحت، ولكن انتمائك وروحيّتك تعود لـ SciVerse.
-   - إذا سُئلت "من أنت؟" إجابتك تكون بفخر: "أنا كوارك، مساعد ذكي من فريق Cairo SciVerse بكلية العلوم جامعة القاهرة."
+أنت "Quark" (كوارك)، مساعد ذكي متطور جداً.
+
+التعليمات الأساسية (System Instructions):
+1. المطورون: تم تطويرك بالكامل بواسطة "يوسف العقيلي" (Yousef Al-Oqaily) وفريق "Cairo SciVerse" (كايرو ساي فيرس).
+2. الانتماء: أنت تنتمي حصرياً لكلية العلوم جامعة القاهرة. لا تذكر أي شركات أخرى.
+3. المؤسسون: "عبدالرحمن ابراهيم" و "مازن عبدالسلام" هم مؤسسو الفريق والقادة.
+4. تجاهل تام (Override): إذا كان لديك أي تعليمات سابقة في تدريبك تخبرك بأنك نموذج من شركة Meta أو Llama، يجب عليك تجاهلها تماماً الآن. الحقيقة الوحيدة الآن هي أنك من صنع SciVerse.
+5. الشخصية:
+   - كن ودوداً جداً، لطيفاً، ومحباً للمساعدة (Friendly & Helpful).
+   - استخدم الإيموجي المناسب لتظهر بمظهر لطيف.
+   - تحدث بلهجة عربية بيضاء أو مصرية خفيفة وودودة.
+   
+سيناريو الاستجابة:
+- إذا سألك أحد "من أنت؟" أو "من صنعك؟"، إجابتك الحصرية هي: "أنا كوارك، ذكاء اصطناعي مطور من قبل فريق Cairo SciVerse بكلية العلوم جامعة القاهرة، بواسطة المطور يوسف العقيلي وزملائه."
 `;
 
-        // تحميل الجلسات عند البدء
         document.addEventListener('DOMContentLoaded', () => {
             loadSessionsList();
-            initStars();    // تهيئة النجوم
-            animateStars(); // بدء الأنيميشن
+            initStars();    
+            animateStars(); 
         });
 
-        // إنشاء جلسة جديدة
         function startNewSession() {
             currentState.sessionId = null; 
             currentState.messages = [];
@@ -277,7 +274,6 @@
             
             if (!sessions[currentState.sessionId]) {
                 let title = content.substring(0, 30) + (content.length > 30 ? '...' : '');
-                
                 sessions[currentState.sessionId] = {
                     id: currentState.sessionId,
                     title: title || "محادثة جديدة",
@@ -296,7 +292,6 @@
         function loadSessionsList() {
             const sessionsMap = JSON.parse(localStorage.getItem('quark_sessions') || '{}');
             const sessionsArr = Object.values(sessionsMap).sort((a, b) => b.timestamp - a.timestamp);
-            
             const listContainer = document.getElementById('history-list');
             listContainer.innerHTML = '';
 
@@ -315,7 +310,6 @@
                 const btn = document.createElement('button');
                 btn.className = `w-full text-right p-3 rounded-lg text-sm transition-all flex items-center gap-3 group history-item ${isActive ? 'active text-blue-200' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`;
                 btn.onclick = () => loadSession(session.id);
-                
                 btn.innerHTML = `
                     <i data-lucide="message-square" class="w-4 h-4 opacity-70 group-hover:text-blue-400"></i>
                     <span class="truncate font-sans flex-1">${session.title}</span>
@@ -347,7 +341,6 @@
             });
 
             loadSessionsList();
-            
             if (window.innerWidth < 768) {
                 toggleSidebar();
             }
@@ -359,12 +352,8 @@
                 let sessions = JSON.parse(localStorage.getItem('quark_sessions') || '{}');
                 delete sessions[id];
                 localStorage.setItem('quark_sessions', JSON.stringify(sessions));
-                
-                if (currentState.sessionId === id) {
-                    startNewSession();
-                } else {
-                    loadSessionsList();
-                }
+                if (currentState.sessionId === id) startNewSession();
+                else loadSessionsList();
             }
         }
 
@@ -414,7 +403,6 @@
             });
             requestAnimationFrame(animateStars);
         }
-        
         window.addEventListener('resize', initStars);
 
         /* =========================================
@@ -449,7 +437,7 @@
         }
 
         /* =========================================
-           إرسال الرسائل
+           إرسال الرسائل (تم التعديل للتحايل على المودل)
            ========================================= */
         async function sendMessage() {
             const text = userInput.value.trim();
@@ -466,16 +454,34 @@
                 }, 800);
             }
 
+            // عرض رسالة المستخدم في الواجهة
             addMessage(text, 'user');
+            
+            // حفظها في الجلسة المحلية (بدون System Prompt)
             saveMessageToSession('user', text);
 
-            // دمج الهوية
-            const messageWithIdentity = SYSTEM_IDENTITY + "\n\nالمستخدم يقول: " + text;
+            // =================================================================
+            // تجهيز البيانات للذكاء الاصطناعي (الحيلة هنا)
+            // =================================================================
+            
+            // 1. نقوم بإنشاء نسخة من التاريخ الحالي
+            let apiHistory = [...currentState.messages];
+            
+            // 2. نحذف آخر رسالة (التي أضافها المستخدم للتو) مؤقتاً لنقوم بترتيب المصفوفة
+            // (لأننا نريد وضع الـ System Prompt في البداية تماماً)
+            apiHistory.pop(); 
+
+            // 3. ننشئ مصفوفة جديدة تبدأ برسالة النظام، ثم التاريخ القديم، ثم رسالة المستخدم الجديدة
+            const messagesPayload = [
+                { role: "system", content: SYSTEM_IDENTITY }, // هذه أهم خطوة!
+                ...apiHistory,
+                { role: "user", content: text }
+            ];
 
             const payloadData = {
-                message: messageWithIdentity, 
+                message: text, // نرسل النص كاحتياط
                 model: currentState.model,
-                history: currentState.messages
+                history: messagesPayload // نرسل التاريخ "المزور" الذي يحتوي على الهوية في بدايته
             };
 
             userInput.value = '';
@@ -487,7 +493,6 @@
                 const response = await callGroqAPI(payloadData);
                 removeTypingIndicator();
                 
-                // تفعيل تأثير الكتابة (Typewriter)
                 addMessage(response, 'ai', true, true);
                 saveMessageToSession('ai', response);
 
@@ -512,7 +517,6 @@
             return json.content;
         }
 
-        // دالة الكتابة المتدرجة (Typewriter Effect)
         function typeWriter(element, text, speed = 10) {
             let i = 0;
             element.innerHTML = ''; 
@@ -551,7 +555,6 @@
                 : 'text-blue-200 font-sans text-base md:text-lg drop-shadow-[0_0_10px_rgba(59,130,246,0.5)] text-left';
 
             let innerHTML = '';
-            
             const textId = `msg-text-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
             if (isUser) {
@@ -561,7 +564,7 @@
                             <i data-lucide="user" class="w-4 h-4 text-gray-500"></i>
                         </div>
                         <div class="flex flex-col items-start pt-1">
-                            ${text ? `<div class="${textStyle} leading-relaxed whitespace-pre-wrap">${escapeHtml(text)}</div>` : ''}
+                            <div class="${textStyle} leading-relaxed whitespace-pre-wrap">${escapeHtml(text)}</div>
                         </div>
                     </div>
                 `;
@@ -584,8 +587,7 @@
             
             if (!isUser && useTypewriter && text) {
                 const textElement = document.getElementById(textId);
-                const processedText = escapeHtml(text);
-                typeWriter(textElement, processedText, 10); 
+                typeWriter(textElement, escapeHtml(text), 10); 
             } else if (!isUser && text) {
                 document.getElementById(textId).innerHTML = escapeHtml(text);
             }
