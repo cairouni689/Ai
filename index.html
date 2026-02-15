@@ -293,11 +293,9 @@
 
         // إنشاء جلسة جديدة
         function startNewSession() {
-            // التعديل هنا: جعل الـ sessionId فارغاً ليتم التعامل مع الرسالة التالية كبداية جديدة
             currentState.sessionId = null; 
             currentState.messages = [];
             
-            // إعادة ضبط الواجهة للشاشة الترحيبية
             document.getElementById('chat-container').innerHTML = '';
             document.getElementById('welcome-screen').classList.remove('hidden-force');
             document.getElementById('bottom-sidebar-btn').classList.remove('hidden'); // إظهار الزر السفلي
@@ -305,7 +303,6 @@
             document.getElementById('header-sidebar-btn').classList.add('hidden');
             document.getElementById('welcome-plane').classList.remove('animate-fly-away');
             
-            // تحديث القائمة الجانبية لإزالة التحديد من الجلسات السابقة
             loadSessionsList();
             
             if (window.innerWidth < 768) {
@@ -315,7 +312,6 @@
         }
 
         function saveMessageToSession(role, content, attachment = null) {
-            // توليد ID جديد إذا لم يكن موجوداً (وهذا يحدث عند إرسال أول رسالة في شات جديد)
             if (!currentState.sessionId) {
                 currentState.sessionId = Date.now().toString();
             }
@@ -610,20 +606,8 @@
         }
 
         async function callGroqAPI(data) {
-            const WORKER_URL = "YOUR_CLOUDFLARE_WORKER_URL_HERE"; 
+            const WORKER_URL = "https://quark-backend1.yousefgamed22.workers.dev"; 
             
-            if (WORKER_URL === "YOUR_CLOUDFLARE_WORKER_URL_HERE") {
-                return new Promise(resolve => {
-                    setTimeout(() => {
-                         if (data.attachment && data.attachment.type === 'image') {
-                            resolve(`أرى الصورة "${data.attachment.name}". تحليل ${data.model} جاري... (هذه محاكاة لأن الووركر غير مربوط).`);
-                        } else {
-                            resolve(`[محاكاة] الرد من الموديل ${data.model} على: "${data.message}"`);
-                        }
-                    }, 1500);
-                });
-            }
-
             const res = await fetch(WORKER_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
