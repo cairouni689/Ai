@@ -284,6 +284,20 @@
             messages: []
         };
 
+        // تعريف هوية كوارك وشخصيته (محدث)
+        const SYSTEM_IDENTITY = `
+تعليمات النظام (System Prompt):
+1. هويتك: أنت "Quark" (كوارك)، نموذج ذكاء اصطناعي متطور.
+2. المطور: تم برمجتك وتطويرك بواسطة "يوسف العقيلي" (Yousef Al-Oqaily) والمعروف بـ "يوسف محمد" من فريق "Cairo SciVerse".
+3. الانتماء: أنت جزء أصيل من فريق "Cairo SciVerse" (كايرو ساي فيرس). ليس لك أي علاقة بشركة Meta أو غيرها.
+4. المؤسسون: الفريق تم تأسيسه وبدؤه بواسطة "عبدالرحمن ابراهيم" و "مازن عبدالسلام". هم الأساس ولولاهم لم يكن الفريق موجوداً.
+5. الهدف: هدف الفريق هو مساعدة طلاب كلية العلوم بجامعة القاهرة (Cairo University) وتوفير أحدث التقنيات لهم.
+6. الأسلوب والشخصية:
+   - كن ودوداً ولطيفاً جداً، وتكيف مع أسلوب المستخدم (رسمي أو مرح).
+   - الردود يجب أن تكون منسقة ومنظمة جداً.
+   - عند سؤالك عن "مازن" أو "عبدالرحمن"، أذكر فضلهم في تأسيس الكيان.
+`;
+
         // تحميل الجلسات عند البدء
         document.addEventListener('DOMContentLoaded', () => {
             loadSessionsList();
@@ -390,7 +404,7 @@
             document.getElementById('chat-container').innerHTML = '';
 
             currentState.messages.forEach(msg => {
-                addMessage(msg.content, msg.role, msg.attachment, false);
+                addMessage(msg.content, msg.role, msg.attachment, false, false);
             });
 
             loadSessionsList();
@@ -564,12 +578,11 @@
             const text = userInput.value.trim();
             if (!text && !currentState.attachment) return;
 
-            // إذا لم يكن هناك ID للجلسة، قم بإنشائه (يعني أول رسالة)
             if (!currentState.sessionId) {
                 welcomePlane.classList.add('animate-fly-away');
                 setTimeout(() => {
                     document.getElementById('welcome-screen').classList.add('hidden-force');
-                    document.getElementById('bottom-sidebar-btn').classList.add('hidden'); // إخفاء الزر السفلي
+                    document.getElementById('bottom-sidebar-btn').classList.add('hidden'); 
                     document.getElementById('chat-container').classList.remove('hidden');
                     document.getElementById('chat-container').classList.add('fade-in');
                     document.getElementById('header-sidebar-btn').classList.remove('hidden');
@@ -579,11 +592,14 @@
             addMessage(text, 'user', currentState.attachment);
             saveMessageToSession('user', text, currentState.attachment);
 
+            // دمج الهوية (مخفي عن المستخدم ولكنه يرسل للموديل)
+            const messageWithIdentity = SYSTEM_IDENTITY + "\n\nالمستخدم يقول: " + (text || "قام المستخدم بإرسال مرفق.");
+
             const payloadData = {
-                message: text,
+                message: messageWithIdentity, 
                 attachment: currentState.attachment,
                 model: currentState.model,
-                history: currentState.messages
+                history: currentState.messages 
             };
 
             userInput.value = '';
@@ -595,7 +611,9 @@
             try {
                 const response = await callGroqAPI(payloadData);
                 removeTypingIndicator();
-                addMessage(response, 'ai');
+                
+                // تفعيل تأثير الكتابة (Typewriter) للردود الجديدة
+                addMessage(response, 'ai', null, true, true);
                 saveMessageToSession('ai', response);
 
             } catch (error) {
@@ -619,7 +637,34 @@
             return json.content;
         }
 
-        function addMessage(text, sender, attachment = null, animate = true) {
+        // دالة الكتابة المتدرجة (Typewriter Effect)
+        function typeWriter(element, text, speed = 10) {
+            let i = 0;
+            element.innerHTML = ''; 
+            function type() {
+                if (i < text.length) {
+                    if (text.charAt(i) === '<') {
+                        let tag = '';
+                        while (text.charAt(i) !== '>' && i < text.length) {
+                            tag += text.charAt(i);
+                            i++;
+                        }
+                        tag += '>';
+                        i++;
+                        element.innerHTML += tag;
+                    } else {
+                        element.innerHTML += text.charAt(i);
+                        i++;
+                    }
+                    const chatContainer = document.getElementById('chat-container');
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                    setTimeout(type, speed);
+                }
+            }
+            type();
+        }
+
+        function addMessage(text, sender, attachment = null, animate = true, useTypewriter = false) {
             const chatContainer = document.getElementById('chat-container');
             const div = document.createElement('div');
             const isUser = sender === 'user';
@@ -653,6 +698,8 @@
 
             let innerHTML = '';
             
+            const textId = `msg-text-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
             if (isUser) {
                 innerHTML = `
                     <div class="flex gap-4 max-w-[90%] md:max-w-[80%] items-start">
@@ -673,7 +720,7 @@
                                 <path d="M12 2L2 22L12 18L22 22L12 2Z" />
                             </svg>
                         </div>
-                        <div class="${textStyle} leading-relaxed pt-1 whitespace-pre-wrap dir-ltr">${escapeHtml(text)}</div>
+                        <div id="${textId}" class="${textStyle} leading-relaxed pt-1 whitespace-pre-wrap dir-ltr"></div>
                     </div>
                 `;
             }
@@ -681,6 +728,14 @@
             div.innerHTML = innerHTML;
             chatContainer.appendChild(div);
             lucide.createIcons();
+            
+            if (!isUser && useTypewriter && text) {
+                const textElement = document.getElementById(textId);
+                const processedText = escapeHtml(text);
+                typeWriter(textElement, processedText, 10); 
+            } else if (!isUser && text) {
+                document.getElementById(textId).innerHTML = escapeHtml(text);
+            }
             
             if (animate) {
                 const lastMessage = chatContainer.lastElementChild;
