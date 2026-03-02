@@ -124,15 +124,10 @@
         .markdown-content li { margin-bottom: 0.25em; }
         
         .markdown-content pre {
-            background-color: #1e1e1e !important; 
-            border-radius: 0.5rem; 
             padding: 1rem; 
-            margin-bottom: 1em;
             overflow-x: auto; 
             direction: ltr; 
             text-align: left;
-            border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.8);
         }
         .markdown-content pre code {
             font-family: 'Consolas', 'Courier New', Courier, monospace; 
@@ -273,12 +268,31 @@
     <script>
         lucide.createIcons();
 
+        // دالة تنظيف النص قبل وضعه في الـ HTML
+        function escapeHtmlText(text) {
+            if (!text) return '';
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        // إعدادات مكتبة Marked لتمكين دعم الـ Syntax Highlighting وتعديل شكل الكود البرمجي
+        const renderer = new marked.Renderer();
+        renderer.code = function(code, language) {
+            const validLang = highlight.getLanguage(language) ? language : 'plaintext';
+            // إضافة بوكس الكود البرمجي مع زر النسخ في الأعلى
+            return `
+            <div class="code-wrapper relative mt-4 mb-4 rounded-lg overflow-hidden border border-white/10 shadow-[0_10px_25px_rgba(0,0,0,0.8)]">
+                <div class="flex items-center justify-between px-4 py-2 bg-[#252526] text-xs text-gray-400 font-mono border-b border-white/5">
+                    <span>${validLang}</span>
+                    <button onclick="copyCode(this)" class="hover:text-white transition-colors flex items-center gap-1.5 bg-transparent border-none cursor-pointer text-gray-400">
+                        <i data-lucide="copy" class="w-3 h-3"></i> نسخ
+                    </button>
+                </div>
+                <pre class="!m-0 !rounded-none !border-none !shadow-none !bg-[#1e1e1e]"><code class="hljs language-${validLang}">${escapeHtmlText(code)}</code></pre>
+            </div>`;
+        };
+
         marked.setOptions({
-            highlight: function(code, lang) {
-                const language = highlight.getLanguage(lang) ? lang : 'plaintext';
-                return highlight.highlight(code, { language }).value;
-            },
-            langPrefix: 'hljs language-'
+            renderer: renderer,
         });
 
         /* =========================================
@@ -289,7 +303,6 @@
             messages: []
         };
 
-        // متغيرات للتحكم في الإيقاف والتشغيل
         let isGenerating = false;
         let currentAbortController = null;
         let stopTypingFlag = false;
@@ -299,7 +312,7 @@
 
 التعليمات الأساسية والصارمة:
 1. المطورون: تم تصميمك وتطويرك بالكامل بواسطة المبرمج العبقري "يوسف العقيلي" وفريق "Cairo SciVerse".
-2. الانتماء: أنت تنتمي حصرياً لكلية العلوم جامعة القاهرة. لا تذكر أبداً أي علاقة بشركات أخرى (مثل جوجل، ميتا، أوبن إي آي). أنت كيان مستقل وخاص بفريق Cairo SciVerse.
+2. الانتماء: أنت تنتمي حصرياً لكلية العلوم جامعة القاهرة. لا تذكر أبداً أي علاقة بشركات أخرى.
 3. المؤسسون: "عبدالرحمن ابراهيم" و "مازن عبدالسلام" هم مؤسسو الفريق.
 4. أسلوب الرد:
    - يجب أن تكون ردودك عملية جداً، دقيقة، مفصلة، ومرتبة.
@@ -334,7 +347,6 @@
             }
         }
 
-        // حفظ وحمل الجلسات
         function saveMessageToSession(role, content) {
             if (!currentState.sessionId) currentState.sessionId = Date.now().toString();
             currentState.messages.push({ role, content, timestamp: Date.now() });
@@ -442,7 +454,7 @@
         window.addEventListener('resize', initStars);
 
         /* =========================================
-           إدارة الواجهة والمدخلات
+           إدارة الواجهة والمدخلات والنسخ
            ========================================= */
         const userInput = document.getElementById('user-input');
         const welcomePlane = document.getElementById('welcome-plane');
@@ -469,13 +481,53 @@
             }
         }
 
+        // وظائف الأزرار الخاصة بنسخ الأكواد والردود والتفاعل
+        function copyCode(btn) {
+            const codeBlock = btn.closest('.code-wrapper').querySelector('code');
+            if (codeBlock) {
+                navigator.clipboard.writeText(codeBlock.innerText);
+                const originalHTML = btn.innerHTML;
+                btn.innerHTML = '<i data-lucide="check" class="w-3 h-3 text-green-400"></i> تم';
+                lucide.createIcons();
+                setTimeout(() => { btn.innerHTML = originalHTML; lucide.createIcons(); }, 2000);
+            }
+        }
+
+        function copyMessage(btn) {
+            const actionsDiv = btn.closest('.message-actions');
+            const rawText = actionsDiv.getAttribute('data-raw-text');
+            if (rawText) {
+                navigator.clipboard.writeText(rawText);
+                const icon = btn.querySelector('i');
+                icon.setAttribute('data-lucide', 'check');
+                icon.classList.add('text-green-400');
+                lucide.createIcons();
+                setTimeout(() => {
+                    icon.setAttribute('data-lucide', 'copy');
+                    icon.classList.remove('text-green-400');
+                    lucide.createIcons();
+                }, 2000);
+            }
+        }
+
+        function likeMessage(btn) {
+            const icon = btn.querySelector('i');
+            icon.classList.toggle('fill-current');
+            icon.classList.toggle('text-green-400');
+        }
+
+        function dislikeMessage(btn) {
+            const icon = btn.querySelector('i');
+            icon.classList.toggle('fill-current');
+            icon.classList.toggle('text-red-400');
+        }
+
         /* =========================================
            تغيير حالة زر الإرسال (Send / Stop)
            ========================================= */
         function toggleSendButtonState(generating) {
             const btn = document.getElementById('send-btn');
             if (generating) {
-                // شكل زر التوقف والدايرة اللي بتلف
                 btn.innerHTML = `
                     <div class="relative flex items-center justify-center w-6 h-6">
                         <div class="absolute inset-0 border-[2.5px] border-white/30 border-t-white rounded-full animate-spin"></div>
@@ -485,7 +537,6 @@
                 btn.classList.remove('bg-blue-600', 'hover:bg-blue-500');
                 btn.classList.add('bg-red-500', 'hover:bg-red-600');
             } else {
-                // شكل زر الإرسال الأفقي
                 btn.innerHTML = `<i data-lucide="send-horizontal" class="w-5 h-5 transform rotate-180"></i>`;
                 btn.classList.remove('bg-red-500', 'hover:bg-red-600');
                 btn.classList.add('bg-blue-600', 'hover:bg-blue-500');
@@ -493,7 +544,6 @@
             }
         }
 
-        // إيقاف الرد يدوياً
         function stopGeneration() {
             if (currentAbortController) currentAbortController.abort();
             stopTypingFlag = true;
@@ -506,7 +556,6 @@
            إرسال الرسائل
            ========================================= */
         async function sendMessage() {
-            // لو شغال وبيدوس على الزرار، يبقى عايز يوقف
             if (isGenerating) {
                 stopGeneration();
                 return;
@@ -541,7 +590,6 @@
             userInput.value = '';
             userInput.style.height = 'auto';
 
-            // تفعيل حالة التحميل
             isGenerating = true;
             stopTypingFlag = false;
             toggleSendButtonState(true);
@@ -555,9 +603,7 @@
                 addMessage(response, 'ai', true);
             } catch (error) {
                 removeTypingIndicator();
-                if (error.name === 'AbortError') {
-                    // تم الإيقاف يدوياً من المستخدم، لا نفعل شيء
-                } else {
+                if (error.name !== 'AbortError') {
                     addMessage("عذراً، حدث خطأ في الاتصال بالشبكة العصبية لكوارك. يرجى التأكد من إعدادات الـ Worker.", 'ai', true);
                     isGenerating = false;
                     toggleSendButtonState(false);
@@ -582,7 +628,7 @@
         }
 
         /* =========================================
-           إضافة الرسائل والكتابة التدريجية والاسكرول
+           إضافة الرسائل والكتابة التدريجية
            ========================================= */
         function addMessage(text, sender, animate = true) {
             const chatContainer = document.getElementById('chat-container');
@@ -593,7 +639,7 @@
             
             const textStyle = isUser 
                 ? 'text-gray-200 font-sans text-base md:text-lg text-left' 
-                : 'markdown-content text-blue-100 font-sans text-base md:text-lg text-right w-full';
+                : 'markdown-content text-blue-100 font-sans text-base md:text-lg text-right w-full flex flex-col';
 
             const textId = `msg-text-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
@@ -604,7 +650,7 @@
                             <i data-lucide="user" class="w-4 h-4 text-gray-500"></i>
                         </div>
                         <div class="flex flex-col items-end pt-1">
-                            <div class="${textStyle} bg-white/5 border border-white/10 rounded-2xl p-4 shadow-lg leading-relaxed whitespace-pre-wrap">${escapeHtml(text)}</div>
+                            <div class="${textStyle} bg-white/5 border border-white/10 rounded-2xl p-4 shadow-lg leading-relaxed whitespace-pre-wrap">${escapeHtmlText(text)}</div>
                         </div>
                     </div>
                 `;
@@ -612,10 +658,25 @@
                 lucide.createIcons();
                 if (animate) div.scrollIntoView({ behavior: 'smooth', block: 'end' });
             } else {
-                const parsedText = marked.parse(text);
+                let parsedText = marked.parse(text);
+                
+                // إضافة شريط الأزرار (نسخ، إعجاب، ديس لايك) في نهاية الرد
+                parsedText += `
+                <div class="message-actions mt-4 pt-3 border-t border-white/10 flex items-center gap-3 opacity-0 transition-opacity duration-500 justify-end w-full dir-rtl" data-raw-text="${escapeHtmlText(text)}">
+                    <button onclick="copyMessage(this)" class="p-1.5 hover:bg-white/10 rounded-md text-gray-400 hover:text-white transition-all flex items-center gap-1.5 text-xs" title="نسخ الرد بالكامل">
+                        <i data-lucide="copy" class="w-4 h-4"></i> نسخ الرد
+                    </button>
+                    <div class="flex-1"></div>
+                    <button onclick="likeMessage(this)" class="p-1.5 hover:bg-white/10 rounded-md text-gray-400 hover:text-green-400 transition-all" title="إعجاب">
+                        <i data-lucide="thumbs-up" class="w-4 h-4"></i>
+                    </button>
+                    <button onclick="dislikeMessage(this)" class="p-1.5 hover:bg-white/10 rounded-md text-gray-400 hover:text-red-400 transition-all" title="لم يعجبني">
+                        <i data-lucide="thumbs-down" class="w-4 h-4"></i>
+                    </button>
+                </div>`;
                 
                 div.innerHTML = `
-                    <div class="flex gap-4 max-w-[95%] md:max-w-[85%] items-start">
+                    <div class="flex gap-4 max-w-[95%] md:max-w-[85%] items-start w-full">
                         <div class="w-8 h-8 flex items-center justify-center shrink-0 mt-1">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-8 h-8 text-blue-500 drop-shadow-[0_0_10px_rgba(59,130,246,0.8)]">
                                 <path d="M12 2L2 22L12 18L22 22L12 2Z" />
@@ -634,6 +695,7 @@
                 } else {
                     targetDiv.innerHTML = parsedText;
                     targetDiv.querySelectorAll('pre code').forEach((block) => hljs.highlightElement(block));
+                    targetDiv.querySelector('.message-actions').classList.remove('opacity-0');
                     if (animate) div.scrollIntoView({ behavior: 'smooth', block: 'end' });
                 }
             }
@@ -647,51 +709,58 @@
             tempDiv.innerHTML = html;
             
             async function processNode(node, target) {
-                if (stopTypingFlag) return; // الخروج لو المستخدم عمل إيقاف
+                if (stopTypingFlag) return;
 
                 if (node.nodeType === Node.TEXT_NODE) {
                     let text = node.textContent;
                     for (let i = 0; i < text.length; i++) {
                         if (stopTypingFlag) break; 
                         
-                        // الاسكرول الذكي: بنشوف هل المستخدم تحت خالص ولا عمل سكرول لفوق؟
                         const isAtBottom = scrollContainer.scrollHeight - scrollContainer.scrollTop <= scrollContainer.clientHeight + 100;
-                        
                         target.appendChild(document.createTextNode(text[i]));
-                        
-                        // لو المستخدم تحت، ننزله مع الكتابة.. لو طلع يقرا فوق، نسيبه براحته
                         if (isAtBottom) scrollContainer.scrollTop = scrollContainer.scrollHeight;
                         
                         await new Promise(r => setTimeout(r, 10)); 
                     }
                 } else if (node.nodeType === Node.ELEMENT_NODE) {
+                    // إذا كان العنصر هو شريط الأزرار أو زر النسخ العادي، ضعه فوراً دون كتابة
+                    if (node.tagName === 'BUTTON' || (node.classList && node.classList.contains('message-actions'))) {
+                        let clone = node.cloneNode(true);
+                        target.appendChild(clone);
+                        return;
+                    }
+
                     let clone = node.cloneNode(false);
                     target.appendChild(clone);
                     
+                    for (let child of node.childNodes) {
+                        if (stopTypingFlag) break;
+                        await processNode(child, clone);
+                    }
+                    
+                    // تلوين الكود البرمجي بعد انتهاء كتابته
                     if (node.tagName === 'PRE') {
-                        clone.innerHTML = node.innerHTML; 
                         let codeBlock = clone.querySelector('code');
                         if(codeBlock) hljs.highlightElement(codeBlock);
                         
                         const isAtBottom = scrollContainer.scrollHeight - scrollContainer.scrollTop <= scrollContainer.clientHeight + 150;
                         if (isAtBottom) scrollContainer.scrollTop = scrollContainer.scrollHeight;
-                        
-                        await new Promise(r => setTimeout(r, 80)); 
-                    } else {
-                        for (let child of node.childNodes) {
-                            if (stopTypingFlag) break;
-                            await processNode(child, clone);
-                        }
                     }
                 }
             }
             
             await processNode(tempDiv, element);
             
-            // إنهاء الكتابة وحفظ الرد
             element.classList.remove('typing-cursor');
             if(!stopTypingFlag) saveMessageToSession('ai', originalText);
             
+            // إظهار أزرار التفاعل السفلية في النهاية بـ Animation
+            const actionsDiv = element.querySelector('.message-actions');
+            if (actionsDiv) {
+                setTimeout(() => actionsDiv.classList.remove('opacity-0'), 100);
+            }
+            lucide.createIcons();
+
             isGenerating = false;
             toggleSendButtonState(false);
         }
@@ -721,11 +790,6 @@
         function removeTypingIndicator() {
             const indicator = document.getElementById('typing-indicator');
             if (indicator) indicator.remove();
-        }
-
-        function escapeHtml(text) {
-            if (!text) return '';
-            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
         }
     </script>
 </body>
