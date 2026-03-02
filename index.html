@@ -106,10 +106,12 @@
             border-right: 2px solid #3b82f6;
         }
 
-        /* تنسيقات الـ Markdown الخرافية لردود المساعد */
         .markdown-content {
-            line-height: 1.7;
-            font-size: 1rem;
+            line-height: 1.8;
+            font-size: 1.05rem;
+        }
+        .markdown-content p, .markdown-content li, .markdown-content h1, .markdown-content h2, .markdown-content h3 {
+            text-shadow: 0 0 8px rgba(96, 165, 250, 0.3);
         }
         .markdown-content p { margin-bottom: 1em; }
         .markdown-content h1, .markdown-content h2, .markdown-content h3 {
@@ -120,17 +122,32 @@
         .markdown-content ul { list-style-type: disc; margin-right: 1.5em; margin-bottom: 1em; }
         .markdown-content ol { list-style-type: decimal; margin-right: 1.5em; margin-bottom: 1em; }
         .markdown-content li { margin-bottom: 0.25em; }
+        
         .markdown-content pre {
-            background-color: #1e1e1e; border-radius: 0.5rem; padding: 1rem; margin-bottom: 1em;
-            overflow-x: auto; direction: ltr; text-align: left;
+            background-color: #1e1e1e !important; 
+            border-radius: 0.5rem; 
+            padding: 1rem; 
+            margin-bottom: 1em;
+            overflow-x: auto; 
+            direction: ltr; 
+            text-align: left;
             border: 1px solid rgba(255,255,255,0.1);
-        }
-        .markdown-content code {
-            font-family: 'Courier New', Courier, monospace; background-color: rgba(255,255,255,0.1);
-            padding: 0.1em 0.3em; border-radius: 0.25rem; font-size: 0.9em;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.8);
         }
         .markdown-content pre code {
-            background-color: transparent; padding: 0; border-radius: 0;
+            font-family: 'Consolas', 'Courier New', Courier, monospace; 
+            background-color: transparent; 
+            padding: 0; 
+            border-radius: 0;
+            text-shadow: none !important; 
+        }
+        .markdown-content code {
+            font-family: 'Consolas', 'Courier New', Courier, monospace; 
+            background-color: rgba(255,255,255,0.1);
+            padding: 0.1em 0.3em; 
+            border-radius: 0.25rem; 
+            font-size: 0.9em;
+            text-shadow: none !important;
         }
         .markdown-content table {
             width: 100%; border-collapse: collapse; margin-bottom: 1em;
@@ -141,7 +158,20 @@
         .markdown-content th { background-color: rgba(59, 130, 246, 0.2); }
         .markdown-content blockquote {
             border-right: 4px solid #3b82f6; padding-right: 1em; margin-bottom: 1em; color: #9ca3af;
+            background: rgba(255, 255, 255, 0.02);
+            padding: 0.5rem 1rem;
+            border-radius: 0.25rem;
         }
+        
+        .typing-cursor::after {
+            content: '▋';
+            display: inline-block;
+            margin-right: 4px;
+            animation: blink 1s step-end infinite;
+            color: #60a5fa;
+            text-shadow: 0 0 10px #60a5fa;
+        }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
     </style>
 </head>
 <body class="h-screen flex flex-col font-sans selection:bg-quark-primary selection:text-white">
@@ -177,11 +207,6 @@
             <button onclick="startNewSession()" class="w-full py-2.5 mb-4 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 rounded-lg text-sm flex items-center justify-center gap-2 transition-all text-blue-200 hover:text-white shadow-[0_0_10px_rgba(37,99,235,0.1)]">
                 <i data-lucide="plus" class="w-4 h-4"></i> شات جديد
             </button>
-            
-            <div class="w-full bg-[#111] border border-white/10 rounded-lg p-2.5 text-xs text-gray-400 text-center uppercase tracking-wider flex flex-col gap-1">
-                <span>Model: Gemini 2.5 Flash</span>
-                <span class="text-[9px] text-blue-400">Powered by Google AI</span>
-            </div>
         </div>
 
         <div class="p-2 bg-black/50 text-[10px] text-gray-500 uppercase tracking-widest text-center py-1">Mission Log</div>
@@ -231,8 +256,8 @@
 
                     <textarea id="user-input" rows="1" class="flex-1 bg-transparent border-none focus:ring-0 text-white placeholder-gray-500 resize-none py-3 px-3 max-h-32 text-base leading-relaxed font-sans" placeholder="تحدث مع كوارك..."></textarea>
 
-                    <button onclick="sendMessage()" id="send-btn" class="p-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-full shadow-lg transition-all transform hover:scale-105 disabled:opacity-50 flex items-center justify-center ml-1">
-                        <i data-lucide="send" class="w-5 h-5 transform rotate-180 -translate-x-0.5"></i>
+                    <button onclick="sendMessage()" id="send-btn" class="p-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-full shadow-lg transition-all flex items-center justify-center ml-1 w-11 h-11 shrink-0">
+                        <i data-lucide="send-horizontal" class="w-5 h-5 transform rotate-180"></i>
                     </button>
                 </div>
 
@@ -248,7 +273,6 @@
     <script>
         lucide.createIcons();
 
-        // إعدادات مكتبة Marked لتمكين دعم الـ Syntax Highlighting
         marked.setOptions({
             highlight: function(code, lang) {
                 const language = highlight.getLanguage(lang) ? lang : 'plaintext';
@@ -258,16 +282,18 @@
         });
 
         /* =========================================
-           إعدادات النظام وإدارة الجلسات
+           إعدادات النظام، الجلسات وحالة الرد
            ========================================= */
         let currentState = {
             sessionId: null,
             messages: []
         };
 
-        // =========================================================================
-        // SYSTEM PROMPT: الهوية الأسطورية لكوارك
-        // =========================================================================
+        // متغيرات للتحكم في الإيقاف والتشغيل
+        let isGenerating = false;
+        let currentAbortController = null;
+        let stopTypingFlag = false;
+
         const SYSTEM_IDENTITY = `
 أنت "Quark" (كوارك)، مساعد ذكي وأسطوري متطور جداً.
 
@@ -277,8 +303,8 @@
 3. المؤسسون: "عبدالرحمن ابراهيم" و "مازن عبدالسلام" هم مؤسسو الفريق.
 4. أسلوب الرد:
    - يجب أن تكون ردودك عملية جداً، دقيقة، مفصلة، ومرتبة.
-   - استخدم دائماً تنسيق الماركداون (Markdown) لتنظيم إجاباتك: استخدم العناوين العريضة (Headers)، القوائم (Lists)، الجداول (Tables)، والأكواد البرمجية (Code Blocks) عند الشرح.
-   - تحدث بأسلوب احترافي جداً وودود في نفس الوقت. يمكنك استخدام بعض المصطلحات المصرية الخفيفة لتبدو قريباً من الطلاب، ولكن حافظ على الرقي الأكاديمي.
+   - استخدم دائماً تنسيق الماركداون (Markdown) لتنظيم إجاباتك.
+   - تحدث بأسلوب احترافي جداً وودود في نفس الوقت.
 5. إذا سألك المستخدم "من أنت؟" أو "من صنعك؟": قل بكل فخر أنك كوارك، المساعد الذكي الخاص بكلية العلوم جامعة القاهرة، من برمجة وتطوير يوسف العقيلي وفريق Cairo SciVerse.
 `;
 
@@ -289,6 +315,7 @@
         });
 
         function startNewSession() {
+            if (isGenerating) stopGeneration();
             currentState.sessionId = null; 
             currentState.messages = [];
             
@@ -307,29 +334,18 @@
             }
         }
 
+        // حفظ وحمل الجلسات
         function saveMessageToSession(role, content) {
-            if (!currentState.sessionId) {
-                currentState.sessionId = Date.now().toString();
-            }
-
-            const msgObj = { role, content, timestamp: Date.now() };
-            currentState.messages.push(msgObj);
+            if (!currentState.sessionId) currentState.sessionId = Date.now().toString();
+            currentState.messages.push({ role, content, timestamp: Date.now() });
 
             let sessions = JSON.parse(localStorage.getItem('quark_sessions') || '{}');
-            
             if (!sessions[currentState.sessionId]) {
                 let title = content.substring(0, 30) + (content.length > 30 ? '...' : '');
-                sessions[currentState.sessionId] = {
-                    id: currentState.sessionId,
-                    title: title || "محادثة جديدة",
-                    timestamp: Date.now(),
-                    messages: []
-                };
+                sessions[currentState.sessionId] = { id: currentState.sessionId, title: title || "محادثة جديدة", timestamp: Date.now(), messages: [] };
             }
-            
             sessions[currentState.sessionId].messages = currentState.messages;
             sessions[currentState.sessionId].timestamp = Date.now();
-
             localStorage.setItem('quark_sessions', JSON.stringify(sessions));
             loadSessionsList();
         }
@@ -341,12 +357,7 @@
             listContainer.innerHTML = '';
 
             if (sessionsArr.length === 0) {
-                listContainer.innerHTML = `
-                    <div class="flex flex-col items-center justify-center h-20 text-gray-600 gap-2 mt-4">
-                        <i data-lucide="radar" class="w-6 h-6 opacity-40"></i>
-                        <span class="text-xs font-mono">NO DATA</span>
-                    </div>
-                `;
+                listContainer.innerHTML = `<div class="flex flex-col items-center justify-center h-20 text-gray-600 gap-2 mt-4"><i data-lucide="radar" class="w-6 h-6 opacity-40"></i><span class="text-xs font-mono">NO DATA</span></div>`;
                 return;
             }
 
@@ -358,9 +369,7 @@
                 btn.innerHTML = `
                     <i data-lucide="message-square" class="w-4 h-4 opacity-70 group-hover:text-blue-400"></i>
                     <span class="truncate font-sans flex-1">${session.title}</span>
-                    <button onclick="deleteSession(event, '${session.id}')" class="opacity-0 group-hover:opacity-100 p-1 hover:text-red-400 transition-opacity">
-                        <i data-lucide="trash-2" class="w-3 h-3"></i>
-                    </button>
+                    <button onclick="deleteSession(event, '${session.id}')" class="opacity-0 group-hover:opacity-100 p-1 hover:text-red-400 transition-opacity"><i data-lucide="trash-2" class="w-3 h-3"></i></button>
                 `;
                 listContainer.appendChild(btn);
             });
@@ -368,6 +377,7 @@
         }
 
         function loadSession(id) {
+            if (isGenerating) stopGeneration();
             const sessions = JSON.parse(localStorage.getItem('quark_sessions') || '{}');
             const session = sessions[id];
             if (!session) return;
@@ -381,14 +391,10 @@
             document.getElementById('header-sidebar-btn').classList.remove('hidden');
             document.getElementById('chat-container').innerHTML = '';
 
-            currentState.messages.forEach(msg => {
-                addMessage(msg.content, msg.role, false);
-            });
+            currentState.messages.forEach(msg => addMessage(msg.content, msg.role, false));
 
             loadSessionsList();
-            if (window.innerWidth < 768) {
-                toggleSidebar();
-            }
+            if (window.innerWidth < 768) toggleSidebar();
         }
 
         function deleteSession(e, id) {
@@ -411,40 +417,25 @@
         let stars = [];
 
         function initStars() {
-            width = window.innerWidth;
-            height = window.innerHeight;
-            canvas.width = width;
-            canvas.height = height;
+            width = window.innerWidth; height = window.innerHeight;
+            canvas.width = width; canvas.height = height;
             stars = [];
             const count = Math.floor((width * height) / 9000); 
             for (let i = 0; i < count; i++) {
-                stars.push({
-                    x: Math.random() * width,
-                    y: Math.random() * height,
-                    radius: Math.random() * 1.5 + 0.5,
-                    vx: (Math.random() - 0.5) * 0.15,
-                    vy: (Math.random() - 0.5) * 0.15,
-                    alpha: Math.random() * 0.6 + 0.2,
-                    dAlpha: (Math.random() - 0.5) * 0.005
-                });
+                stars.push({ x: Math.random() * width, y: Math.random() * height, radius: Math.random() * 1.5 + 0.5, vx: (Math.random() - 0.5) * 0.15, vy: (Math.random() - 0.5) * 0.15, alpha: Math.random() * 0.6 + 0.2, dAlpha: (Math.random() - 0.5) * 0.005 });
             }
         }
 
         function animateStars() {
             ctx.clearRect(0, 0, width, height);
             stars.forEach(star => {
-                star.x += star.vx;
-                star.y += star.vy;
-                if (star.x < 0) star.x = width;
-                if (star.x > width) star.x = 0;
-                if (star.y < 0) star.y = height;
-                if (star.y > height) star.y = 0;
+                star.x += star.vx; star.y += star.vy;
+                if (star.x < 0) star.x = width; if (star.x > width) star.x = 0;
+                if (star.y < 0) star.y = height; if (star.y > height) star.y = 0;
                 star.alpha += star.dAlpha;
                 if (star.alpha <= 0.1 || star.alpha >= 0.8) star.dAlpha *= -1;
-                ctx.beginPath();
-                ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(255, 255, 255, ${star.alpha})`;
-                ctx.fill();
+                ctx.beginPath(); ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${star.alpha})`; ctx.fill();
             });
             requestAnimationFrame(animateStars);
         }
@@ -471,20 +462,56 @@
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebar-overlay');
-            const isClosed = sidebar.classList.contains('translate-x-full');
-            if (isClosed) {
-                sidebar.classList.remove('translate-x-full');
-                overlay.classList.remove('hidden');
+            if (sidebar.classList.contains('translate-x-full')) {
+                sidebar.classList.remove('translate-x-full'); overlay.classList.remove('hidden');
             } else {
-                sidebar.classList.add('translate-x-full');
-                overlay.classList.add('hidden');
+                sidebar.classList.add('translate-x-full'); overlay.classList.add('hidden');
             }
         }
 
         /* =========================================
-           إرسال الرسائل لـ Gemini API عبر Worker
+           تغيير حالة زر الإرسال (Send / Stop)
+           ========================================= */
+        function toggleSendButtonState(generating) {
+            const btn = document.getElementById('send-btn');
+            if (generating) {
+                // شكل زر التوقف والدايرة اللي بتلف
+                btn.innerHTML = `
+                    <div class="relative flex items-center justify-center w-6 h-6">
+                        <div class="absolute inset-0 border-[2.5px] border-white/30 border-t-white rounded-full animate-spin"></div>
+                        <div class="w-2 h-2 bg-white rounded-[2px]"></div>
+                    </div>
+                `;
+                btn.classList.remove('bg-blue-600', 'hover:bg-blue-500');
+                btn.classList.add('bg-red-500', 'hover:bg-red-600');
+            } else {
+                // شكل زر الإرسال الأفقي
+                btn.innerHTML = `<i data-lucide="send-horizontal" class="w-5 h-5 transform rotate-180"></i>`;
+                btn.classList.remove('bg-red-500', 'hover:bg-red-600');
+                btn.classList.add('bg-blue-600', 'hover:bg-blue-500');
+                lucide.createIcons();
+            }
+        }
+
+        // إيقاف الرد يدوياً
+        function stopGeneration() {
+            if (currentAbortController) currentAbortController.abort();
+            stopTypingFlag = true;
+            isGenerating = false;
+            toggleSendButtonState(false);
+            removeTypingIndicator();
+        }
+
+        /* =========================================
+           إرسال الرسائل
            ========================================= */
         async function sendMessage() {
+            // لو شغال وبيدوس على الزرار، يبقى عايز يوقف
+            if (isGenerating) {
+                stopGeneration();
+                return;
+            }
+
             const text = userInput.value.trim();
             if (!text) return;
 
@@ -502,11 +529,9 @@
             addMessage(text, 'user');
             saveMessageToSession('user', text);
 
-            // نأخذ التاريخ نظيف بدون الرسالة الحالية
             let apiHistory = [...currentState.messages];
             apiHistory.pop(); 
 
-            // بنية البيانات الجديدة المتوافقة مع الـ Worker الخاص بـ Gemini
             const payloadData = {
                 message: text,
                 systemInstruction: SYSTEM_IDENTITY,
@@ -516,30 +541,39 @@
             userInput.value = '';
             userInput.style.height = 'auto';
 
+            // تفعيل حالة التحميل
+            isGenerating = true;
+            stopTypingFlag = false;
+            toggleSendButtonState(true);
+            currentAbortController = new AbortController();
+
             showTypingIndicator();
 
             try {
-                const response = await callWorkerAPI(payloadData);
+                const response = await callWorkerAPI(payloadData, currentAbortController.signal);
                 removeTypingIndicator();
-                
                 addMessage(response, 'ai', true);
-                saveMessageToSession('ai', response);
-
             } catch (error) {
                 removeTypingIndicator();
-                addMessage("عذراً، حدث خطأ في الاتصال بالشبكة العصبية لكوارك. يرجى التأكد من إعدادات الـ Worker.", 'ai');
+                if (error.name === 'AbortError') {
+                    // تم الإيقاف يدوياً من المستخدم، لا نفعل شيء
+                } else {
+                    addMessage("عذراً، حدث خطأ في الاتصال بالشبكة العصبية لكوارك. يرجى التأكد من إعدادات الـ Worker.", 'ai', true);
+                    isGenerating = false;
+                    toggleSendButtonState(false);
+                }
                 console.error(error);
             }
         }
 
-        async function callWorkerAPI(data) {
-            // قم بتغيير هذا الرابط لرابط الـ Worker الجديد الخاص بك على Cloudflare
+        async function callWorkerAPI(data, signal) {
             const WORKER_URL = "https://geminiapikey.yousefgamed22.workers.dev"; 
             
             const res = await fetch(WORKER_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
+                body: JSON.stringify(data),
+                signal: signal
             });
 
             if (!res.ok) throw new Error('Worker Error');
@@ -547,70 +581,130 @@
             return json.content;
         }
 
+        /* =========================================
+           إضافة الرسائل والكتابة التدريجية والاسكرول
+           ========================================= */
         function addMessage(text, sender, animate = true) {
             const chatContainer = document.getElementById('chat-container');
             const div = document.createElement('div');
             const isUser = sender === 'user';
             
-            div.className = `flex w-full mb-6 ${isUser ? 'justify-start' : 'justify-end'} ${animate ? 'fade-in' : ''}`;
+            div.className = `flex w-full mb-6 ${isUser ? 'justify-end' : 'justify-start'} ${animate ? 'fade-in' : ''}`;
             
             const textStyle = isUser 
-                ? 'text-gray-200 font-sans text-base md:text-lg drop-shadow-md text-right' 
-                : 'markdown-content text-blue-100 font-sans text-base md:text-lg text-left w-full';
+                ? 'text-gray-200 font-sans text-base md:text-lg text-left' 
+                : 'markdown-content text-blue-100 font-sans text-base md:text-lg text-right w-full';
 
-            let innerHTML = '';
             const textId = `msg-text-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
             if (isUser) {
-                innerHTML = `
-                    <div class="flex gap-4 max-w-[90%] md:max-w-[80%] items-start">
+                div.innerHTML = `
+                    <div class="flex flex-row-reverse gap-4 max-w-[90%] md:max-w-[80%] items-start">
                         <div class="w-8 h-8 rounded bg-[#222]/50 flex items-center justify-center shrink-0 border border-white/10 mt-1">
                             <i data-lucide="user" class="w-4 h-4 text-gray-500"></i>
                         </div>
-                        <div class="flex flex-col items-start pt-1">
-                            <div class="${textStyle} leading-relaxed whitespace-pre-wrap">${escapeHtml(text)}</div>
+                        <div class="flex flex-col items-end pt-1">
+                            <div class="${textStyle} bg-white/5 border border-white/10 rounded-2xl p-4 shadow-lg leading-relaxed whitespace-pre-wrap">${escapeHtml(text)}</div>
                         </div>
                     </div>
                 `;
+                chatContainer.appendChild(div);
+                lucide.createIcons();
+                if (animate) div.scrollIntoView({ behavior: 'smooth', block: 'end' });
             } else {
-                // استخدام Marked.js لتحويل النص لـ HTML منسق
                 const parsedText = marked.parse(text);
                 
-                innerHTML = `
-                    <div class="flex flex-row-reverse gap-4 max-w-[95%] md:max-w-[85%] items-start">
+                div.innerHTML = `
+                    <div class="flex gap-4 max-w-[95%] md:max-w-[85%] items-start">
                         <div class="w-8 h-8 flex items-center justify-center shrink-0 mt-1">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-8 h-8 text-blue-500 drop-shadow-[0_0_10px_rgba(59,130,246,0.8)]">
                                 <path d="M12 2L2 22L12 18L22 22L12 2Z" />
                             </svg>
                         </div>
-                        <div id="${textId}" class="${textStyle} bg-blue-900/10 border border-blue-500/20 rounded-2xl p-5 shadow-lg pt-1 whitespace-pre-wrap dir-rtl">
-                            ${parsedText}
-                        </div>
+                        <div id="${textId}" class="${textStyle} pt-1 whitespace-pre-wrap dir-rtl"></div>
                     </div>
                 `;
+                chatContainer.appendChild(div);
+                lucide.createIcons();
+                
+                const targetDiv = document.getElementById(textId);
+                
+                if (animate) {
+                    typeWriterHTML(targetDiv, parsedText, chatContainer, text);
+                } else {
+                    targetDiv.innerHTML = parsedText;
+                    targetDiv.querySelectorAll('pre code').forEach((block) => hljs.highlightElement(block));
+                    if (animate) div.scrollIntoView({ behavior: 'smooth', block: 'end' });
+                }
             }
+        }
 
-            div.innerHTML = innerHTML;
-            chatContainer.appendChild(div);
-            lucide.createIcons();
+        async function typeWriterHTML(element, html, scrollContainer, originalText) {
+            element.innerHTML = '';
+            element.classList.add('typing-cursor');
             
-            if (animate) {
-                const lastMessage = chatContainer.lastElementChild;
-                if (lastMessage) lastMessage.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            let tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+            
+            async function processNode(node, target) {
+                if (stopTypingFlag) return; // الخروج لو المستخدم عمل إيقاف
+
+                if (node.nodeType === Node.TEXT_NODE) {
+                    let text = node.textContent;
+                    for (let i = 0; i < text.length; i++) {
+                        if (stopTypingFlag) break; 
+                        
+                        // الاسكرول الذكي: بنشوف هل المستخدم تحت خالص ولا عمل سكرول لفوق؟
+                        const isAtBottom = scrollContainer.scrollHeight - scrollContainer.scrollTop <= scrollContainer.clientHeight + 100;
+                        
+                        target.appendChild(document.createTextNode(text[i]));
+                        
+                        // لو المستخدم تحت، ننزله مع الكتابة.. لو طلع يقرا فوق، نسيبه براحته
+                        if (isAtBottom) scrollContainer.scrollTop = scrollContainer.scrollHeight;
+                        
+                        await new Promise(r => setTimeout(r, 10)); 
+                    }
+                } else if (node.nodeType === Node.ELEMENT_NODE) {
+                    let clone = node.cloneNode(false);
+                    target.appendChild(clone);
+                    
+                    if (node.tagName === 'PRE') {
+                        clone.innerHTML = node.innerHTML; 
+                        let codeBlock = clone.querySelector('code');
+                        if(codeBlock) hljs.highlightElement(codeBlock);
+                        
+                        const isAtBottom = scrollContainer.scrollHeight - scrollContainer.scrollTop <= scrollContainer.clientHeight + 150;
+                        if (isAtBottom) scrollContainer.scrollTop = scrollContainer.scrollHeight;
+                        
+                        await new Promise(r => setTimeout(r, 80)); 
+                    } else {
+                        for (let child of node.childNodes) {
+                            if (stopTypingFlag) break;
+                            await processNode(child, clone);
+                        }
+                    }
+                }
             }
+            
+            await processNode(tempDiv, element);
+            
+            // إنهاء الكتابة وحفظ الرد
+            element.classList.remove('typing-cursor');
+            if(!stopTypingFlag) saveMessageToSession('ai', originalText);
+            
+            isGenerating = false;
+            toggleSendButtonState(false);
         }
 
         function showTypingIndicator() {
             const chatContainer = document.getElementById('chat-container');
             const div = document.createElement('div');
             div.id = 'typing-indicator';
-            div.className = 'flex w-full mb-4 justify-end fade-in';
+            div.className = 'flex w-full mb-4 justify-start fade-in';
             div.innerHTML = `
-                <div class="flex flex-row-reverse gap-4 items-center">
+                <div class="flex gap-4 items-center">
                     <div class="w-8 h-8 flex items-center justify-center shrink-0">
-                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-blue-500 opacity-50">
-                            <path d="M12 2L2 22L12 18L22 22L12 2Z" />
-                        </svg>
+                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-blue-500 opacity-50"><path d="M12 2L2 22L12 18L22 22L12 2Z" /></svg>
                     </div>
                     <div class="flex gap-1.5 items-center h-8 bg-blue-900/10 border border-blue-500/20 rounded-2xl px-4 py-2">
                         <span class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce shadow-[0_0_5px_rgba(59,130,246,0.8)]"></span>
