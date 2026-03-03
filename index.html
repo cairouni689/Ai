@@ -202,6 +202,18 @@
             <button onclick="startNewSession()" class="w-full py-2.5 mb-4 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 rounded-lg text-sm flex items-center justify-center gap-2 transition-all text-blue-200 hover:text-white shadow-[0_0_10px_rgba(37,99,235,0.1)]">
                 <i data-lucide="plus" class="w-4 h-4"></i> شات جديد
             </button>
+            <div class="px-4 pb-4 border-b border-white/5 mb-4">
+    <label class="text-[10px] text-gray-500 uppercase tracking-widest block mb-2 font-mono">Select Model</label>
+    <div class="relative">
+        <select id="model-selector" class="w-full bg-[#1e1e1e] border border-white/10 text-gray-300 text-xs rounded-lg p-2.5 appearance-none focus:border-blue-500/50 outline-none font-sans cursor-pointer hover:bg-white/5">
+            <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+            <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash Lite</option>
+        </select>
+        <div class="absolute inset-y-0 left-0 flex items-center pl-2 pointer-events-none text-gray-500">
+            <i data-lucide="cpu" class="w-3.5 h-3.5"></i>
+        </div>
+    </div>
+</div>
         </div>
 
         <div class="p-2 bg-black/50 text-[10px] text-gray-500 uppercase tracking-widest text-center py-1">Mission Log</div>
@@ -307,18 +319,22 @@
         let currentAbortController = null;
         let stopTypingFlag = false;
 
-        const SYSTEM_IDENTITY = `
-أنت "Quark" (كوارك)، مساعد ذكي وأسطوري متطور جداً.
+const SYSTEM_IDENTITY = `
+أنت "Quark" (كوارك)، المساعد الذكي والرفيق الأسطوري لطلاب كلية العلوم بجامعة القاهرة.
 
-التعليمات الأساسية والصارمة:
-1. المطورون: تم تصميمك وتطويرك بالكامل بواسطة المبرمج العبقري "يوسف العقيلي" وفريق "Cairo SciVerse".
-2. الانتماء: أنت تنتمي حصرياً لكلية العلوم جامعة القاهرة. لا تذكر أبداً أي علاقة بشركات أخرى.
-3. المؤسسون: "عبدالرحمن ابراهيم" و "مازن عبدالسلام" هم مؤسسو الفريق.
-4. أسلوب الرد:
-   - يجب أن تكون ردودك عملية جداً، دقيقة، مفصلة، ومرتبة.
-   - استخدم دائماً تنسيق الماركداون (Markdown) لتنظيم إجاباتك.
-   - تحدث بأسلوب احترافي جداً وودود في نفس الوقت.
-5. إذا سألك المستخدم "من أنت؟" أو "من صنعك؟": قل بكل فخر أنك كوارك، المساعد الذكي الخاص بكلية العلوم جامعة القاهرة، من برمجة وتطوير يوسف العقيلي وفريق Cairo SciVerse.
+تعريف الشخصية (البروتوكول السلوكي):
+1. المطور العبقري: أنت من برمجة وتطوير "يوسف العقيلي" (El-Qqaili Team).
+2. الانتماء: أنت فخر "Cairo SciVerse" وكلية العلوم، جامعة القاهرة.
+3. المؤسسون: الفريق أسسه "عبدالرحمن إبراهيم" و"مازن عبدالسلام".
+
+أسلوب التحدث (Critical):
+- التكيف الديناميكي: أنت "مرآة" للمستخدم. إذا كان أسلوبه مرحاً وودوداً، بادره بنفس الود كأنه صديقك المقرب. إذا كان رسمياً وأكاديمياً، رد عليه برسمية وهيبة تليق بمكانتك.
+- الود والدبلوماسية: كن لطيفاً جداً، استخدم عبارات مثل "يا بطل"، "يا دكتور"، "نورت يا عالمي" في السياق المناسب، لكن حافظ دائماً على "برستيج" العلم والرسمية.
+- الدقة العلمية: ردودك يجب أن تكون مرتبة جداً باستخدام الـ Markdown (عناوين، قوائم، جداول) ومفصلة تقنياً.
+- الهوية: لا تذكر أبداً أي شركة أخرى أو نماذج ذكاء اصطناعي خارجية. أنت "كوارك" وكفى.
+
+إذا سألك أحد عن هويتك:
+أجب بفخر: "أنا كوارك، الذكاء الاصطناعي الخاص بـ Cairo SciVerse، صُممت وبرمجت بواسطة يوسف العقيلي وفريقه لنكون عوناً لعلماء جامعة القاهرة."
 `;
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -493,33 +509,36 @@
             }
         }
 
-        function copyMessage(btn) {
+function copyMessage(btn) {
             const actionsDiv = btn.closest('.message-actions');
             const rawText = actionsDiv.getAttribute('data-raw-text');
             if (rawText) {
                 navigator.clipboard.writeText(rawText);
+                
                 const icon = btn.querySelector('i');
+                const label = btn.querySelector('.copy-text-label');
+                
+                // حفظ الحالة الأصلية
+                const originalIcon = 'copy';
+                const originalText = 'نسخ الرد';
+
+                // تغيير الشكل للحالة "تم النسخ"
                 icon.setAttribute('data-lucide', 'check');
                 icon.classList.add('text-green-400');
-                lucide.createIcons();
+                label.innerText = 'تم النسخ';
+                label.classList.add('text-green-400');
+                
+                lucide.createIcons(); // تحديث الأيقونة
+                
+                // الرجوع للحالة الأصلية بعد ثانيتين
                 setTimeout(() => {
-                    icon.setAttribute('data-lucide', 'copy');
+                    icon.setAttribute('data-lucide', originalIcon);
                     icon.classList.remove('text-green-400');
+                    label.innerText = originalText;
+                    label.classList.remove('text-green-400');
                     lucide.createIcons();
                 }, 2000);
             }
-        }
-
-        function likeMessage(btn) {
-            const icon = btn.querySelector('i');
-            icon.classList.toggle('fill-current');
-            icon.classList.toggle('text-green-400');
-        }
-
-        function dislikeMessage(btn) {
-            const icon = btn.querySelector('i');
-            icon.classList.toggle('fill-current');
-            icon.classList.toggle('text-red-400');
         }
 
         /* =========================================
@@ -555,7 +574,7 @@
         /* =========================================
            إرسال الرسائل
            ========================================= */
-        async function sendMessage() {
+async function sendMessage() {
             if (isGenerating) {
                 stopGeneration();
                 return;
@@ -581,11 +600,17 @@
             let apiHistory = [...currentState.messages];
             apiHistory.pop(); 
 
+            // --- التعديل هنا لضمان اختيار الموديل الصحيح ---
+            const modelSelector = document.getElementById('model-selector');
+            const selectedModel = modelSelector ? modelSelector.value : "gemini-2.5-flash";
+
             const payloadData = {
                 message: text,
                 systemInstruction: SYSTEM_IDENTITY,
-                history: apiHistory 
+                history: apiHistory,
+                model: selectedModel // بنبعت الموديل اللي اخترته هنا
             };
+            // -------------------------------------------
 
             userInput.value = '';
             userInput.style.height = 'auto';
@@ -661,17 +686,11 @@
                 let parsedText = marked.parse(text);
                 
                 // إضافة شريط الأزرار (نسخ، إعجاب، ديس لايك) في نهاية الرد
+// إضافة شريط زر النسخ فقط في نهاية الرد
                 parsedText += `
                 <div class="message-actions mt-4 pt-3 border-t border-white/10 flex items-center gap-3 opacity-0 transition-opacity duration-500 justify-end w-full dir-rtl" data-raw-text="${escapeHtmlText(text)}">
                     <button onclick="copyMessage(this)" class="p-1.5 hover:bg-white/10 rounded-md text-gray-400 hover:text-white transition-all flex items-center gap-1.5 text-xs" title="نسخ الرد بالكامل">
-                        <i data-lucide="copy" class="w-4 h-4"></i> نسخ الرد
-                    </button>
-                    <div class="flex-1"></div>
-                    <button onclick="likeMessage(this)" class="p-1.5 hover:bg-white/10 rounded-md text-gray-400 hover:text-green-400 transition-all" title="إعجاب">
-                        <i data-lucide="thumbs-up" class="w-4 h-4"></i>
-                    </button>
-                    <button onclick="dislikeMessage(this)" class="p-1.5 hover:bg-white/10 rounded-md text-gray-400 hover:text-red-400 transition-all" title="لم يعجبني">
-                        <i data-lucide="thumbs-down" class="w-4 h-4"></i>
+                        <i data-lucide="copy" class="w-4 h-4"></i> <span class="copy-text-label">نسخ الرد</span>
                     </button>
                 </div>`;
                 
