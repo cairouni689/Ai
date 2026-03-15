@@ -819,6 +819,55 @@ async function sendMessage() {
             const indicator = document.getElementById('typing-indicator');
             if (indicator) indicator.remove();
         }
+        function removeTypingIndicator() {
+            const indicator = document.getElementById('typing-indicator');
+            if (indicator) indicator.remove();
+        }
+
+        /* =========================================
+           حماية الموقع (منع كليك يمين واختصارات الفحص)
+           ========================================= */
+        document.addEventListener('contextmenu', function(event) {
+            event.preventDefault(); // منع كليك يمين
+        });
+
+        document.addEventListener('keydown', function(event) {
+            // منع F12
+            if (event.keyCode === 123) {
+                event.preventDefault();
+                return false;
+            }
+            
+            // منع Ctrl+Shift+I أو Cmd+Option+I (أجهزة الماك)
+            if ((event.ctrlKey || event.metaKey) && event.shiftKey && (event.keyCode === 73 || event.key.toLowerCase() === 'i')) {
+                event.preventDefault();
+                return false;
+            }
+            
+            // منع Ctrl+Shift+J أو Cmd+Option+J
+            if ((event.ctrlKey || event.metaKey) && event.shiftKey && (event.keyCode === 74 || event.key.toLowerCase() === 'j')) {
+                event.preventDefault();
+                return false;
+            }
+
+            // منع Ctrl+Shift+C (أداة تحديد العناصر للفحص)
+            if ((event.ctrlKey || event.metaKey) && event.shiftKey && (event.keyCode === 67 || event.key.toLowerCase() === 'c')) {
+                event.preventDefault();
+                return false;
+            }
+            
+            // منع Ctrl+U أو Cmd+Option+U (عرض مصدر الصفحة)
+            if ((event.ctrlKey || event.metaKey) && (event.keyCode === 85 || event.key.toLowerCase() === 'u')) {
+                event.preventDefault();
+                return false;
+            }
+            
+            // منع Ctrl+S أو Cmd+S (حفظ الصفحة)
+            if ((event.ctrlKey || event.metaKey) && (event.keyCode === 83 || event.key.toLowerCase() === 's')) {
+                event.preventDefault();
+                return false;
+            }
+        });
     </script>
 </body>
 </html>
