@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+=<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -263,11 +263,28 @@
 
             <div class="flex-1 relative">
                 
-                <div class="rounded-[2rem] flex items-end p-2 bg-[#1e1e1e] border border-white/10 transition-all duration-300 focus-within:border-blue-500/50 focus-within:shadow-[0_0_15px_rgba(59,130,246,0.15)]">
-                    
-                    <div class="pl-2"></div>
+<div id="file-preview-container" class="hidden mb-3 relative inline-flex items-center gap-3 p-2 bg-[#1e1e1e] border border-white/20 rounded-xl max-w-xs shadow-lg">
+    <img id="image-preview" src="" class="hidden w-12 h-12 object-cover rounded border border-white/10" />
+    <div id="file-icon" class="hidden w-12 h-12 flex items-center justify-center bg-blue-500/20 text-blue-400 rounded border border-blue-500/30">
+        <i data-lucide="file-text" class="w-6 h-6"></i>
+    </div>
+    <span id="file-name" class="text-xs text-gray-300 truncate max-w-[150px] font-sans pr-2" dir="ltr"></span>
+    
+    <button onclick="removeAttachedFile()" class="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5 transition-colors shadow-lg z-10">
+        <i data-lucide="x" class="w-3 h-3"></i>
+    </button>
+</div>
 
-                    <textarea id="user-input" rows="1" class="flex-1 bg-transparent border-none focus:ring-0 text-white placeholder-gray-500 resize-none py-3 px-3 max-h-32 text-base leading-relaxed font-sans" placeholder="تحدث مع كوارك..."></textarea>
+<div class="rounded-[2rem] flex items-end p-2 bg-[#1e1e1e] border border-white/10 transition-all duration-300 focus-within:border-blue-500/50 focus-within:shadow-[0_0_15px_rgba(59,130,246,0.15)]">
+    
+    <div class="pl-1">
+        <input type="file" id="file-upload" accept="image/*,.pdf,.txt,.csv,.doc,.docx" class="hidden" onchange="handleFileUpload(event)">
+        <button onclick="document.getElementById('file-upload').click()" class="p-2.5 text-gray-400 hover:text-blue-400 hover:bg-white/5 rounded-full transition-colors flex items-center justify-center">
+            <i data-lucide="paperclip" class="w-5 h-5"></i>
+        </button>
+    </div>
+
+    <textarea id="user-input" rows="1" class="flex-1 bg-transparent border-none focus:ring-0 text-white placeholder-gray-500 resize-none py-3 px-3 max-h-32 text-base leading-relaxed font-sans" placeholder="تحدث مع كوارك..."></textarea>
 
                     <button onclick="sendMessage()" id="send-btn" class="p-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-full shadow-lg transition-all flex items-center justify-center ml-1 w-11 h-11 shrink-0">
                         <i data-lucide="send-horizontal" class="w-5 h-5 transform rotate-180"></i>
@@ -582,67 +599,86 @@ function copyMessage(btn) {
            إرسال الرسائل
            ========================================= */
 async function sendMessage() {
-            if (isGenerating) {
-                stopGeneration();
-                return;
-            }
+    if (isGenerating) {
+        stopGeneration();
+        return;
+    }
 
-            const text = userInput.value.trim();
-            if (!text) return;
+    const text = userInput.value.trim();
+    
+    // تعديل مهم: لو مفيش نص ومفيش ملف مرفق، متبعتش حاجة.
+    if (!text && !attachedFile) return;
 
-            if (!currentState.sessionId) {
-                welcomePlane.classList.add('animate-fly-away');
-                setTimeout(() => {
-                    document.getElementById('welcome-screen').classList.add('hidden-force');
-                    document.getElementById('bottom-sidebar-btn').classList.add('hidden'); 
-                    document.getElementById('chat-container').classList.remove('hidden');
-                    document.getElementById('chat-container').classList.add('fade-in');
-                    document.getElementById('header-sidebar-btn').classList.remove('hidden');
-                }, 800);
-            }
+    // إخفاء شاشة الترحيب لو دي أول رسالة
+    if (!currentState.sessionId) {
+        welcomePlane.classList.add('animate-fly-away');
+        setTimeout(() => {
+            document.getElementById('welcome-screen').classList.add('hidden-force');
+            document.getElementById('bottom-sidebar-btn').classList.add('hidden'); 
+            document.getElementById('chat-container').classList.remove('hidden');
+            document.getElementById('chat-container').classList.add('fade-in');
+            document.getElementById('header-sidebar-btn').classList.remove('hidden');
+        }, 800);
+    }
 
-            addMessage(text, 'user');
-            saveMessageToSession('user', text);
+    // تظبيط شكل الرسالة اللي هتظهر للمستخدم في الشات
+    let displayMessage = text;
+    if (!text && attachedFile) {
+        displayMessage = `[تم إرفاق ملف: ${attachedFile.name}]`;
+    } else if (text && attachedFile) {
+        displayMessage = `${text}\n\n[ملف مرفق: ${attachedFile.name}]`;
+    }
 
-            let apiHistory = [...currentState.messages];
-            apiHistory.pop(); 
+    // إضافة الرسالة للشاشة وحفظها في الجلسة
+    addMessage(displayMessage, 'user');
+    saveMessageToSession('user', displayMessage);
 
-            // --- التعديل هنا لضمان اختيار الموديل الصحيح ---
-            const modelSelector = document.getElementById('model-selector');
-            const selectedModel = modelSelector ? modelSelector.value : "gemini-2.5-flash";
+    let apiHistory = [...currentState.messages];
+    apiHistory.pop(); // إزالة آخر رسالة من الهيستوري عشان هنبعتها منفصلة
 
-            const payloadData = {
-                message: text,
-                systemInstruction: SYSTEM_IDENTITY,
-                history: apiHistory,
-                model: selectedModel // بنبعت الموديل اللي اخترته هنا
-            };
-            // -------------------------------------------
+    // جلب الموديل المختار
+    const modelSelector = document.getElementById('model-selector');
+    const selectedModel = modelSelector ? modelSelector.value : "gemini-2.5-flash";
 
-            userInput.value = '';
-            userInput.style.height = 'auto';
+    // تجهيز البيانات (Payload) اللي هتتبعت للووركر
+    const payloadData = {
+        message: text, // بنبعت النص الأصلي (حتى لو فاضي)
+        systemInstruction: SYSTEM_IDENTITY,
+        history: apiHistory,
+        model: selectedModel,
+        fileObj: attachedFile // إرسال بيانات المرفق (صورة أو ملف)
+    };
 
-            isGenerating = true;
-            stopTypingFlag = false;
-            toggleSendButtonState(true);
-            currentAbortController = new AbortController();
+    // تفريغ مربع الكتابة والمرفقات من الواجهة
+    userInput.value = '';
+    userInput.style.height = 'auto';
+    if (attachedFile) {
+        removeAttachedFile();
+    }
 
-            showTypingIndicator();
+    // بدء حالة التحميل (Loading State)
+    isGenerating = true;
+    stopTypingFlag = false;
+    toggleSendButtonState(true);
+    currentAbortController = new AbortController();
 
-            try {
-                const response = await callWorkerAPI(payloadData, currentAbortController.signal);
-                removeTypingIndicator();
-                addMessage(response, 'ai', true);
-            } catch (error) {
-                removeTypingIndicator();
-                if (error.name !== 'AbortError') {
-                    addMessage("عذراً، حدث خطأ في الاتصال بالشبكة العصبية لكوارك. يرجى التأكد من إعدادات الـ Worker.", 'ai', true);
-                    isGenerating = false;
-                    toggleSendButtonState(false);
-                }
-                console.error(error);
-            }
+    showTypingIndicator();
+
+    try {
+        // الاتصال بالـ Worker
+        const response = await callWorkerAPI(payloadData, currentAbortController.signal);
+        removeTypingIndicator();
+        addMessage(response, 'ai', true);
+    } catch (error) {
+        removeTypingIndicator();
+        if (error.name !== 'AbortError') {
+            addMessage("عذراً، حدث خطأ في الاتصال بالشبكة العصبية لكوارك. يرجى التأكد من حجم الملف أو إعدادات الشبكة.", 'ai', true);
+            isGenerating = false;
+            toggleSendButtonState(false);
         }
+        console.error(error);
+    }
+}
 
         async function callWorkerAPI(data, signal) {
             const WORKER_URL = "https://geminiapikey.yousefgamed22.workers.dev"; 
@@ -866,6 +902,56 @@ async function sendMessage() {
                 return false;
             }
         });
+        /* =========================================
+   إدارة رفع المرفقات (ملفات وصور)
+   ========================================= */
+let attachedFile = null;
+
+function handleFileUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // تحديد أقصى حجم بـ 10 ميجابايت (عشان الـ Worker ميضربش تايم أوت)
+    if (file.size > 10 * 1024 * 1024) {
+        alert('عذراً يا بطل، حجم الملف كبير جداً. أقصى حجم مدعوم هو 10 ميجابايت.');
+        // تصفير الإنپوت
+        event.target.value = '';
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const base64Data = e.target.result.split(',')[1];
+        attachedFile = {
+            mimeType: file.type || 'text/plain', // لو مفيش نوع محدد اعتبره نص
+            data: base64Data,
+            name: file.name
+        };
+
+        // تحديث شكل الواجهة حسب نوع الملف
+        document.getElementById('file-preview-container').classList.remove('hidden');
+        document.getElementById('file-name').innerText = file.name;
+
+        if (file.type.startsWith('image/')) {
+            document.getElementById('image-preview').src = e.target.result;
+            document.getElementById('image-preview').classList.remove('hidden');
+            document.getElementById('file-icon').classList.add('hidden');
+        } else {
+            document.getElementById('image-preview').classList.add('hidden');
+            document.getElementById('file-icon').classList.remove('hidden');
+        }
+        lucide.createIcons();
+    };
+    reader.readAsDataURL(file);
+}
+
+function removeAttachedFile() {
+    attachedFile = null;
+    document.getElementById('file-upload').value = ''; 
+    document.getElementById('file-preview-container').classList.add('hidden');
+    document.getElementById('image-preview').src = '';
+    document.getElementById('file-name').innerText = '';
+}
     </script>
 </body>
 </html>
