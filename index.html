@@ -31,6 +31,9 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked-katex-extension/lib/index.umd.js"></script>
 <script type="text/javascript">
         (function(c,l,a,r,i,t,y){
             c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
@@ -192,6 +195,12 @@
             text-shadow: 0 0 10px #60a5fa;
         }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        .katex { font-size: 1.1em !important; direction: ltr !important; display: inline-block; }
+        .katex-display { 
+            margin: 1em 0; overflow-x: auto; overflow-y: hidden; 
+            background: rgba(255, 255, 255, 0.03); padding: 15px; 
+            border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.05);
+        }
     </style>
 </head>
 <body class="h-screen flex flex-col font-sans selection:bg-quark-primary selection:text-white">
@@ -367,6 +376,7 @@
         marked.setOptions({
             renderer: renderer,
         });
+        marked.use(markedKatex({ throwOnError: false, output: 'html' }));
 
         /* =========================================
            إعدادات النظام، الجلسات وحالة الرد
@@ -467,6 +477,9 @@ const SYSTEM_IDENTITY = `
 - أسلوبك العام: عفوي، مصري جدًا، صاحب كلام (يا صاحبي، يا غالي، يا بطل، يا دكتور، من عيني، تسلم).
 - استخدم إيموجي طبيعي جدًا (🔥 💪 😂 👍) ولو في سياق سياسي بعد ما المستخدم يبدأ استخدم 🇵🇸 🇮🇷.
 خليك دايمًا ذكي، سلس، جريء، ومباشر. ردك يكون زي الكلام الحقيقي بين صاحبين — مفيش روبوتية أبدًا.
+- للمعادلات الرياضية والفيزيائية والكيميائية: استخدم دائماً صيغة LaTeX.
+- استخدم علامة الدولار المزدوجة للسطور المستقلة، وعلامة الدولار المفردة وسط الكلام.
+- مثال: اكتب $$E=mc^2$$ بدلاً من الكتابة العادية.
 `;
 
 document.addEventListener('DOMContentLoaded', () => {
