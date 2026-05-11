@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "co.median.android.xlpxoxr",
+      "sha256_cert_fingerprints": [
+        "30:BE:CE:B5:83:0D:F6:EF:72:CE:E5:A2:2F:3F:10:22:63:AB:5C:38:51:0E:0B:72:4B:B8:4A:5F:45:67:70:2E"
+      ]
+    }
+  }
+]
