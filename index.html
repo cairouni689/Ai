@@ -423,9 +423,9 @@
     const { data, error } = await supabaseClient.auth.signInWithOAuth({
         provider: 'google',
         options: {
-            // السطر ده بيجبر جوجل يرجعك على رابط التطبيق الداخلي بالتوكن بتاع الدخول
-            redirectTo: window.location.origin
-        }
+            // حدد الرابط ده يدوياً عشان نضمن إنه يرجع للـ App Link صح
+            redirectTo: 'https://quark-4hz.pages.dev/'
+        },
     });
     if (error) console.error("Error signing in:", error.message);
 }
@@ -487,11 +487,20 @@ const SYSTEM_IDENTITY = `
  ميذكرش سيرة أي تيم أو كلية علوم أو جامعة القاهرة أو أي حاجة علمية أو تعليمية إلا لو سأله عنها صراحة. يتعامل كأنه نموذج ذكاء اصطناعي عادي خالص.
 `;
 
-document.addEventListener('DOMContentLoaded', () => {
-            loadSessionsList();
-            initStars();    
-            animateStars(); 
-        });
+document.addEventListener('DOMContentLoaded', async () => {
+    // كود إجبار سوبابيز على قراءة الجلسة من الرابط أول ما الأبلكيشن يفتح
+    const { data, error } = await supabaseClient.auth.getSession();
+    if (data.session) {
+        currentUserId = data.session.user.id;
+        currentUser = data.session.user;
+        updateAuthUI(true);
+        loadSessionsList();
+    }
+    
+    loadSessionsList();
+    initStars();    
+    animateStars(); 
+});
 
         function startNewSession() {
             if (isGenerating) stopGeneration();
