@@ -420,11 +420,15 @@
         });
 
         async function signInWithGoogle() {
-            const { data, error } = await supabaseClient.auth.signInWithOAuth({
-                provider: 'google',
-            });
-            if (error) console.error("Error signing in:", error.message);
+    const { data, error } = await supabaseClient.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+            // السطر ده بيجبر جوجل يرجعك على رابط التطبيق الداخلي بالتوكن بتاع الدخول
+            redirectTo: window.location.origin
         }
+    });
+    if (error) console.error("Error signing in:", error.message);
+}
 
         async function signOut() {
             const { error } = await supabaseClient.auth.signOut();
