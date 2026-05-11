@@ -910,9 +910,15 @@ async function sendMessage() {
                 // إضافة شريط زر النسخ فقط في نهاية الرد
                 parsedText += `
                 <div class="message-actions mt-4 pt-3 border-t border-white/10 flex items-center gap-3 opacity-0 transition-opacity duration-500 justify-end w-full dir-rtl" data-raw-text="${escapeHtmlText(text)}">
-                    <button onclick="copyMessage(this)" class="p-1.5 hover:bg-white/10 rounded-md text-gray-400 hover:text-white transition-all flex items-center gap-1.5 text-xs" title="نسخ الرد بالكامل">
-                        <i data-lucide="copy" class="w-4 h-4"></i> <span class="copy-text-label">نسخ الرد</span>
-                    </button>
+                    <!-- زرار الاستماع للصوت -->
+    <button onclick="playAudio(this)" class="p-1.5 hover:bg-white/10 rounded-md text-gray-400 hover:text-white transition-all flex items-center gap-1.5 text-xs" title="استماع للرد">
+        <i data-lucide="volume-2" class="w-4 h-4 play-icon"></i> <span class="play-text-label">استماع</span>
+    </button>
+
+    <!-- زرار النسخ -->
+    <button onclick="copyMessage(this)" class="p-1.5 hover:bg-white/10 rounded-md text-gray-400 hover:text-white transition-all flex items-center gap-1.5 text-xs" title="نسخ الرد بالكامل">
+        <i data-lucide="copy" class="w-4 h-4"></i> <span class="copy-text-label">نسخ الرد</span>
+    </button>
                 </div>`;
                 
                 div.innerHTML = `
@@ -1213,6 +1219,73 @@ document.addEventListener('click', function(e) {
                 closeImageModal();
             }
         });
+        /* =========================================
+   نظام تحويل النص إلى صوت (Text-to-Speech)
+   ========================================= */
+let currentUtterance = null; // للاحتفاظ بالصوت الحالي
+
+function playAudio(btn) {
+    const actionsDiv = btn.closest('.message-actions');
+    let rawText = actionsDiv.getAttribute('data-raw-text');
+    
+    // تنظيف النص من علامات الماركدوان البسيطة عشان النطق يكون طبيعي
+    let cleanText = rawText.replace(/[*#`_]/g, '');
+
+    if ('speechSynthesis' in window) {
+        const synth = window.speechSynthesis;
+        const icon = btn.querySelector('.play-icon');
+        const label = btn.querySelector('.play-text-label');
+
+        // لو داس على نفس الزرار وهو شغال، نوقف الصوت
+        if (synth.speaking && currentUtterance && currentUtterance.text === cleanText) {
+            synth.cancel();
+            resetAudioButtons();
+            return;
+        }
+
+        // إيقاف أي صوت شغال حالياً قبل تشغيل الجديد
+        synth.cancel();
+        resetAudioButtons();
+
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        // تعيين اللغة للعربية (يفضل استخدام ar-EG أو ar-SA)
+        utterance.lang = 'ar-EG'; 
+        currentUtterance = utterance;
+
+        // تغيير شكل الزرار لحالة الإيقاف
+        icon.setAttribute('data-lucide', 'square'); // أيقونة الإيقاف
+        icon.classList.add('text-blue-400');
+        label.innerText = 'إيقاف';
+        label.classList.add('text-blue-400');
+        lucide.createIcons();
+
+        // لما الصوت يخلص، نرجع الزرار لشكله الطبيعي
+        utterance.onend = () => {
+            resetAudioButtons();
+        };
+        
+        utterance.onerror = () => {
+            resetAudioButtons();
+        };
+
+        // تشغيل الصوت
+        synth.speak(utterance);
+    } else {
+        alert('عذراً، متصفحك الحالي لا يدعم خاصية قراءة النص بصوت.');
+    }
+}
+
+function resetAudioButtons() {
+    document.querySelectorAll('.play-icon').forEach(icon => {
+        icon.setAttribute('data-lucide', 'volume-2');
+        icon.classList.remove('text-blue-400');
+    });
+    document.querySelectorAll('.play-text-label').forEach(label => {
+        label.innerText = 'استماع';
+        label.classList.remove('text-blue-400');
+    });
+    lucide.createIcons();
+}
     </script>
 </body>
 </html>
