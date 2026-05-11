@@ -423,8 +423,8 @@
     const { data, error } = await supabaseClient.auth.signInWithOAuth({
         provider: 'google',
         options: {
-            // حدد الرابط ده يدوياً عشان نضمن إنه يرجع للـ App Link صح
-            redirectTo: 'https://quark-4hz.pages.dev/'
+            // ضفنا ?login=success عشان نجبر الأبلكيشن يعمل ريفريش كامل لما يرجع من جوجل
+            redirectTo: 'https://quark-4hz.pages.dev/?login=success'
         },
     });
     if (error) console.error("Error signing in:", error.message);
