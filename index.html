@@ -27,6 +27,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://static.median.co/js/median.js"></script>
     
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
@@ -420,12 +421,12 @@
         });
 
         async function signInWithGoogle() {
-    // 1. نطلب من سوبابيز لينك الدخول ونقوله ماتحولناش تلقائي
     const { data, error } = await supabaseClient.auth.signInWithOAuth({
         provider: 'google',
         options: {
-            redirectTo: 'quarkauth://auth/callback',
-            skipBrowserRedirect: true // السطر ده بيمنع التحويل الأوتوماتيك
+            // رجعنا اللينك ده عشان الـ Universal Links اللي انت عملتها في ميديان هتلقطه وتفتح الأبلكيشن
+            redirectTo: 'https://quark-4hz.pages.dev/?login=success',
+            skipBrowserRedirect: true 
         }
     });
 
@@ -435,12 +436,11 @@
     }
 
     if (data && data.url) {
-        // 2. نستخدم الـ JS Bridge بتاع Median عشان نجبره يفتح كروم الحقيقي
-        if (window.median) {
-            median.window.open({ url: data.url, mode: 'external' });
+        // كود ميديان الرسمي لفتح متصفح كروم الخارجي 
+        if (typeof median !== 'undefined') {
+            median.window.open(data.url, 'external');
         } else {
-            // كبديل احتياطي لو مكتبة ميديان مأخرة في التحميل
-            window.location.href = 'median://window/open?url=' + encodeURIComponent(data.url) + '&mode=external';
+            window.location.href = data.url;
         }
     }
 }
