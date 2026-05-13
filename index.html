@@ -420,29 +420,14 @@
         });
 
         async function signInWithGoogle() {
-    // 1. نطلب من سوبابيز لينك الدخول ونقوله ماتحولناش انت
     const { data, error } = await supabaseClient.auth.signInWithOAuth({
         provider: 'google',
         options: {
-            redirectTo: 'https://quark-4hz.pages.dev/?login=success',
-            skipBrowserRedirect: true // السطر ده بيمنع سوبابيز من التحويل التلقائي
-        }
+            // ضفنا ?login=success عشان نجبر الأبلكيشن يعمل ريفريش كامل لما يرجع من جوجل
+            redirectTo: 'https://quark-4hz.pages.dev/?login=success'
+        },
     });
-
-    if (error) {
-        console.error("Error signing in:", error.message);
-        return;
-    }
-
-    // 2. ناخد اللينك ونعمل زرار وهمي وندوس عليه برمجياً عشان ميديان يلقطه
-    if (data && data.url) {
-        const link = document.createElement('a');
-        link.href = data.url;
-        link.target = '_blank'; // عشان نجبره يفتح بره
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
+    if (error) console.error("Error signing in:", error.message);
 }
 
         async function signOut() {
