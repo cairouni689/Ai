@@ -420,14 +420,29 @@
         });
 
         async function signInWithGoogle() {
+    // 1. نطلب من سوبابيز لينك الدخول ونقوله ماتحولناش تلقائي
     const { data, error } = await supabaseClient.auth.signInWithOAuth({
         provider: 'google',
         options: {
-            // ضفنا ?login=success عشان نجبر الأبلكيشن يعمل ريفريش كامل لما يرجع من جوجل
-            redirectTo: 'https://quark-4hz.pages.dev/?login=success'
-        },
+            redirectTo: 'quarkauth://auth/callback',
+            skipBrowserRedirect: true // السطر ده بيمنع التحويل الأوتوماتيك
+        }
     });
-    if (error) console.error("Error signing in:", error.message);
+
+    if (error) {
+        console.error("Error signing in:", error.message);
+        return;
+    }
+
+    if (data && data.url) {
+        // 2. نستخدم الـ JS Bridge بتاع Median عشان نجبره يفتح كروم الحقيقي
+        if (window.median) {
+            median.window.open({ url: data.url, mode: 'external' });
+        } else {
+            // كبديل احتياطي لو مكتبة ميديان مأخرة في التحميل
+            window.location.href = 'median://window/open?url=' + encodeURIComponent(data.url) + '&mode=external';
+        }
+    }
 }
 
         async function signOut() {
