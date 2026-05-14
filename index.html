@@ -792,10 +792,8 @@ async function sendMessage() {
 
     const text = userInput.value.trim();
     
-    // لو مفيش نص ومفيش ملف مرفق، متبعتش حاجة.
     if (!text && !attachedFile) return;
 
-    // إخفاء شاشة الترحيب لو دي أول رسالة
     if (!currentState.sessionId) {
         welcomePlane.classList.add('animate-fly-away');
         setTimeout(() => {
@@ -807,7 +805,6 @@ async function sendMessage() {
         }, 800);
     }
 
-    // تجهيز النص اللي هيتحفظ في الهيستوري (عشان نوفر مساحة الذاكرة)
     let historyText = text;
     if (!text && attachedFile) {
         historyText = `[تم إرفاق ملف: ${attachedFile.name}]`;
@@ -815,18 +812,15 @@ async function sendMessage() {
         historyText = `${text}\n\n[ملف مرفق: ${attachedFile.name}]`;
     }
 
-    // إضافة الرسالة للشاشة مع الصورة كـ (معاينة مرئية) وحفظ النص العادي في الجلسة
     addMessage(text, 'user', true, attachedFile);
     saveMessageToSession('user', historyText);
 
     let apiHistory = [...currentState.messages];
-    apiHistory.pop(); // إزالة آخر رسالة من الهيستوري عشان هنبعتها منفصلة
+    apiHistory.pop(); 
 
-    // جلب الموديل المختار
     const modelSelector = document.getElementById('model-selector');
     const selectedModel = modelSelector ? modelSelector.value : "gemini-2.5-flash";
 
-    // تجهيز البيانات (Payload) اللي هتتبعت للووركر
     const payloadData = {
         message: text,
         systemInstruction: SYSTEM_IDENTITY,
@@ -835,14 +829,12 @@ async function sendMessage() {
         fileObj: attachedFile 
     };
 
-    // تفريغ مربع الكتابة والمرفقات من الواجهة
     userInput.value = '';
     userInput.style.height = 'auto';
     if (attachedFile) {
         removeAttachedFile();
     }
 
-    // بدء حالة التحميل (Loading State)
     isGenerating = true;
     stopTypingFlag = false;
     toggleSendButtonState(true);
@@ -857,7 +849,8 @@ async function sendMessage() {
     } catch (error) {
         removeTypingIndicator();
         if (error.name !== 'AbortError') {
-            addMessage("عذراً، حدث خطأ في الاتصال بالشبكة العصبية لكوارك. يرجى التأكد من حجم الملف أو إعدادات الشبكة.", 'ai', true);
+            // 🔥 هنا غيرنا الرسالة الثابتة عشان الموقع يطبع الإيرور الحقيقي قدام عينك 🔥
+            addMessage(`🚨 **قفشنا المشكلة في كود الموقع:**\n\n${error.message}`, 'ai', true);
             isGenerating = false;
             toggleSendButtonState(false);
         }
@@ -866,19 +859,29 @@ async function sendMessage() {
 }
 
         async function callWorkerAPI(data, signal) {
-            const WORKER_URL = "https://geminiapikey.yousefgamed22.workers.dev"; 
-            
-            const res = await fetch(WORKER_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data),
-                signal: signal
-            });
+    const WORKER_URL = "https://geminiapikey.yousefgamed22.workers.dev"; 
+    
+    try {
+        const res = await fetch(WORKER_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+            signal: signal
+        });
 
-            if (!res.ok) throw new Error('Worker Error');
-            const json = await res.json();
-            return json.content;
+        // لو الووركر رجع إيرور، هنقراه ونرميه للفرونت إند
+        if (!res.ok) {
+            const errText = await res.text();
+            throw new Error(`Worker Error (${res.status}): ${errText}`);
         }
+        
+        const json = await res.json();
+        return json.content;
+    } catch (e) {
+        // لو في مشكلة في الشبكة أو الـ CORS
+        throw new Error(`فشل الاتصال: ${e.message}`);
+    }
+}
 
 /* =========================================
    إضافة الرسائل والكتابة التدريجية (معدلة لدعم عرض الصور)
