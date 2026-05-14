@@ -361,7 +361,7 @@
         // إعدادات مكتبة Marked لتمكين دعم الـ Syntax Highlighting وتعديل شكل الكود البرمجي
         const renderer = new marked.Renderer();
         renderer.code = function(code, language) {
-            const validLang = highlight.getLanguage(language) ? language : 'plaintext';
+            const validLang = hljs.getLanguage(language) ? language : 'plaintext';
             // إضافة بوكس الكود البرمجي مع زر النسخ في الأعلى
             return `
             <div class="code-wrapper relative mt-4 mb-4 rounded-lg overflow-hidden border border-white/10 shadow-[0_10px_25px_rgba(0,0,0,0.8)]">
