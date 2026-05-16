@@ -1286,7 +1286,7 @@
                 liveWs.onopen = () => {
                     console.log("🟢 متصل بـ Quark Live!");
                     
-                    const setupMessage = { setup: { model: "models/gemini-2.5-flash", generationConfig: { responseModalities: ["AUDIO"] } } };
+                    const setupMessage = { setup: { model: "models/gemini-2.5-flash-native-audio-latest", generationConfig: { responseModalities: ["AUDIO"] } } };
                     liveWs.send(JSON.stringify(setupMessage));
 
                     const source = liveAudioContext.createMediaStreamSource(liveStream);
