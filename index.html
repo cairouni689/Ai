@@ -825,14 +825,18 @@ async function sendMessage() {
     showTypingIndicator();
 
     try {
-        const response = await callWorkerAPI(payloadData, currentAbortController.signal);
+        const responseData = await callWorkerAPI(payloadData, currentAbortController.signal);
         removeTypingIndicator();
-        addMessage(response, 'ai', true);
+        
+        if (responseData.type === 'image') {
+            addMessage(responseData.content, 'ai', true, null, 'image');
+        } else {
+            addMessage(responseData.content, 'ai', true, null, 'text');
+        }
     } catch (error) {
         removeTypingIndicator();
         if (error.name !== 'AbortError') {
-            // 🔥 هنا غيرنا الرسالة الثابتة عشان الموقع يطبع الإيرور الحقيقي قدام عينك 🔥
-            addMessage(`🚨 **قفشنا المشكلة في كود الموقع:**\n\n${error.message}`, 'ai', true);
+            addMessage(`🚨 **قفشنا المشكلة في كود الموقع:**\n\n${error.message}`, 'ai', true, null, 'text');
             isGenerating = false;
             toggleSendButtonState(false);
         }
@@ -851,16 +855,14 @@ async function sendMessage() {
             signal: signal
         });
 
-        // لو الووركر رجع إيرور، هنقراه ونرميه للفرونت إند
         if (!res.ok) {
             const errText = await res.text();
             throw new Error(`Worker Error (${res.status}): ${errText}`);
         }
         
         const json = await res.json();
-        return json.content;
+        return json; 
     } catch (e) {
-        // لو في مشكلة في الشبكة أو الـ CORS
         throw new Error(`فشل الاتصال: ${e.message}`);
     }
 }
@@ -868,7 +870,7 @@ async function sendMessage() {
 /* =========================================
    إضافة الرسائل والكتابة التدريجية (معدلة لدعم عرض الصور)
    ========================================= */
-function addMessage(text, sender, animate = true, attachment = null) {
+function addMessage(text, sender, animate = true, attachment = null, messageType = 'text') {
     const chatContainer = document.getElementById('chat-container');
     const div = document.createElement('div');
     const isUser = sender === 'user';
@@ -882,15 +884,12 @@ function addMessage(text, sender, animate = true, attachment = null) {
     const textId = `msg-text-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
     if (isUser) {
-        // تجميع محتوى رسالة المستخدم (نص + صورة أو ملف إن وجد)
         let contentHTML = '';
         
-        // إضافة النص لو موجود
         if (text && text.trim() !== '') {
             contentHTML += `<div class="${textStyle} bg-white/5 border border-white/10 rounded-2xl p-4 shadow-lg leading-relaxed whitespace-pre-wrap">${escapeHtmlText(text)}</div>`;
         }
         
-        // إظهار المرفق (كصورة حقيقية أو كأيقونة ملف)
         if (attachment) {
             if (attachment.mimeType.startsWith('image/')) {
                contentHTML += `<div class="mt-2">
@@ -918,63 +917,92 @@ function addMessage(text, sender, animate = true, attachment = null) {
         lucide.createIcons();
         if (animate) div.scrollIntoView({ behavior: 'smooth', block: 'end' });
     } else {
-        let parsedText = marked.parse(text);
         
-        // إضافة شريط زر النسخ فقط في نهاية الرد
-        parsedText += `
-        <div class="message-actions mt-4 pt-3 border-t border-white/10 flex items-center gap-3 opacity-0 transition-opacity duration-500 justify-end w-full dir-rtl" data-raw-text="${escapeHtmlText(text)}">
-            <!-- زرار الاستماع للصوت -->
-            <button onclick="playAudio(this)" class="p-1.5 hover:bg-white/10 rounded-md text-gray-400 hover:text-white transition-all flex items-center gap-1.5 text-xs" title="استماع للرد">
-                <i data-lucide="volume-2" class="w-4 h-4 play-icon"></i> <span class="play-text-label">استماع</span>
-            </button>
-
-            <!-- زرار النسخ -->
-            <button onclick="copyMessage(this)" class="p-1.5 hover:bg-white/10 rounded-md text-gray-400 hover:text-white transition-all flex items-center gap-1.5 text-xs" title="نسخ الرد بالكامل">
-                <i data-lucide="copy" class="w-4 h-4"></i> <span class="copy-text-label">نسخ الرد</span>
-            </button>
-        </div>`;
-        
-        div.innerHTML = `
-            <div class="flex gap-4 max-w-[95%] md:max-w-[85%] items-start w-full">
-                <div class="w-8 h-8 flex items-center justify-center shrink-0 mt-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-8 h-8 text-blue-500 drop-shadow-[0_0_10px_rgba(59,130,246,0.8)]">
-                        <path d="M12 2L2 22L12 18L22 22L12 2Z" />
-                    </svg>
+        if (messageType === 'image') {
+            div.innerHTML = `
+                <div class="flex gap-4 max-w-[95%] md:max-w-[85%] items-start w-full">
+                    <div class="w-8 h-8 flex items-center justify-center shrink-0 mt-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-8 h-8 text-purple-500 drop-shadow-[0_0_10px_rgba(168,85,247,0.8)]">
+                            <path d="M12 2L2 22L12 18L22 22L12 2Z" />
+                        </svg>
+                    </div>
+                    <div class="relative group mt-1">
+                        <div class="absolute -inset-1 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl blur opacity-25 group-hover:opacity-50 transition duration-500"></div>
+                        <img src="data:image/jpeg;base64,${text}" 
+                             class="relative rounded-xl border border-white/10 shadow-2xl max-w-[280px] md:max-w-[400px] object-cover cursor-pointer hover:scale-[1.02] transition-transform duration-300"
+                             alt="صورة مولدة بالذكاء الاصطناعي"
+                             onclick="openImageModal(this.src)">
+                        <div class="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
+                             <a href="data:image/jpeg;base64,${text}" download="Quark_Art.jpg" class="p-2 bg-black/70 hover:bg-black/90 text-white rounded-lg backdrop-blur-md flex items-center gap-2 border border-white/20 shadow-lg">
+                                 <i data-lucide="download" class="w-4 h-4"></i>
+                                 <span class="text-xs font-bold">تحميل</span>
+                             </a>
+                        </div>
+                    </div>
                 </div>
-                <div id="${textId}" class="${textStyle} pt-1 whitespace-pre-wrap dir-rtl"></div>
-            </div>
-        `;
-        chatContainer.appendChild(div);
-        lucide.createIcons();
-        
-        const targetDiv = document.getElementById(textId);
-        
-        if (animate) {
-            typeWriterHTML(targetDiv, parsedText, chatContainer, text);
-        } else {
-            targetDiv.innerHTML = parsedText;
-            targetDiv.querySelectorAll('pre code').forEach((block) => hljs.highlightElement(block));
+            `;
+            chatContainer.appendChild(div);
+            lucide.createIcons();
+            if (animate) div.scrollIntoView({ behavior: 'smooth', block: 'end' });
             
-            // تفعيل LaTeX للرسائل القديمة (لما بنفتح جلسة سابقة)
-            setTimeout(() => {
-                try {
-                    renderMathInElement(targetDiv, {
-                        delimiters: [
-                            { left: '$$', right: '$$', display: true },
-                            { left: '$', right: '$', display: false },
-                            { left: '\\(', right: '\\)', display: false },
-                            { left: '\\[', right: '\\]', display: true }
-                        ],
-                        throwOnError: false,
-                        strict: false
-                    });
-                } catch (e) {
-                    console.warn("KaTeX rendering warning:", e);
-                }
-            }, 100);
+            saveMessageToSession('ai', '[صورة مولدة بواسطة Quark 🎨]');
+            isGenerating = false;
+            toggleSendButtonState(false);
+            
+        } else {
+            let parsedText = marked.parse(text);
+            
+            parsedText += `
+            <div class="message-actions mt-4 pt-3 border-t border-white/10 flex items-center gap-3 opacity-0 transition-opacity duration-500 justify-end w-full dir-rtl" data-raw-text="${escapeHtmlText(text)}">
+                <button onclick="playAudio(this)" class="p-1.5 hover:bg-white/10 rounded-md text-gray-400 hover:text-white transition-all flex items-center gap-1.5 text-xs" title="استماع للرد">
+                    <i data-lucide="volume-2" class="w-4 h-4 play-icon"></i> <span class="play-text-label">استماع</span>
+                </button>
+                <button onclick="copyMessage(this)" class="p-1.5 hover:bg-white/10 rounded-md text-gray-400 hover:text-white transition-all flex items-center gap-1.5 text-xs" title="نسخ الرد بالكامل">
+                    <i data-lucide="copy" class="w-4 h-4"></i> <span class="copy-text-label">نسخ الرد</span>
+                </button>
+            </div>`;
+            
+            div.innerHTML = `
+                <div class="flex gap-4 max-w-[95%] md:max-w-[85%] items-start w-full">
+                    <div class="w-8 h-8 flex items-center justify-center shrink-0 mt-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-8 h-8 text-blue-500 drop-shadow-[0_0_10px_rgba(59,130,246,0.8)]">
+                            <path d="M12 2L2 22L12 18L22 22L12 2Z" />
+                        </svg>
+                    </div>
+                    <div id="${textId}" class="${textStyle} pt-1 whitespace-pre-wrap dir-rtl"></div>
+                </div>
+            `;
+            chatContainer.appendChild(div);
+            lucide.createIcons();
+            
+            const targetDiv = document.getElementById(textId);
+            
+            if (animate) {
+                typeWriterHTML(targetDiv, parsedText, chatContainer, text);
+            } else {
+                targetDiv.innerHTML = parsedText;
+                targetDiv.querySelectorAll('pre code').forEach((block) => hljs.highlightElement(block));
+                
+                setTimeout(() => {
+                    try {
+                        renderMathInElement(targetDiv, {
+                            delimiters: [
+                                { left: '$$', right: '$$', display: true },
+                                { left: '$', right: '$', display: false },
+                                { left: '\\(', right: '\\)', display: false },
+                                { left: '\\[', right: '\\]', display: true }
+                            ],
+                            throwOnError: false,
+                            strict: false
+                        });
+                    } catch (e) {
+                        console.warn("KaTeX rendering warning:", e);
+                    }
+                }, 100);
 
-            targetDiv.querySelector('.message-actions').classList.remove('opacity-0');
-            div.scrollIntoView({ behavior: 'smooth', block: 'end' });
+                targetDiv.querySelector('.message-actions').classList.remove('opacity-0');
+                div.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            }
         }
     }
 }
