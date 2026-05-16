@@ -853,7 +853,10 @@ async function sendMessage() {
         const responseData = await callWorkerAPI(payloadData, currentAbortController.signal);
         removeTypingIndicator();
         
-        if (responseData.type === 'image') {
+        // دعم التوجيه للنوعين: بايتات أو رابط مباشر
+        if (responseData.type === 'image_url') {
+            addMessage(responseData.content, 'ai', true, null, 'image_url');
+        } else if (responseData.type === 'image') {
             addMessage(responseData.content, 'ai', true, null, 'image');
         } else {
             addMessage(responseData.content, 'ai', true, null, 'text');
@@ -887,11 +890,9 @@ function addMessage(text, sender, animate = true, attachment = null, messageType
 
     if (isUser) {
         let contentHTML = '';
-        
         if (text && text.trim() !== '') {
             contentHTML += `<div class="${textStyle} bg-white/5 border border-white/10 rounded-2xl p-4 shadow-lg leading-relaxed whitespace-pre-wrap">${escapeHtmlText(text)}</div>`;
         }
-        
         if (attachment) {
             if (attachment.mimeType.startsWith('image/')) {
                contentHTML += `<div class="mt-2">
@@ -920,7 +921,10 @@ function addMessage(text, sender, animate = true, attachment = null, messageType
         if (animate) div.scrollIntoView({ behavior: 'smooth', block: 'end' });
     } else {
         
-        if (messageType === 'image') {
+        if (messageType === 'image' || messageType === 'image_url') {
+            // تحديد الرابط المناسب بناءً على القادم من الووركر
+            const srcUrl = messageType === 'image_url' ? text : `data:image/jpeg;base64,${text}`;
+            
             div.innerHTML = `
                 <div class="flex gap-4 max-w-[95%] md:max-w-[85%] items-start w-full">
                     <div class="w-8 h-8 flex items-center justify-center shrink-0 mt-1">
@@ -930,12 +934,12 @@ function addMessage(text, sender, animate = true, attachment = null, messageType
                     </div>
                     <div class="relative group mt-1">
                         <div class="absolute -inset-1 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl blur opacity-25 group-hover:opacity-50 transition duration-500"></div>
-                        <img src="data:image/jpeg;base64,${text}" 
+                        <img src="${srcUrl}" 
                              class="relative rounded-xl border border-white/10 shadow-2xl max-w-[280px] md:max-w-[400px] object-cover cursor-pointer hover:scale-[1.02] transition-transform duration-300"
                              alt="صورة مولدة بالذكاء الاصطناعي"
                              onclick="openImageModal(this.src)">
                         <div class="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
-                             <a href="data:image/jpeg;base64,${text}" download="Quark_Art.jpg" class="p-2 bg-black/70 hover:bg-black/90 text-white rounded-lg backdrop-blur-md flex items-center gap-2 border border-white/20 shadow-lg">
+                             <a href="${srcUrl}" download="Quark_Art.jpg" target="_blank" class="p-2 bg-black/70 hover:bg-black/90 text-white rounded-lg backdrop-blur-md flex items-center gap-2 border border-white/20 shadow-lg">
                                  <i data-lucide="download" class="w-4 h-4"></i>
                                  <span class="text-xs font-bold">تحميل</span>
                              </a>
@@ -953,7 +957,6 @@ function addMessage(text, sender, animate = true, attachment = null, messageType
             
         } else {
             let parsedText = marked.parse(text);
-            
             parsedText += `
             <div class="message-actions mt-4 pt-3 border-t border-white/10 flex items-center gap-3 opacity-0 transition-opacity duration-500 justify-end w-full dir-rtl" data-raw-text="${escapeHtmlText(text)}">
                 <button onclick="playAudio(this)" class="p-1.5 hover:bg-white/10 rounded-md text-gray-400 hover:text-white transition-all flex items-center gap-1.5 text-xs" title="استماع للرد">
@@ -978,13 +981,11 @@ function addMessage(text, sender, animate = true, attachment = null, messageType
             lucide.createIcons();
             
             const targetDiv = document.getElementById(textId);
-            
             if (animate) {
                 typeWriterHTML(targetDiv, parsedText, chatContainer, text);
             } else {
                 targetDiv.innerHTML = parsedText;
                 targetDiv.querySelectorAll('pre code').forEach((block) => hljs.highlightElement(block));
-                
                 setTimeout(() => {
                     try {
                         renderMathInElement(targetDiv, {
@@ -1001,7 +1002,6 @@ function addMessage(text, sender, animate = true, attachment = null, messageType
                         console.warn("KaTeX rendering warning:", e);
                     }
                 }, 100);
-
                 targetDiv.querySelector('.message-actions').classList.remove('opacity-0');
                 div.scrollIntoView({ behavior: 'smooth', block: 'end' });
             }
