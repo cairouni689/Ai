@@ -307,6 +307,10 @@
                     <div class="pl-1 relative" id="attachment-container">
                         <input type="file" id="file-upload" class="hidden" onchange="handleFileUpload(event)">
                         <div id="attachment-menu" class="absolute bottom-[120%] right-0 mb-1 w-40 bg-[#1e1e1e]/95 backdrop-blur-md border border-white/10 rounded-xl shadow-[0_10px_25px_rgba(0,0,0,0.8)] overflow-hidden transition-all duration-200 opacity-0 pointer-events-none transform translate-y-2 z-50">
+                            <button onclick="triggerUpload('camera')" class="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors border-b border-white/5 text-right">
+                                <div class="p-1.5 bg-green-500/20 rounded-md"><i data-lucide="camera" class="w-4 h-4 text-green-400"></i></div>
+                                <span>التقاط صورة</span>
+                            </button>
                             <button onclick="triggerUpload('image')" class="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors border-b border-white/5 text-right">
                                 <div class="p-1.5 bg-blue-500/20 rounded-md"><i data-lucide="image" class="w-4 h-4 text-blue-400"></i></div>
                                 <span>صورة</span>
@@ -326,6 +330,10 @@
                     <button onclick="sendMessage()" id="send-btn" class="p-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-full shadow-lg transition-all flex items-center justify-center ml-1 w-11 h-11 shrink-0">
                         <i data-lucide="send-horizontal" class="w-5 h-5 transform rotate-180"></i>
                     </button>
+                    <button id="live-call-btn" onclick="toggleLiveCall()" class="p-2.5 bg-purple-600/20 border border-purple-500/50 hover:bg-purple-500/40 text-purple-400 hover:text-white rounded-full shadow-lg transition-all flex items-center justify-center ml-2 w-11 h-11 shrink-0 group relative" title="بدأ مكالمة مباشرة مع كوارك">
+                        <i data-lucide="mic" id="live-mic-icon" class="w-5 h-5 group-hover:scale-110 transition-transform"></i>
+                        <span id="live-indicator" class="hidden absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse border border-black"></span>
+                    </button>
                 </div>
 
                 <div class="text-center mt-3">
@@ -334,6 +342,46 @@
                     </p>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <div id="live-call-overlay" class="fixed inset-0 z-[100] hidden bg-black/95 backdrop-blur-2xl flex-col items-center justify-center transition-opacity duration-500 opacity-0">
+        
+        <button onclick="stopLiveCall()" class="absolute top-6 right-6 md:top-8 md:right-8 text-gray-400 hover:text-red-500 transition-colors p-3 bg-white/5 hover:bg-white/10 rounded-full z-50">
+            <i data-lucide="x" class="w-6 h-6 md:w-8 md:h-8"></i>
+        </button>
+
+        <div id="video-container" class="hidden relative w-48 h-64 md:w-64 md:h-80 mb-6 md:mb-8 rounded-3xl overflow-hidden border border-white/10 shadow-[0_0_40px_rgba(59,130,246,0.15)] bg-[#111]">
+            <video id="live-video-preview" autoplay playsinline muted class="w-full h-full object-cover"></video>
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+            <div class="absolute bottom-3 left-0 right-0 text-center">
+                <span class="text-[10px] text-white/80 tracking-widest uppercase font-mono bg-black/50 px-2 py-1 rounded-full"><i data-lucide="eye" class="w-3 h-3 inline"></i> Vision Active</span>
+            </div>
+        </div>
+
+        <div class="relative flex items-center justify-center mb-6 mt-2">
+            <div id="wave-1" class="absolute w-32 h-32 md:w-40 md:h-40 bg-blue-500/20 rounded-full animate-ping" style="animation-duration: 2.5s;"></div>
+            <div id="wave-2" class="absolute w-48 h-48 md:w-56 md:h-56 bg-purple-500/10 rounded-full animate-pulse" style="animation-duration: 1.5s;"></div>
+            
+            <div class="relative w-20 h-20 md:w-24 md:h-24 bg-gradient-to-br from-blue-600 to-purple-800 rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(59,130,246,0.6)] border border-white/20 z-10 transition-transform duration-300" id="live-logo-pulse">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-10 h-10 md:w-12 md:h-12 text-white drop-shadow-lg">
+                    <path d="M12 2L2 22L12 18L22 22L12 2Z" />
+                </svg>
+            </div>
+        </div>
+
+        <h2 id="call-status-title" class="text-2xl md:text-3xl font-bold text-white tracking-wider font-mono drop-shadow-lg mb-2">جاري الاتصال...</h2>
+        <p id="call-status-desc" class="text-blue-400 text-sm md:text-base font-light tracking-wide animate-pulse">يتم تجهيز البيئة اللايف</p>
+
+        <div class="flex gap-4 mt-8 md:mt-10 z-50">
+            <button onclick="toggleCameraStream()" id="cam-toggle-btn" class="p-4 bg-gray-800 hover:bg-gray-700 text-white rounded-full shadow-lg border border-gray-600 transition-all transform hover:scale-105" title="تشغيل الكاميرا للذكاء الاصطناعي">
+                <i data-lucide="video" id="cam-icon" class="w-6 h-6"></i>
+            </button>
+            
+            <button onclick="stopLiveCall()" class="py-3 px-8 bg-red-600/80 hover:bg-red-500 text-white rounded-full shadow-[0_0_20px_rgba(220,38,38,0.4)] border border-red-400/30 transition-all transform hover:scale-105 flex items-center gap-3 group">
+                <i data-lucide="phone-off" class="w-5 h-5 group-hover:rotate-12 transition-transform"></i>
+                <span class="font-bold text-sm md:text-base">إنهاء المكالمة</span>
+            </button>
         </div>
     </div>
 
@@ -582,7 +630,6 @@
             document.getElementById('header-sidebar-btn').classList.remove('hidden');
             document.getElementById('chat-container').innerHTML = '';
 
-            // تم تنظيف سكة الصورة واستدعاء الرسائل النصية المباشرة فقط
             currentState.messages.forEach(msg => {
                 addMessage(msg.content, msg.role, false);
             });
@@ -810,7 +857,6 @@
             try {
                 const responseData = await callWorkerAPI(payloadData, currentAbortController.signal);
                 removeTypingIndicator();
-                // استقبال نصوص فقط بكل أمان
                 addMessage(responseData.content, 'ai', true, null, 'text');
             } catch (error) {
                 removeTypingIndicator();
@@ -869,7 +915,6 @@
                 lucide.createIcons();
                 if (animate) div.scrollIntoView({ behavior: 'smooth', block: 'end' });
             } else {
-                // تم اختصار دالة رد الـ AI لتستقبل النصوص فقط وتكتبها بـ تايب رايتر
                 let parsedText = marked.parse(text);
                 
                 parsedText += `
@@ -1111,8 +1156,18 @@
 
         function triggerUpload(type) {
             const input = document.getElementById('file-upload');
-            if (type === 'image') input.accept = "image/*";
-            else if (type === 'file') input.accept = ".pdf,.txt,.csv,.doc,.docx";
+            if (type === 'image') { 
+                input.accept = "image/*"; 
+                input.removeAttribute('capture'); 
+            }
+            else if (type === 'file') { 
+                input.accept = ".pdf,.txt,.csv,.doc,.docx"; 
+                input.removeAttribute('capture'); 
+            }
+            else if (type === 'camera') { 
+                input.accept = "image/*"; 
+                input.setAttribute('capture', 'environment'); // ده اللي بيفتح كاميرا الموبايل فوراً
+            }
             input.click();
             closeAttachmentMenu();
         }
@@ -1193,6 +1248,219 @@
                 label.innerText = 'استماع'; label.classList.remove('text-blue-400');
             });
             lucide.createIcons();
+        }
+
+        // ==========================================
+        // 🎙️ 👁️ مسار الـ Live Call والكاميرا والـ WebSockets
+        // ==========================================
+        let liveWs = null;
+        let liveAudioContext = null;
+        let liveStream = null;
+        let liveVideoStream = null; 
+        let micProcessor = null;
+        let videoInterval = null;
+        let nextAudioTime = 0; 
+        window.speakingTimeout = null;
+
+        async function toggleLiveCall() {
+            const liveBtn = document.getElementById('live-call-btn');
+            if (liveWs && liveWs.readyState === WebSocket.OPEN) { stopLiveCall(); return; }
+
+            try {
+                // 1. طلب المايك بس في البداية
+                liveStream = await navigator.mediaDevices.getUserMedia({ audio: { sampleRate: 16000 } });
+                liveAudioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+                nextAudioTime = liveAudioContext.currentTime;
+                
+                // 2. إظهار شاشة الـ Call Screen
+                const overlay = document.getElementById('live-call-overlay');
+                overlay.classList.remove('hidden');
+                setTimeout(() => overlay.classList.remove('opacity-0'), 50);
+                
+                document.getElementById('call-status-title').innerText = "متصل بكوارك";
+                document.getElementById('call-status-desc').innerText = "كوارك سامعك، تقدر تفتح الكاميرا لو حابب تفرجه على حاجة.";
+
+                // 3. الاتصال بالووركر
+                liveWs = new WebSocket("wss://geminiapikey.yousefgamed22.workers.dev");
+
+                liveWs.onopen = () => {
+                    console.log("🟢 متصل بـ Quark Live!");
+                    
+                    const setupMessage = { setup: { model: "models/gemini-2.5-flash", generationConfig: { responseModalities: ["AUDIO"] } } };
+                    liveWs.send(JSON.stringify(setupMessage));
+
+                    const source = liveAudioContext.createMediaStreamSource(liveStream);
+                    micProcessor = liveAudioContext.createScriptProcessor(4096, 1, 1);
+                    
+                    micProcessor.onaudioprocess = (e) => {
+                        if (liveWs.readyState !== WebSocket.OPEN) return;
+                        const inputData = e.inputBuffer.getChannelData(0);
+                        const pcmData = new Int16Array(inputData.length);
+                        for (let i = 0; i < inputData.length; i++) pcmData[i] = Math.max(-1, Math.min(1, inputData[i])) * 0x7FFF;
+                        const base64Audio = arrayBufferToBase64(pcmData.buffer);
+                        liveWs.send(JSON.stringify({ realtimeInput: { mediaChunks: [{ mimeType: "audio/pcm;rate=16000", data: base64Audio }] } }));
+                    };
+                    source.connect(micProcessor);
+                    micProcessor.connect(liveAudioContext.destination);
+                };
+
+                liveWs.onmessage = async (event) => {
+                    let data = event.data;
+                    if (data instanceof Blob) data = await data.text();
+                    const response = JSON.parse(data);
+                    
+                    if (response.serverContent && response.serverContent.modelTurn) {
+                        document.getElementById('call-status-desc').innerText = "كوارك يتحدث الآن...";
+                        document.getElementById('wave-1').classList.replace('bg-blue-500/20', 'bg-purple-500/40');
+                        document.getElementById('wave-2').classList.replace('bg-purple-500/10', 'bg-blue-500/30');
+                        document.getElementById('live-logo-pulse').classList.add('scale-110');
+                        
+                        const parts = response.serverContent.modelTurn.parts;
+                        parts.forEach(part => {
+                            if (part.inlineData && part.inlineData.data) playQuarkAudio(part.inlineData.data);
+                        });
+
+                        clearTimeout(window.speakingTimeout);
+                        window.speakingTimeout = setTimeout(() => {
+                            document.getElementById('call-status-desc').innerText = "كوارك سامعك...";
+                            document.getElementById('wave-1').classList.replace('bg-purple-500/40', 'bg-blue-500/20');
+                            document.getElementById('wave-2').classList.replace('bg-blue-500/30', 'bg-purple-500/10');
+                            document.getElementById('live-logo-pulse').classList.remove('scale-110');
+                        }, 1500); 
+                    }
+                };
+
+                liveWs.onerror = (err) => { console.error("عطل:", err); stopLiveCall(); };
+                liveWs.onclose = () => { stopLiveCall(); };
+
+            } catch (err) {
+                alert("لازم تسمح باستخدام المايك عشان تستخدم المكالمة!");
+                stopLiveCall();
+            }
+        }
+
+        async function toggleCameraStream() {
+            const videoContainer = document.getElementById('video-container');
+            const videoPreview = document.getElementById('live-video-preview');
+            const camIcon = document.getElementById('cam-icon');
+            const camBtn = document.getElementById('cam-toggle-btn');
+
+            if (liveVideoStream) {
+                liveVideoStream.getTracks().forEach(track => track.stop());
+                liveVideoStream = null;
+                videoPreview.srcObject = null;
+                videoContainer.classList.add('hidden');
+                
+                if (videoInterval) { clearInterval(videoInterval); videoInterval = null; }
+                
+                camIcon.setAttribute('data-lucide', 'video');
+                camBtn.classList.remove('bg-green-600/80', 'border-green-400/30');
+                camBtn.classList.add('bg-gray-800', 'border-gray-600');
+                lucide.createIcons();
+            } else {
+                try {
+                    liveVideoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                    videoPreview.srcObject = liveVideoStream;
+                    videoContainer.classList.remove('hidden');
+                    
+                    camIcon.setAttribute('data-lucide', 'video-off');
+                    camBtn.classList.remove('bg-gray-800', 'border-gray-600');
+                    camBtn.classList.add('bg-green-600/80', 'border-green-400/30');
+                    lucide.createIcons();
+
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    
+                    videoInterval = setInterval(() => {
+                        if (liveWs && liveWs.readyState === WebSocket.OPEN && videoPreview.readyState >= 2) {
+                            canvas.width = videoPreview.videoWidth;
+                            canvas.height = videoPreview.videoHeight;
+                            ctx.drawImage(videoPreview, 0, 0);
+                            const base64Image = canvas.toDataURL('image/jpeg', 0.5).split(',')[1];
+                            liveWs.send(JSON.stringify({ realtimeInput: { mediaChunks: [{ mimeType: "image/jpeg", data: base64Image }] } }));
+                        }
+                    }, 2000);
+                } catch (err) {
+                    alert("مش قادرين نوصل للكاميرا، اتأكد إنك مدي المتصفح صلاحية الكاميرا!");
+                }
+            }
+        }
+
+        function stopLiveCall() {
+            if (liveWs) { liveWs.close(); liveWs = null; }
+            if (micProcessor) { micProcessor.disconnect(); micProcessor = null; }
+            if (liveAudioContext) { liveAudioContext.close(); liveAudioContext = null; }
+            if (liveStream) { liveStream.getTracks().forEach(track => track.stop()); liveStream = null; }
+            
+            if (liveVideoStream) {
+                liveVideoStream.getTracks().forEach(track => track.stop());
+                liveVideoStream = null;
+            }
+            if (videoInterval) { clearInterval(videoInterval); videoInterval = null; }
+            
+            const videoPreview = document.getElementById('live-video-preview');
+            if(videoPreview) videoPreview.srcObject = null;
+            const videoContainer = document.getElementById('video-container');
+            if (videoContainer) videoContainer.classList.add('hidden');
+
+            const camIcon = document.getElementById('cam-icon');
+            const camBtn = document.getElementById('cam-toggle-btn');
+            if(camIcon) camIcon.setAttribute('data-lucide', 'video');
+            if(camBtn) {
+                camBtn.classList.remove('bg-green-600/80', 'border-green-400/30');
+                camBtn.classList.add('bg-gray-800', 'border-gray-600');
+            }
+
+            const overlay = document.getElementById('live-call-overlay');
+            if (overlay) {
+                overlay.classList.add('opacity-0');
+                setTimeout(() => {
+                    overlay.classList.add('hidden');
+                    document.getElementById('call-status-title').innerText = "جاري الاتصال...";
+                    document.getElementById('wave-1').classList.replace('bg-purple-500/40', 'bg-blue-500/20');
+                    document.getElementById('wave-2').classList.replace('bg-blue-500/30', 'bg-purple-500/10');
+                    document.getElementById('live-logo-pulse').classList.remove('scale-110');
+                    lucide.createIcons();
+                }, 500);
+            }
+        }
+
+        function arrayBufferToBase64(buffer) {
+            let binary = '';
+            const bytes = new Uint8Array(buffer);
+            for (let i = 0; i < bytes.byteLength; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            return window.btoa(binary);
+        }
+
+        function playQuarkAudio(base64Data) {
+            if (!liveAudioContext) return;
+            
+            const binaryString = window.atob(base64Data);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            
+            const int16Array = new Int16Array(bytes.buffer);
+            const float32Array = new Float32Array(int16Array.length);
+            for(let i=0; i<int16Array.length; i++) {
+                float32Array[i] = int16Array[i] / 0x7FFF;
+            }
+            
+            const audioBuffer = liveAudioContext.createBuffer(1, float32Array.length, 24000);
+            audioBuffer.getChannelData(0).set(float32Array);
+            
+            const source = liveAudioContext.createBufferSource();
+            source.buffer = audioBuffer;
+            source.connect(liveAudioContext.destination);
+            
+            if (nextAudioTime < liveAudioContext.currentTime) {
+                nextAudioTime = liveAudioContext.currentTime;
+            }
+            source.start(nextAudioTime);
+            nextAudioTime += audioBuffer.duration;
         }
     </script>
 </body>
