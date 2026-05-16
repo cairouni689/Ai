@@ -249,6 +249,8 @@
             <option value="gemini-2.5-flash">Quark 2.5 Flash</option>
             <option value="gemini-3-flash-preview">Quark 3 Flash</option>
             <option value="gemini-3.1-flash-lite">Quark 3.1 Flash Lite</option>
+            <!-- النموذج الجديد بتاع الصور ضفناه هنا اهو -->
+            <option value="gemini-3.1-flash-image-preview">Quark Image (Nano Banana 2)</option>
         </select>
         <div class="absolute inset-y-0 left-0 flex items-center pl-2 pointer-events-none text-gray-500">
             <i data-lucide="cpu" class="w-3.5 h-3.5"></i>
@@ -761,6 +763,29 @@ function copyMessage(btn) {
             removeTypingIndicator();
         }
 
+async function callWorkerAPI(data, signal) {
+    const WORKER_URL = "https://geminiapikey.yousefgamed22.workers.dev"; 
+    
+    try {
+        const res = await fetch(WORKER_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+            signal: signal
+        });
+
+        if (!res.ok) {
+            const errText = await res.text();
+            throw new Error(`Worker Error (${res.status}): ${errText}`);
+        }
+        
+        const json = await res.json();
+        return json; 
+    } catch (e) {
+        throw new Error(`فشل الاتصال: ${e.message}`);
+    }
+}
+
 async function sendMessage() {
     if (isGenerating) {
         stopGeneration();
@@ -841,29 +866,6 @@ async function sendMessage() {
             toggleSendButtonState(false);
         }
         console.error(error);
-    }
-}
-
-        async function callWorkerAPI(data, signal) {
-    const WORKER_URL = "https://geminiapikey.yousefgamed22.workers.dev"; 
-    
-    try {
-        const res = await fetch(WORKER_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data),
-            signal: signal
-        });
-
-        if (!res.ok) {
-            const errText = await res.text();
-            throw new Error(`Worker Error (${res.status}): ${errText}`);
-        }
-        
-        const json = await res.json();
-        return json; 
-    } catch (e) {
-        throw new Error(`فشل الاتصال: ${e.message}`);
     }
 }
 
@@ -1112,10 +1114,6 @@ function addMessage(text, sender, animate = true, attachment = null, messageType
             div.scrollIntoView({ behavior: 'smooth', block: 'end' });
         }
 
-        function removeTypingIndicator() {
-            const indicator = document.getElementById('typing-indicator');
-            if (indicator) indicator.remove();
-        }
         function removeTypingIndicator() {
             const indicator = document.getElementById('typing-indicator');
             if (indicator) indicator.remove();
