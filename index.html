@@ -345,42 +345,53 @@
         </div>
     </div>
 
-    <div id="live-call-overlay" class="fixed inset-0 w-full h-[100dvh] z-[100] hidden bg-[#131314] flex-col justify-between transition-opacity duration-500 opacity-0 overflow-hidden" dir="ltr">
+    <div id="live-call-overlay" class="fixed inset-0 w-full h-[100dvh] z-[100] hidden bg-[#131314] flex-col transition-opacity duration-500 opacity-0 overflow-hidden" dir="ltr">
         
         <div class="absolute bottom-0 w-full h-1/2 overflow-hidden pointer-events-none z-0">
              <div id="aurora-glow" class="absolute bottom-[-30%] left-1/2 transform -translate-x-1/2 w-[150%] md:w-[80%] h-[120%] bg-gradient-to-t from-[#4285f4] via-[#4285f4]/40 to-transparent opacity-30 blur-[80px] rounded-[100%] transition-all duration-700 ease-in-out"></div>
         </div>
 
-        <div class="w-full flex justify-between items-center px-6 pt-10 z-50">
+        <div class="w-full flex justify-between items-center px-6 pt-10 pb-4 z-50 shrink-0">
             <button class="w-12 h-12 flex items-center justify-center text-white/50 hover:text-white transition-colors">
                 <i data-lucide="camera-off" id="header-cam-icon" class="w-6 h-6"></i>
             </button>
-            <div class="text-white text-xl md:text-2xl font-medium tracking-wide flex items-center gap-2">
+            <div class="text-white text-xl md:text-2xl font-medium tracking-wide flex items-center gap-2.5">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-blue-500 drop-shadow-[0_0_8px_rgba(59,130,246,0.8)]">
+                    <path d="M12 2L2 22L12 18L22 22L12 2Z" />
+                </svg>
                 Live <i data-lucide="sparkles" class="w-5 h-5 text-white/90"></i>
             </div>
-            <div class="w-12 h-12"></div> </div>
-
-        <div id="video-container" class="hidden absolute inset-0 z-10 w-full h-full">
-            <video id="live-video-preview" autoplay playsinline muted class="w-full h-full object-cover mix-blend-screen opacity-40"></video>
+            <div class="w-12 h-12"></div> 
         </div>
 
-        <div class="flex-grow"></div>
+        <div id="call-status-container" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center z-40 w-full px-4 text-center pointer-events-none transition-opacity duration-300">
+            <h2 id="call-status-title" class="text-3xl md:text-5xl font-bold text-white tracking-[0.2em] font-mono drop-shadow-[0_0_15px_rgba(255,255,255,0.5)] mb-3">SYSTEM ONLINE</h2>
+            <p id="call-status-desc" class="text-blue-400 text-lg md:text-xl font-mono font-light tracking-[0.3em] uppercase animate-pulse">Awaiting Input...</p>
+        </div>
 
-        <div class="w-full flex justify-center items-center gap-4 md:gap-6 pb-12 pt-6 z-50 px-4">
+        <div id="video-container" class="hidden relative z-40 w-full flex-grow px-4 md:px-12 py-4 flex-col items-center justify-center">
+            <div class="w-full max-w-2xl h-full max-h-[60vh] mx-auto rounded-3xl overflow-hidden border border-white/10 shadow-[0_0_40px_rgba(0,0,0,0.4)] bg-black">
+                <video id="live-video-preview" autoplay playsinline muted class="w-full h-full object-contain"></video>
+            </div>
+        </div>
+
+        <div id="video-spacer" class="flex-grow z-10 pointer-events-none"></div>
+
+        <div class="w-full flex justify-center items-center gap-4 md:gap-6 pb-12 pt-4 z-50 px-4 shrink-0 bg-gradient-to-t from-[#131314] to-transparent">
             <button onclick="stopLiveCall()" class="w-[3.5rem] h-[3.5rem] md:w-[4.5rem] md:h-[4.5rem] bg-[#ea4335] hover:bg-[#d93025] text-white rounded-[2rem] flex items-center justify-center transition-transform hover:scale-105 active:scale-95 shadow-[0_4px_15px_rgba(234,67,53,0.3)]">
                 <i data-lucide="x" class="w-7 h-7 md:w-8 md:h-8"></i>
             </button>
             
-            <button id="live-mic-btn" class="w-[3.5rem] h-[3.5rem] md:w-[4.5rem] md:h-[4.5rem] bg-[#2a2a2c] hover:bg-[#383a3f] text-white rounded-[2rem] flex items-center justify-center transition-all duration-300 border border-white/5">
-                <i data-lucide="mic" class="w-6 h-6 md:w-7 md:h-7"></i>
+            <button onclick="toggleMic()" id="live-mic-btn" class="w-[3.5rem] h-[3.5rem] md:w-[4.5rem] md:h-[4.5rem] bg-[#2a2a2c] hover:bg-[#383a3f] text-white rounded-[2rem] flex items-center justify-center transition-all duration-300 border border-white/5">
+                <i data-lucide="mic" id="mic-icon" class="w-6 h-6 md:w-7 md:h-7"></i>
             </button>
             
-            <button class="w-[3.5rem] h-[3.5rem] md:w-[4.5rem] md:h-[4.5rem] bg-[#2a2a2c] hover:bg-[#383a3f] text-white rounded-[2rem] flex items-center justify-center transition-transform hover:scale-105 active:scale-95 border border-white/5">
-                <i data-lucide="arrow-up-square" class="w-6 h-6 md:w-7 md:h-7"></i>
+            <button onclick="toggleCameraStream()" id="cam-toggle-btn" class="w-[3.5rem] h-[3.5rem] md:w-[4.5rem] md:h-[4.5rem] bg-[#2a2a2c] hover:bg-[#383a3f] text-white rounded-[2rem] flex items-center justify-center transition-all duration-300 border border-white/5">
+                <i data-lucide="video" id="cam-icon" class="w-6 h-6 md:w-7 md:h-7"></i>
             </button>
 
-            <button onclick="toggleCameraStream()" id="cam-toggle-btn" class="w-[3.5rem] h-[3.5rem] md:w-[4.5rem] md:h-[4.5rem] bg-[#2a2a2c] hover:bg-[#383a3f] text-white rounded-[2rem] flex items-center justify-center transition-transform hover:scale-105 active:scale-95 border border-white/5">
-                <i data-lucide="video" id="cam-icon" class="w-6 h-6 md:w-7 md:h-7"></i>
+            <button onclick="switchCamera()" id="switch-cam-btn" class="hidden w-[3.5rem] h-[3.5rem] md:w-[4.5rem] md:h-[4.5rem] bg-[#2a2a2c] hover:bg-[#383a3f] text-white rounded-[2rem] flex items-center justify-center transition-transform hover:scale-105 active:scale-95 border border-white/5">
+                <i data-lucide="switch-camera" class="w-6 h-6 md:w-7 md:h-7"></i>
             </button>
         </div>
     </div>
@@ -1261,18 +1272,22 @@
         let videoInterval = null;
         let nextAudioTime = 0; 
         window.speakingTimeout = null;
+        
+        let isMicMuted = false;
+        let currentFacingMode = "environment"; // الكاميرا الخلفية كافتراضي
 
         async function toggleLiveCall() {
             const liveBtn = document.getElementById('live-call-btn');
             if (liveWs && liveWs.readyState === WebSocket.OPEN) { stopLiveCall(); return; }
 
             try {
-                // 1. طلب المايك بس في البداية
                 liveStream = await navigator.mediaDevices.getUserMedia({ audio: { sampleRate: 16000 } });
                 liveAudioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
                 nextAudioTime = liveAudioContext.currentTime;
                 
-                // 2. إظهار شاشة الـ Call Screen
+                isMicMuted = false;
+                currentFacingMode = "environment";
+                
                 const overlay = document.getElementById('live-call-overlay');
                 overlay.classList.remove('hidden');
                 setTimeout(() => overlay.classList.remove('opacity-0'), 50);
@@ -1280,12 +1295,10 @@
                 const aurora = document.getElementById('aurora-glow');
                 if(aurora) aurora.className = "absolute bottom-[-30%] left-1/2 transform -translate-x-1/2 w-[150%] md:w-[80%] h-[120%] bg-gradient-to-t from-[#4285f4] via-[#4285f4]/40 to-transparent opacity-30 blur-[80px] rounded-[100%] transition-all duration-700 ease-in-out";
 
-                // 3. الاتصال بالووركر
                 liveWs = new WebSocket("wss://geminiapikey.yousefgamed22.workers.dev");
 
                 liveWs.onopen = () => {
                     console.log("🟢 متصل بـ Quark Live!");
-                    
                     const setupMessage = { setup: { model: "models/gemini-2.5-flash-native-audio-latest", generationConfig: { responseModalities: ["AUDIO"] } } };
                     liveWs.send(JSON.stringify(setupMessage));
 
@@ -1316,8 +1329,6 @@
                             aurora.classList.replace('via-[#4285f4]/40', 'via-[#4ade80]/40');
                             aurora.classList.replace('opacity-30', 'opacity-60');
                         }
-                        const micBtn = document.getElementById('live-mic-btn');
-                        if(micBtn) micBtn.classList.add('scale-110', 'bg-white/20');
                         
                         const parts = response.serverContent.modelTurn.parts;
                         parts.forEach(part => {
@@ -1332,8 +1343,6 @@
                                 aurora.classList.replace('via-[#4ade80]/40', 'via-[#4285f4]/40');
                                 aurora.classList.replace('opacity-60', 'opacity-30');
                             }
-                            const micBtn = document.getElementById('live-mic-btn');
-                            if(micBtn) micBtn.classList.remove('scale-110', 'bg-white/20');
                         }, 1500); 
                     }
                 };
@@ -1347,33 +1356,74 @@
             }
         }
 
+        // دالة כتم المايك
+        function toggleMic() {
+            if (liveStream) {
+                const audioTracks = liveStream.getAudioTracks();
+                if (audioTracks.length > 0) {
+                    isMicMuted = !isMicMuted;
+                    audioTracks[0].enabled = !isMicMuted; // بيكتم وبيشغل
+                    
+                    const micBtn = document.getElementById('live-mic-btn');
+                    const micIcon = document.getElementById('mic-icon');
+                    
+                    if (isMicMuted) {
+                        micIcon.setAttribute('data-lucide', 'mic-off');
+                        micBtn.classList.replace('bg-[#2a2a2c]', 'bg-white');
+                        micBtn.classList.replace('text-white', 'text-black');
+                    } else {
+                        micIcon.setAttribute('data-lucide', 'mic');
+                        micBtn.classList.replace('bg-white', 'bg-[#2a2a2c]');
+                        micBtn.classList.replace('text-black', 'text-white');
+                    }
+                    lucide.createIcons();
+                }
+            }
+        }
+
+        // دالة تشغيل وإيقاف الكاميرا بحل مشكلة التهنيج
         async function toggleCameraStream() {
             const videoContainer = document.getElementById('video-container');
             const videoPreview = document.getElementById('live-video-preview');
             const camIcon = document.getElementById('cam-icon');
             const camBtn = document.getElementById('cam-toggle-btn');
+            const statusContainer = document.getElementById('call-status-container');
+            const switchBtn = document.getElementById('switch-cam-btn');
+            const spacer = document.getElementById('video-spacer');
 
             if (liveVideoStream) {
+                // قفل الكاميرا
                 liveVideoStream.getTracks().forEach(track => track.stop());
                 liveVideoStream = null;
                 videoPreview.srcObject = null;
                 videoContainer.classList.add('hidden');
+                videoContainer.classList.remove('flex'); // إخفاء مساحته
+                spacer.classList.remove('hidden');
+                statusContainer.classList.remove('opacity-0'); // إظهار النص تاني
+                switchBtn.classList.add('hidden'); // إخفاء زرار التبديل
                 
                 if (videoInterval) { clearInterval(videoInterval); videoInterval = null; }
                 
                 camIcon.setAttribute('data-lucide', 'video');
-                camBtn.classList.remove('bg-green-600/80', 'border-green-400/30');
-                camBtn.classList.add('bg-gray-800', 'border-gray-600');
+                camBtn.classList.replace('bg-white', 'bg-[#2a2a2c]');
+                camBtn.classList.replace('text-black', 'text-white');
+                document.getElementById('header-cam-icon').setAttribute('data-lucide', 'camera-off');
                 lucide.createIcons();
             } else {
+                // تشغيل الكاميرا
                 try {
-                    liveVideoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                    liveVideoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: currentFacingMode } });
                     videoPreview.srcObject = liveVideoStream;
                     videoContainer.classList.remove('hidden');
+                    videoContainer.classList.add('flex'); // عرض المساحة
+                    spacer.classList.add('hidden');
+                    statusContainer.classList.add('opacity-0'); // إخفاء النص
+                    switchBtn.classList.remove('hidden'); // عرض زرار التبديل
                     
                     camIcon.setAttribute('data-lucide', 'video-off');
-                    camBtn.classList.remove('bg-gray-800', 'border-gray-600');
-                    camBtn.classList.add('bg-green-600/80', 'border-green-400/30');
+                    camBtn.classList.replace('bg-[#2a2a2c]', 'bg-white');
+                    camBtn.classList.replace('text-white', 'text-black');
+                    document.getElementById('header-cam-icon').setAttribute('data-lucide', 'camera');
                     lucide.createIcons();
 
                     const canvas = document.createElement('canvas');
@@ -1394,85 +1444,90 @@
             }
         }
 
+        // دالة تبديل الكاميرا (أمامي / خلفي)
+        async function switchCamera() {
+            if (!liveVideoStream) return;
+            currentFacingMode = currentFacingMode === "environment" ? "user" : "environment";
+            liveVideoStream.getTracks().forEach(track => track.stop());
+            try {
+                liveVideoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: currentFacingMode } });
+                document.getElementById('live-video-preview').srcObject = liveVideoStream;
+            } catch (err) {
+                console.error(err);
+                alert("لم نتمكن من تبديل الكاميرا.");
+            }
+        }
+
         function stopLiveCall() {
             if (liveWs) { liveWs.close(); liveWs = null; }
             if (micProcessor) { micProcessor.disconnect(); micProcessor = null; }
             if (liveAudioContext) { liveAudioContext.close(); liveAudioContext = null; }
             if (liveStream) { liveStream.getTracks().forEach(track => track.stop()); liveStream = null; }
-            
-            if (liveVideoStream) {
-                liveVideoStream.getTracks().forEach(track => track.stop());
-                liveVideoStream = null;
-            }
+            if (liveVideoStream) { liveVideoStream.getTracks().forEach(track => track.stop()); liveVideoStream = null; }
             if (videoInterval) { clearInterval(videoInterval); videoInterval = null; }
             
-            const videoPreview = document.getElementById('live-video-preview');
-            if(videoPreview) videoPreview.srcObject = null;
-            const videoContainer = document.getElementById('video-container');
-            if (videoContainer) videoContainer.classList.add('hidden');
+            document.getElementById('live-video-preview').srcObject = null;
+            document.getElementById('video-container').classList.add('hidden');
+            document.getElementById('video-container').classList.remove('flex');
+            document.getElementById('video-spacer').classList.remove('hidden');
+            document.getElementById('call-status-container').classList.remove('opacity-0');
+            document.getElementById('switch-cam-btn').classList.add('hidden');
 
             const camIcon = document.getElementById('cam-icon');
             const camBtn = document.getElementById('cam-toggle-btn');
             if(camIcon) camIcon.setAttribute('data-lucide', 'video');
             if(camBtn) {
-                camBtn.classList.remove('bg-green-600/80', 'border-green-400/30');
-                camBtn.classList.add('bg-gray-800', 'border-gray-600');
+                camBtn.classList.replace('bg-white', 'bg-[#2a2a2c]');
+                camBtn.classList.replace('text-black', 'text-white');
             }
 
+            const micIcon = document.getElementById('mic-icon');
+            const micBtn = document.getElementById('live-mic-btn');
+            if (micIcon) micIcon.setAttribute('data-lucide', 'mic');
+            if (micBtn) {
+                micBtn.classList.replace('bg-white', 'bg-[#2a2a2c]');
+                micBtn.classList.replace('text-black', 'text-white');
+            }
+
+            const aurora = document.getElementById('aurora-glow');
+            if(aurora) {
+                aurora.classList.replace('from-[#2dd4bf]', 'from-[#4285f4]');
+                aurora.classList.replace('via-[#4ade80]/40', 'via-[#4285f4]/40');
+                aurora.classList.replace('opacity-60', 'opacity-30');
+            }
+            const headerCam = document.getElementById('header-cam-icon');
+            if(headerCam) headerCam.setAttribute('data-lucide', 'camera-off');
+            
             const overlay = document.getElementById('live-call-overlay');
             if (overlay) {
                 overlay.classList.add('opacity-0');
                 setTimeout(() => {
                     overlay.classList.add('hidden');
-                    const micBtn = document.getElementById('live-mic-btn');
-                    if(micBtn) micBtn.classList.remove('scale-110', 'bg-white/20');
-                    const aurora = document.getElementById('aurora-glow');
-                    if(aurora) {
-                        aurora.classList.replace('from-[#2dd4bf]', 'from-[#4285f4]');
-                        aurora.classList.replace('via-[#4ade80]/40', 'via-[#4285f4]/40');
-                        aurora.classList.replace('opacity-60', 'opacity-30');
-                    }
-                    const headerCam = document.getElementById('header-cam-icon');
-                    if(headerCam) headerCam.setAttribute('data-lucide', 'camera-off');
                     lucide.createIcons();
                 }, 500);
             }
         }
 
         function arrayBufferToBase64(buffer) {
-            let binary = '';
-            const bytes = new Uint8Array(buffer);
-            for (let i = 0; i < bytes.byteLength; i++) {
-                binary += String.fromCharCode(bytes[i]);
-            }
+            let binary = ''; const bytes = new Uint8Array(buffer);
+            for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
             return window.btoa(binary);
         }
 
         function playQuarkAudio(base64Data) {
             if (!liveAudioContext) return;
-            
             const binaryString = window.atob(base64Data);
             const bytes = new Uint8Array(binaryString.length);
-            for (let i = 0; i < binaryString.length; i++) {
-                bytes[i] = binaryString.charCodeAt(i);
-            }
-            
+            for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
             const int16Array = new Int16Array(bytes.buffer);
             const float32Array = new Float32Array(int16Array.length);
-            for(let i=0; i<int16Array.length; i++) {
-                float32Array[i] = int16Array[i] / 0x7FFF;
-            }
-            
+            for(let i=0; i<int16Array.length; i++) float32Array[i] = int16Array[i] / 0x7FFF;
             const audioBuffer = liveAudioContext.createBuffer(1, float32Array.length, 24000);
             audioBuffer.getChannelData(0).set(float32Array);
-            
             const source = liveAudioContext.createBufferSource();
             source.buffer = audioBuffer;
             source.connect(liveAudioContext.destination);
-            
-            if (nextAudioTime < liveAudioContext.currentTime) {
-                nextAudioTime = liveAudioContext.currentTime;
-            }
+            if (nextAudioTime < liveAudioContext.currentTime) nextAudioTime = liveAudioContext.currentTime;
             source.start(nextAudioTime);
             nextAudioTime += audioBuffer.duration;
         }
