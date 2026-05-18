@@ -451,14 +451,14 @@
             // 1. نكتشف إحنا جوه أبلكيشن ميديان ولا متصفح ويب عادي؟
             const isApp = typeof median !== 'undefined' || navigator.userAgent.toLowerCase().includes('median');
 
-            // 2. نحدد باب الرجوع بناءً على المكان
-            const redirectTarget = isApp ? 'quarkauth://auth/callback' : 'https://quark-4hz.pages.dev/?login=success';
+            // 2. التعديل السحري: خلينا الأبلكيشن يرجع على الموقع بتاعك بس بالباب السري (quarkauth)
+            const redirectTarget = isApp ? 'quarkauth://quark-4hz.pages.dev/?login=success' : 'https://quark-4hz.pages.dev/?login=success';
 
             const { data, error } = await supabaseClient.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
                     redirectTo: redirectTarget,
-                    skipBrowserRedirect: isApp // نمنع تحويل سوبابيز التلقائي في الأبلكيشن بس
+                    skipBrowserRedirect: isApp 
                 }
             });
 
@@ -469,14 +469,12 @@
 
             if (data && data.url) {
                 if (isApp) {
-                    // لو إحنا في الأبلكيشن: افتح كروم الخارجي
                     if (typeof median !== 'undefined') {
                         median.window.open(data.url, 'external');
                     } else {
                         window.location.href = 'median://window/open?url=' + encodeURIComponent(data.url) + '&mode=external';
                     }
                 } else {
-                    // لو إحنا في متصفح عادي: كمل عادي جداً في نفس الشاشة
                     window.location.href = data.url;
                 }
             }
