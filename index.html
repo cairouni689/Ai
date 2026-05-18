@@ -455,54 +455,15 @@
 
         
 async function signInWithGoogle() {
-            const isApp = typeof median !== 'undefined' || navigator.userAgent.toLowerCase().includes('median');
-            const redirectTarget = isApp ? 'quarkauth://callback' : 'https://quark-4hz.pages.dev/?login=success';
-
-            const { data, error } = await supabaseClient.auth.signInWithOAuth({
+            const { error } = await supabaseClient.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
-                    redirectTo: redirectTarget,
-                    skipBrowserRedirect: isApp 
+                    redirectTo: 'https://quark-4hz.pages.dev/' 
                 }
             });
-
-            if (error) {
-                console.error("Error signing in:", error.message);
-                return;
-            }
-
-            if (data && data.url) {
-                if (isApp) {
-                    if (typeof median !== 'undefined') {
-                        median.window.open(data.url, 'external');
-                    } else {
-                        window.location.href = 'median://window/open?url=' + encodeURIComponent(data.url) + '&mode=external';
-                    }
-                } else {
-                    window.location.href = data.url;
-                }
-            }
+            if (error) console.error("Error signing in:", error.message);
         }
-
-        window.handleDeepLink = async function(url) {
-            try {
-                const urlObj = new URL(url);
-                const code = urlObj.searchParams.get('code');
-                
-                if (code) {
-                    const { data, error } = await supabaseClient.auth.exchangeCodeForSession(code);
-                    if (data?.session) {
-                        currentUserId = data.session.user.id;
-                        currentUser = data.session.user;
-                        updateAuthUI(true);
-                        loadSessionsList();
-                    }
-                }
-            } catch (err) {
-                console.error('Deep link error:', err);
-            }
-        };
-
+        
         async function signOut() {
             const { error } = await supabaseClient.auth.signOut();
             if (error) console.error("Error signing out:", error.message);
