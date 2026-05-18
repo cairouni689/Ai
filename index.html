@@ -428,7 +428,13 @@
 
         const SUPABASE_URL = 'https://wgxtjczrdfpqwrwiyzia.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_Vbf-TkChu4JzTs-jHUD3DA_IoIAWRLm';
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            auth: {
+                flowType: 'pkce', 
+                detectSessionInUrl: true,
+                persistSession: true
+            }
+        });
 
         let currentUserId = null;
         let currentUser = null;
@@ -447,13 +453,16 @@
             }
         });
 
-        async function signInWithGoogle() {
+        
+async function signInWithGoogle() {
+            const isApp = typeof median !== 'undefined' || navigator.userAgent.toLowerCase().includes('median');
+            const redirectTarget = isApp ? 'quarkauth://callback' : 'https://quark-4hz.pages.dev/?login=success';
+
             const { data, error } = await supabaseClient.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
-                    // هنرجع للينك الأساسي بتاعك
-                    redirectTo: 'https://quark-4hz.pages.dev/?login=success',
-                    skipBrowserRedirect: true 
+                    redirectTo: redirectTarget,
+                    skipBrowserRedirect: isApp 
                 }
             });
 
@@ -463,14 +472,36 @@
             }
 
             if (data && data.url) {
-                // أمر ميديان الصريح لفتح المتصفح الخارجي
-                if (typeof median !== 'undefined') {
-                    median.window.open(data.url, 'external');
+                if (isApp) {
+                    if (typeof median !== 'undefined') {
+                        median.window.open(data.url, 'external');
+                    } else {
+                        window.location.href = 'median://window/open?url=' + encodeURIComponent(data.url) + '&mode=external';
+                    }
                 } else {
                     window.location.href = data.url;
                 }
             }
         }
+
+        window.handleDeepLink = async function(url) {
+            try {
+                const urlObj = new URL(url);
+                const code = urlObj.searchParams.get('code');
+                
+                if (code) {
+                    const { data, error } = await supabaseClient.auth.exchangeCodeForSession(code);
+                    if (data?.session) {
+                        currentUserId = data.session.user.id;
+                        currentUser = data.session.user;
+                        updateAuthUI(true);
+                        loadSessionsList();
+                    }
+                }
+            } catch (err) {
+                console.error('Deep link error:', err);
+            }
+        };
 
         async function signOut() {
             const { error } = await supabaseClient.auth.signOut();
