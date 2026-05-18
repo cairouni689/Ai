@@ -451,11 +451,24 @@
             const { data, error } = await supabaseClient.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
-                    redirectTo: 'https://quark-4hz.pages.dev/?login=success'
+                    // هنرجع للينك الأساسي بتاعك
+                    redirectTo: 'https://quark-4hz.pages.dev/?login=success',
+                    skipBrowserRedirect: true 
                 }
             });
+
             if (error) {
                 console.error("Error signing in:", error.message);
+                return;
+            }
+
+            if (data && data.url) {
+                // أمر ميديان الصريح لفتح المتصفح الخارجي
+                if (typeof median !== 'undefined') {
+                    median.window.open(data.url, 'external');
+                } else {
+                    window.location.href = data.url;
+                }
             }
         }
 
