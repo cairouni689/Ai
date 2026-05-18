@@ -448,35 +448,14 @@
         });
 
         async function signInWithGoogle() {
-            // 1. نكتشف إحنا جوه أبلكيشن ميديان ولا متصفح ويب عادي؟
-            const isApp = typeof median !== 'undefined' || navigator.userAgent.toLowerCase().includes('median');
-
-            // 2. التعديل السحري: خلينا الأبلكيشن يرجع على الموقع بتاعك بس بالباب السري (quarkauth)
-            const redirectTarget = isApp ? 'quarkauth://quark-4hz.pages.dev/?login=success' : 'https://quark-4hz.pages.dev/?login=success';
-
             const { data, error } = await supabaseClient.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
-                    redirectTo: redirectTarget,
-                    skipBrowserRedirect: isApp 
+                    redirectTo: 'https://quark-4hz.pages.dev/?login=success'
                 }
             });
-
             if (error) {
                 console.error("Error signing in:", error.message);
-                return;
-            }
-
-            if (data && data.url) {
-                if (isApp) {
-                    if (typeof median !== 'undefined') {
-                        median.window.open(data.url, 'external');
-                    } else {
-                        window.location.href = 'median://window/open?url=' + encodeURIComponent(data.url) + '&mode=external';
-                    }
-                } else {
-                    window.location.href = data.url;
-                }
             }
         }
 
