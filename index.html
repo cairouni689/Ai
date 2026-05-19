@@ -247,7 +247,6 @@
             <span class="font-bold text-lg text-white tracking-wide">Quark Control</span>
             <button onclick="toggleSidebar()" class="p-1 hover:bg-white/10 rounded text-gray-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
         </div>
-        <div class="p-4 border-b border-white/5" id="auth-container"></div>
         
         <div class="p-4 border-b border-white/5">
             <button onclick="startNewSession()" class="w-full py-2.5 mb-4 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 rounded-lg text-sm flex items-center justify-center gap-2 transition-all text-blue-200 hover:text-white shadow-[0_0_10px_rgba(37,99,235,0.1)]">
@@ -265,34 +264,20 @@
                     </div>
                 </div>
             </div>
-            <!-- اختيار الصوت والنبرة -->
-            <div class="px-4 pb-4 border-b border-white/5 mb-4 mt-4">
-                <label class="text-[10px] text-gray-500 uppercase tracking-widest block mb-2 font-mono">Voice & Tone</label>
-                <div class="relative">
-                    <select id="voice-selector" class="w-full bg-[#1e1e1e] border border-white/10 text-gray-300 text-xs rounded-lg p-2.5 appearance-none focus:border-blue-500/50 outline-none font-sans cursor-pointer hover:bg-white/5">
-                        <option value="Puck_calm">صوت رجل - هادئ ومريح</option>
-                        <option value="Charon_enthusiastic">صوت رجل - حماسي وقوي</option>
-                        <option value="Kore_calm">صوت فتاة - هادئة ولطيفة</option>
-                        <option value="Aoede_enthusiastic">صوت فتاة - حماسية ونشطة</option>
-                    </select>
-                    <div class="absolute inset-y-0 left-0 flex items-center pl-2 pointer-events-none text-gray-500">
-                        <i data-lucide="mic" class="w-3.5 h-3.5"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="p-2 bg-black/50 text-[10px] text-gray-500 uppercase tracking-widest text-center py-1">Mission Log</div>
             
-            <div id="history-list" class="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1">
+            <div class="p-2 bg-black/50 text-[10px] text-gray-500 uppercase tracking-widest text-center py-1 rounded">Mission Log</div>
+            
+            <div id="history-list" class="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1 max-h-[40vh]">
                 <div class="flex flex-col items-center justify-center h-20 text-gray-600 gap-2 mt-4">
                     <i data-lucide="radar" class="w-6 h-6 opacity-40"></i>
                     <span class="text-xs font-mono">NO DATA</span>
                 </div>
             </div>
+        </div>
 
-            <div class="p-6 border-t border-white/5 bg-black/40 text-center mt-auto">
-                <h3 class="text-lg font-bold text-white font-mono tracking-wider drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">AI SciVerse</h3>
-                <p class="text-[10px] text-gray-500 uppercase tracking-[0.2em] mt-1 font-light">Faculty of Science</p>
-            </div>
+        <!-- البوكس الجديد اللي هيتعرض فيه بيانات المستخدم أو زرار الدخول -->
+        <div id="sidebar-bottom-section" class="mt-auto border-t border-white/5 bg-black/40 p-4">
+            <!-- سيتم حقن المحتوى هنا بواسطة الجافاسكريبت -->
         </div>
     </aside>
 
@@ -442,6 +427,43 @@
         <img id="modal-image" src="" class="max-w-[90vw] max-h-[90vh] object-contain rounded-xl shadow-[0_0_50px_rgba(0,0,0,0.8)] transform scale-95 transition-transform duration-300" onclick="event.stopPropagation()">
     </div>
 
+<!-- نافذة الإعدادات (Settings Modal) -->
+    <div id="settings-modal" class="fixed inset-0 z-[100] hidden bg-black/90 backdrop-blur-md flex items-center justify-center transition-opacity duration-300 opacity-0" onclick="closeSettings()">
+        <div class="bg-[#131314] border border-white/10 rounded-2xl w-full max-w-md p-6 m-4 shadow-2xl transform scale-95 transition-transform duration-300" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center mb-6 border-b border-white/5 pb-4">
+                <h2 class="text-xl font-bold text-white flex items-center gap-2 font-mono tracking-wide">
+                    <i data-lucide="settings" class="w-5 h-5 text-blue-400"></i> Settings
+                </h2>
+                <button onclick="closeSettings()" class="text-gray-400 hover:text-red-500 transition-colors p-2 hover:bg-white/5 rounded-full">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <div class="space-y-6">
+                <!-- إعدادات الصوت -->
+                <div class="bg-black/50 border border-white/5 rounded-xl p-4">
+                    <label class="text-xs text-gray-400 uppercase tracking-widest block mb-3 font-mono flex items-center gap-2">
+                        <i data-lucide="mic" class="w-4 h-4 text-purple-400"></i> Voice & Tone
+                    </label>
+                    <div class="relative">
+                        <select id="voice-selector" class="w-full bg-[#1e1e1e] border border-white/10 text-gray-200 text-sm rounded-lg p-3 appearance-none focus:border-blue-500/50 outline-none cursor-pointer hover:bg-white/5 transition-colors font-sans">
+                            <option value="Puck_calm">صوت رجل - هادئ ومريح</option>
+                            <option value="Charon_enthusiastic">صوت رجل - حماسي وقوي</option>
+                            <option value="Kore_calm">صوت فتاة - هادئة ولطيفة</option>
+                            <option value="Aoede_enthusiastic">صوت فتاة - حماسية ونشطة</option>
+                        </select>
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500">
+                            <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                        </div>
+                    </div>
+                    <p class="text-[10px] text-gray-500 mt-3 font-sans leading-relaxed">هذا الصوت سيتم تطبيقه على زر الاستماع والمكالمات الصوتية المباشرة (Live Call).</p>
+                </div>
+                
+                <!-- يمكن إضافة إعدادات أخرى هنا مستقبلاً -->
+            </div>
+        </div>
+    </div>
+
     <script>
         lucide.createIcons();
 
@@ -577,29 +599,74 @@ async function signInWithGoogle() {
         }
 
         function updateAuthUI(isLoggedIn) {
-            const authContainer = document.getElementById('auth-container');
+            const bottomSection = document.getElementById('sidebar-bottom-section');
             if (isLoggedIn) {
-                authContainer.innerHTML = `
-                    <div class="flex items-center gap-3 bg-white/5 p-2 rounded-xl border border-white/10">
-                        <img src="${currentUser.user_metadata.avatar_url || ''}" class="w-10 h-10 rounded-full border border-blue-500/50 shadow-[0_0_10px_rgba(59,130,246,0.3)]">
+                // استخراج أول حرف من اسم المستخدم لو مفيش صورة
+                const userName = currentUser.user_metadata.full_name || 'طالب علوم';
+                const firstLetter = userName.charAt(0).toUpperCase();
+                const avatarImg = currentUser.user_metadata.avatar_url;
+                
+                const avatarHtml = avatarImg 
+                    ? `<img src="${avatarImg}" class="w-11 h-11 rounded-xl border border-white/10 shadow-lg object-cover">`
+                    : `<div class="w-11 h-11 rounded-xl border border-white/10 bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">${firstLetter}</div>`;
+
+                bottomSection.innerHTML = `
+                    <div class="flex items-center gap-3 bg-white/5 hover:bg-white/10 p-3 rounded-xl border border-white/5 transition-all cursor-pointer group" onclick="openSettings()">
+                        <div class="relative shrink-0 transition-transform group-hover:scale-105">
+                            ${avatarHtml}
+                            <div class="absolute -bottom-1.5 -right-1.5 bg-[#1e1e1e] border border-white/10 p-1 rounded-full shadow-lg text-gray-400 group-hover:text-blue-400 transition-colors">
+                                <i data-lucide="settings" class="w-3 h-3"></i>
+                            </div>
+                        </div>
                         <div class="flex-1 overflow-hidden">
-                            <p class="text-sm text-white truncate font-bold" dir="ltr">${currentUser.user_metadata.full_name || 'طالب علوم'}</p>
+                            <p class="text-sm text-white truncate font-bold font-sans" dir="ltr">${userName}</p>
                             <p class="text-[10px] text-gray-400 truncate" dir="ltr">${currentUser.email}</p>
                         </div>
-                        <button onclick="signOut()" class="p-2 hover:bg-red-500/20 text-gray-400 hover:text-red-400 rounded-lg transition-colors" title="تسجيل خروج">
+                        <button onclick="event.stopPropagation(); signOut();" class="p-2 hover:bg-red-500/20 text-gray-400 hover:text-red-400 rounded-lg transition-colors z-10 shrink-0" title="تسجيل خروج">
                             <i data-lucide="log-out" class="w-4 h-4"></i>
                         </button>
                     </div>
                 `;
             } else {
-                authContainer.innerHTML = `
-                    <button onclick="signInWithGoogle()" class="w-full py-2.5 bg-white text-black hover:bg-gray-200 rounded-lg text-sm flex items-center justify-center gap-2 font-bold transition-all shadow-[0_0_15px_rgba(255,255,255,0.2)]">
+                bottomSection.innerHTML = `
+                    <button onclick="signInWithGoogle()" class="w-full py-3 mb-4 bg-white text-black hover:bg-gray-200 rounded-xl text-sm flex items-center justify-center gap-2 font-bold transition-all shadow-[0_0_15px_rgba(255,255,255,0.2)]">
                         <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
                         الدخول بحساب جوجل
                     </button>
+                    <div class="text-center w-full">
+                        <h3 class="text-sm font-bold text-white font-mono tracking-wider opacity-80">AI SciVerse</h3>
+                        <p class="text-[9px] text-gray-500 uppercase tracking-[0.2em] mt-0.5 font-light">Faculty of Science</p>
+                    </div>
                 `;
             }
             lucide.createIcons();
+        }
+
+        // دوال نافذة الإعدادات
+        function openSettings() {
+            const modal = document.getElementById('settings-modal');
+            const modalBox = modal.querySelector('div');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modalBox.classList.remove('scale-95');
+                modalBox.classList.add('scale-100');
+            }, 10);
+            
+            // قفل القائمة الجانبية لو مفتوحة على الموبايل عشان متبقاش مغطية على الإعدادات
+            if (window.innerWidth < 768) {
+                const sidebar = document.getElementById('sidebar');
+                if (!sidebar.classList.contains('translate-x-full')) toggleSidebar();
+            }
+        }
+
+        function closeSettings() {
+            const modal = document.getElementById('settings-modal');
+            const modalBox = modal.querySelector('div');
+            modal.classList.add('opacity-0');
+            modalBox.classList.remove('scale-100');
+            modalBox.classList.add('scale-95');
+            setTimeout(() => modal.classList.add('hidden'), 300);
         }
 
         const SYSTEM_IDENTITY = `
