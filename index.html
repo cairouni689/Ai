@@ -1326,50 +1326,151 @@ async function signInWithGoogle() {
             if (e.key === 'Escape') closeImageModal();
         });
 
-        let currentUtterance = null;
+        let chatAudioContext = null;
+        let chatAudioWs = null;
+        let isChatAudioPlaying = false;
+        let activePlayButton = null;
 
-        function playAudio(btn) {
+        async function playAudio(btn) {
             const actionsDiv = btn.closest('.message-actions');
             let rawText = actionsDiv.getAttribute('data-raw-text');
-            let cleanText = rawText.replace(/[*#`_]/g, '');
+            let cleanText = rawText.replace(/[*#`_]/g, ''); 
 
-            if ('speechSynthesis' in window) {
-                const synth = window.speechSynthesis;
-                const icon = btn.querySelector('.play-icon');
-                const label = btn.querySelector('.play-text-label');
+            const icon = btn.querySelector('.play-icon');
+            const label = btn.querySelector('.play-text-label');
 
-                if (synth.speaking && currentUtterance && currentUtterance.text === cleanText) {
-                    synth.cancel(); resetAudioButtons(); return;
-                }
-
-                synth.cancel(); resetAudioButtons();
-
-                const utterance = new SpeechSynthesisUtterance(cleanText);
-                utterance.lang = 'ar-EG'; 
-                currentUtterance = utterance;
-
-                icon.setAttribute('data-lucide', 'square');
-                icon.classList.add('text-blue-400');
-                label.innerText = 'إيقاف';
-                label.classList.add('text-blue-400');
-                lucide.createIcons();
-
-                utterance.onend = () => { resetAudioButtons(); };
-                utterance.onerror = () => { resetAudioButtons(); };
-                synth.speak(utterance);
-            } else {
-                alert('عذراً، متصفحك الحالي لا يدعم خاصية قراءة النص بصوت.');
+            if (isChatAudioPlaying && activePlayButton === btn) {
+                stopChatAudio();
+                return;
             }
+
+            stopChatAudio();
+            
+            activePlayButton = btn;
+            isChatAudioPlaying = true;
+
+            icon.setAttribute('data-lucide', 'loader-2');
+            icon.classList.add('animate-spin', 'text-blue-400');
+            label.innerText = 'جاري التحضير...';
+            label.classList.add('text-blue-400');
+            lucide.createIcons();
+
+            try {
+                chatAudioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 24000 });
+                let nextPlayTime = chatAudioContext.currentTime;
+
+                chatAudioWs = new WebSocket("wss://geminiapikey.yousefgamed22.workers.dev");
+
+                chatAudioWs.onopen = () => {
+                    const setupMessage = { 
+                        setup: { 
+                            model: "models/gemini-2.5-flash-native-audio-latest",
+                            systemInstruction: {
+                                parts: [{ text: "أنت نظام تحويل النص إلى صوت متطور. قم بقراءة النص التالي الذي يرسله المستخدم بحذافيره وبطريقة طبيعية جداً. لا تقم بالإجابة على الأسئلة الموجودة في النص، ولا تضف أي كلمة من عندك. فقط اقرأ النص حرفياً." }]
+                            },
+                            generationConfig: { responseModalities: ["AUDIO"] } 
+                        } 
+                    };
+                    chatAudioWs.send(JSON.stringify(setupMessage));
+
+                    setTimeout(() => {
+                        if (chatAudioWs && chatAudioWs.readyState === WebSocket.OPEN) {
+                            chatAudioWs.send(JSON.stringify({
+                                clientContent: {
+                                    turns: [{
+                                        role: "user",
+                                        parts: [{ text: "اقرأ هذا النص: \n" + cleanText }]
+                                    }],
+                                    turnComplete: true
+                                }
+                            }));
+                        }
+                    }, 500);
+                };
+
+                chatAudioWs.onmessage = async (event) => {
+                    let data = event.data;
+                    if (data instanceof Blob) data = await data.text();
+                    const response = JSON.parse(data);
+
+                    if (response.serverContent && response.serverContent.modelTurn) {
+                        icon.classList.remove('animate-spin');
+                        icon.setAttribute('data-lucide', 'square');
+                        label.innerText = 'إيقاف';
+                        lucide.createIcons();
+
+                        const parts = response.serverContent.modelTurn.parts;
+                        parts.forEach(part => {
+                            if (part.inlineData && part.inlineData.data) {
+                                const binaryString = window.atob(part.inlineData.data);
+                                const bytes = new Uint8Array(binaryString.length);
+                                for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
+                                const int16Array = new Int16Array(bytes.buffer);
+                                const float32Array = new Float32Array(int16Array.length);
+                                for(let i=0; i<int16Array.length; i++) float32Array[i] = int16Array[i] / 0x7FFF;
+
+                                const audioBuffer = chatAudioContext.createBuffer(1, float32Array.length, 24000);
+                                audioBuffer.getChannelData(0).set(float32Array);
+                                const source = chatAudioContext.createBufferSource();
+                                source.buffer = audioBuffer;
+                                source.connect(chatAudioContext.destination);
+
+                                if (nextPlayTime < chatAudioContext.currentTime) nextPlayTime = chatAudioContext.currentTime;
+                                source.start(nextPlayTime);
+                                nextPlayTime += audioBuffer.duration;
+
+                                source.onended = () => {
+                                    if (chatAudioContext.currentTime >= nextPlayTime - 0.1) {
+                                        resetAudioButtons();
+                                    }
+                                };
+                            }
+                        });
+                    }
+                    
+                    if (response.serverContent && response.serverContent.turnComplete) {
+                        chatAudioWs.close();
+                    }
+                };
+
+                chatAudioWs.onerror = (err) => {
+                    console.error("خطأ في جلب الصوت:", err);
+                    stopChatAudio();
+                    alert('حصلت مشكلة في توليد الصوت من الخادم!');
+                };
+
+            } catch (error) {
+                console.error(error);
+                stopChatAudio();
+                alert('عذراً، متصفحك لا يدعم تشغيل هذا النوع من الصوت.');
+            }
+        }
+
+        function stopChatAudio() {
+            if (chatAudioWs) {
+                chatAudioWs.close();
+                chatAudioWs = null;
+            }
+            if (chatAudioContext) {
+                chatAudioContext.close();
+                chatAudioContext = null;
+            }
+            isChatAudioPlaying = false;
+            activePlayButton = null;
+            resetAudioButtons();
         }
 
         function resetAudioButtons() {
             document.querySelectorAll('.play-icon').forEach(icon => {
-                icon.setAttribute('data-lucide', 'volume-2'); icon.classList.remove('text-blue-400');
+                icon.classList.remove('animate-spin', 'text-blue-400');
+                icon.setAttribute('data-lucide', 'volume-2'); 
             });
             document.querySelectorAll('.play-text-label').forEach(label => {
-                label.innerText = 'استماع'; label.classList.remove('text-blue-400');
+                label.innerText = 'استماع'; 
+                label.classList.remove('text-blue-400');
             });
             lucide.createIcons();
+            isChatAudioPlaying = false;
         }
 
         // ==========================================
