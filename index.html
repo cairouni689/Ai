@@ -265,6 +265,21 @@
                     </div>
                 </div>
             </div>
+            <!-- اختيار الصوت والنبرة -->
+            <div class="px-4 pb-4 border-b border-white/5 mb-4 mt-4">
+                <label class="text-[10px] text-gray-500 uppercase tracking-widest block mb-2 font-mono">Voice & Tone</label>
+                <div class="relative">
+                    <select id="voice-selector" class="w-full bg-[#1e1e1e] border border-white/10 text-gray-300 text-xs rounded-lg p-2.5 appearance-none focus:border-blue-500/50 outline-none font-sans cursor-pointer hover:bg-white/5">
+                        <option value="Puck_calm">صوت رجل - هادئ ومريح</option>
+                        <option value="Charon_enthusiastic">صوت رجل - حماسي وقوي</option>
+                        <option value="Kore_calm">صوت فتاة - هادئة ولطيفة</option>
+                        <option value="Aoede_enthusiastic">صوت فتاة - حماسية ونشطة</option>
+                    </select>
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-2 pointer-events-none text-gray-500">
+                        <i data-lucide="mic" class="w-3.5 h-3.5"></i>
+                    </div>
+                </div>
+            </div>
             <div class="p-2 bg-black/50 text-[10px] text-gray-500 uppercase tracking-widest text-center py-1">Mission Log</div>
             
             <div id="history-list" class="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1">
@@ -1362,13 +1377,31 @@ async function signInWithGoogle() {
                 chatAudioWs = new WebSocket("wss://geminiapikey.yousefgamed22.workers.dev");
 
                 chatAudioWs.onopen = () => {
+                    // جلب الصوت والنبرة
+                    const voiceSelector = document.getElementById('voice-selector');
+                    const voiceVal = voiceSelector ? voiceSelector.value : "Puck_calm";
+                    const [voiceName, tone] = voiceVal.split('_');
+                    
+                    let toneInstruction = tone === "calm" 
+                        ? "تحدث بنبرة هادئة جداً ومريحة وبطيئة قليلاً." 
+                        : "تحدث بنبرة حماسية جداً، نشطة، سريعة قليلاً ومليئة بالطاقة.";
+
                     const setupMessage = { 
                         setup: { 
                             model: "models/gemini-2.5-flash-native-audio-latest",
                             systemInstruction: {
-                                parts: [{ text: "أنت نظام تحويل النص إلى صوت متطور. قم بقراءة النص التالي الذي يرسله المستخدم بحذافيره وبطريقة طبيعية جداً. لا تقم بالإجابة على الأسئلة الموجودة في النص، ولا تضف أي كلمة من عندك. فقط اقرأ النص حرفياً." }]
+                                parts: [{ text: `أنت نظام تحويل النص إلى صوت متطور. قم بقراءة النص التالي الذي يرسله المستخدم بحذافيره. ${toneInstruction} لا تقم بالإجابة على الأسئلة الموجودة في النص، ولا تضف أي كلمة من عندك. فقط اقرأ النص حرفياً.` }]
                             },
-                            generationConfig: { responseModalities: ["AUDIO"] } 
+                            generationConfig: { 
+                                responseModalities: ["AUDIO"],
+                                speechConfig: {
+                                    voiceConfig: {
+                                        prebuiltVoiceConfig: {
+                                            voiceName: voiceName
+                                        }
+                                    }
+                                }
+                            } 
                         } 
                     };
                     chatAudioWs.send(JSON.stringify(setupMessage));
@@ -1511,7 +1544,33 @@ async function signInWithGoogle() {
 
                 liveWs.onopen = () => {
                     console.log("🟢 متصل بـ Quark Live!");
-                    const setupMessage = { setup: { model: "models/gemini-2.5-flash-native-audio-latest", generationConfig: { responseModalities: ["AUDIO"] } } };
+                    
+                    const voiceSelector = document.getElementById('voice-selector');
+                    const voiceVal = voiceSelector ? voiceSelector.value : "Puck_calm";
+                    const [voiceName, tone] = voiceVal.split('_');
+                    
+                    let toneInstruction = tone === "calm" 
+                        ? "تحدث دائماً بنبرة هادئة ومريحة وبطيئة قليلاً في جميع ردودك." 
+                        : "تحدث دائماً بنبرة حماسية، نشطة، قوية ومليئة بالطاقة في جميع ردودك.";
+
+                    const setupMessage = { 
+                        setup: { 
+                            model: "models/gemini-2.5-flash-native-audio-latest", 
+                            systemInstruction: {
+                                parts: [{ text: SYSTEM_IDENTITY + "\n\n" + toneInstruction }]
+                            },
+                            generationConfig: { 
+                                responseModalities: ["AUDIO"],
+                                speechConfig: {
+                                    voiceConfig: {
+                                        prebuiltVoiceConfig: {
+                                            voiceName: voiceName
+                                        }
+                                    }
+                                }
+                            } 
+                        } 
+                    };
                     liveWs.send(JSON.stringify(setupMessage));
 
                     const source = liveAudioContext.createMediaStreamSource(liveStream);
