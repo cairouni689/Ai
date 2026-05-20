@@ -2036,6 +2036,20 @@ async function signInWithGoogle() {
                 addMessage(msg.content, msg.role, false);
             });
         }
+        // الكود ده بيقتل أي Service Worker قديم متعلق في المتصفح
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for (let registration of registrations) {
+                    registration.unregister().then(function(boolean) {
+                        if (boolean) {
+                            console.log('تم قتل الـ Service Worker القديم بنجاح! 💀');
+                            // بنعمل ريفرش إجباري مرة واحدة عشان نجيب النسخة الجديدة النظيفة
+                            window.location.reload(true);
+                        }
+                    });
+                }
+            });
+        }
     </script>
 </body>
 </html>
