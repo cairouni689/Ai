@@ -93,10 +93,10 @@
         }
 
         .glass-sidebar {
-            background: rgba(10, 10, 10, 0.9);
-            backdrop-filter: blur(12px);
-            border-left: 1px solid rgba(255, 255, 255, 0.08);
-        }
+    background: rgba(10, 10, 10, 0.9);
+    backdrop-filter: blur(12px);
+    border-right: 1px solid rgba(255, 255, 255, 0.08); /* اتغيرت من border-left */
+}
 
         .transparent-header {
             background: transparent;
@@ -241,7 +241,7 @@
     </header>
 
     <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/80 z-[60] hidden transition-opacity backdrop-blur-sm"></div>
-    <aside id="sidebar" class="fixed top-0 right-0 h-full w-80 glass-sidebar transform translate-x-full transition-transform duration-300 z-[70] flex flex-col bg-black/90">
+    <aside id="sidebar" class="fixed top-0 left-0 h-full w-80 glass-sidebar transform -translate-x-full transition-transform duration-300 z-[70] flex flex-col bg-black/90">
         <div class="p-5 border-b border-white/5 flex justify-between items-center">
             <span class="font-bold text-lg text-white tracking-wide">Quark Control</span>
             <button onclick="toggleSidebar()" class="p-1 hover:bg-white/10 rounded text-gray-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
@@ -972,14 +972,16 @@ async function signInWithGoogle() {
         });
 
         function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebar-overlay');
-            if (sidebar.classList.contains('translate-x-full')) {
-                sidebar.classList.remove('translate-x-full'); overlay.classList.remove('hidden');
-            } else {
-                sidebar.classList.add('translate-x-full'); overlay.classList.add('hidden');
-            }
-        }
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    if (sidebar.classList.contains('-translate-x-full')) {
+        sidebar.classList.remove('-translate-x-full'); 
+        overlay.classList.remove('hidden');
+    } else {
+        sidebar.classList.add('-translate-x-full'); 
+        overlay.classList.add('hidden');
+    }
+}
 
         function copyCode(btn) {
             const codeBlock = btn.closest('.code-wrapper').querySelector('code');
