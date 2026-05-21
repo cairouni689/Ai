@@ -235,9 +235,9 @@
             </button>
         </div>
 
-        <button id="header-sidebar-btn" onclick="toggleSidebar()" class="hidden pointer-events-auto p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-full transition-colors">
-            <i data-lucide="menu" class="w-6 h-6"></i>
-        </button>
+        <button id="header-sidebar-btn" onclick="toggleSidebar()" class="pointer-events-auto p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-full transition-colors">
+    <i data-lucide="menu" class="w-6 h-6"></i>
+</button>
     </header>
 
     <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/80 z-[60] hidden transition-opacity backdrop-blur-sm"></div>
@@ -315,10 +315,7 @@
 
     <div class="fixed bottom-0 left-0 right-0 w-full z-40 bg-gradient-to-t from-black via-black/95 to-transparent pt-4 pb-6 px-4">
         <div class="max-w-3xl mx-auto flex items-end gap-2">
-            <button id="bottom-sidebar-btn" onclick="toggleSidebar()" class="p-3 bg-[#1e1e1e] hover:bg-white/10 text-gray-400 hover:text-white rounded-full transition-all shadow-lg border border-white/5 group mb-8">
-                <i data-lucide="layout-grid" class="w-5 h-5"></i>
-            </button>
-
+        
             <div class="flex-1 relative">
                 <div id="file-preview-container" class="hidden mb-3 relative inline-flex items-center gap-3 p-2 bg-[#1e1e1e] border border-white/20 rounded-xl max-w-xs shadow-lg">
                     <img id="image-preview" src="" class="hidden w-12 h-12 object-cover rounded border border-white/10" />
@@ -626,9 +623,7 @@ async function signInWithGoogle() {
                         
                         // عرض المحادثة مباشرة وإخفاء شاشة الترحيب
                         document.getElementById('welcome-screen').classList.add('hidden-force');
-                        document.getElementById('bottom-sidebar-btn').classList.add('hidden'); 
                         document.getElementById('chat-container').classList.remove('hidden');
-                        document.getElementById('header-sidebar-btn').classList.remove('hidden');
                         document.getElementById('chat-container').innerHTML = '';
                         
                         // رسم الرسايل القديمة على الشاشة
@@ -811,9 +806,7 @@ async function signInWithGoogle() {
             const chatId = urlParams.get('chat');
             if (chatId && !isMigrated) {
                 document.getElementById('welcome-screen').classList.add('hidden-force');
-                document.getElementById('bottom-sidebar-btn').classList.add('hidden'); 
                 document.getElementById('chat-container').classList.remove('hidden');
-                document.getElementById('header-sidebar-btn').classList.remove('hidden');
                 loadSharedSession(chatId); 
             }
             
@@ -829,9 +822,7 @@ async function signInWithGoogle() {
             
             document.getElementById('chat-container').innerHTML = '';
             document.getElementById('welcome-screen').classList.remove('hidden-force');
-            document.getElementById('bottom-sidebar-btn').classList.remove('hidden'); 
             document.getElementById('chat-container').classList.add('hidden');
-            document.getElementById('header-sidebar-btn').classList.add('hidden');
             document.getElementById('welcome-plane').classList.remove('animate-fly-away');
             
             loadSessionsList();
@@ -915,9 +906,7 @@ async function signInWithGoogle() {
             currentState.messages = messages || [];
             
             document.getElementById('welcome-screen').classList.add('hidden-force');
-            document.getElementById('bottom-sidebar-btn').classList.add('hidden'); 
             document.getElementById('chat-container').classList.remove('hidden');
-            document.getElementById('header-sidebar-btn').classList.remove('hidden');
             document.getElementById('chat-container').innerHTML = '';
 
             currentState.messages.forEach(msg => {
@@ -1105,10 +1094,8 @@ async function signInWithGoogle() {
                 welcomePlane.classList.add('animate-fly-away');
                 setTimeout(() => {
                     document.getElementById('welcome-screen').classList.add('hidden-force');
-                    document.getElementById('bottom-sidebar-btn').classList.add('hidden'); 
                     document.getElementById('chat-container').classList.remove('hidden');
                     document.getElementById('chat-container').classList.add('fade-in');
-                    document.getElementById('header-sidebar-btn').classList.remove('hidden');
                 }, 800);
             }
 
