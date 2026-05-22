@@ -294,16 +294,16 @@
             
             <!-- القوالب السريعة في الشاشة الترحيبية -->
             <div id="welcome-prompts" class="flex flex-wrap justify-center gap-3 mt-10 w-full max-w-3xl z-30 relative">
-                <button onclick="usePrompt('لخصلي أهم القوانين والمصطلحات في الجزء ده في جدول منظم')" class="flex items-center gap-2 px-5 py-3 bg-black/40 hover:bg-white/10 border border-white/10 hover:border-blue-500/50 rounded-full text-sm text-gray-300 transition-all duration-300 shadow-lg hover:shadow-[0_0_15px_rgba(59,130,246,0.2)] backdrop-blur-md">
+                <button onclick="usePrompt('أريد تلخيصاً شاملاً عن: [اكتب اسم الموضوع هنا]. من فضلك استخرج أهم القوانين، المعادلات، والمصطلحات العلمية في جداول منظمة يسهل حفظها ومراجعتها.')" class="flex items-center gap-2 px-5 py-3 bg-black/40 hover:bg-white/10 border border-white/10 hover:border-blue-500/50 rounded-full text-sm text-gray-300 transition-all duration-300 shadow-lg hover:shadow-[0_0_15px_rgba(59,130,246,0.2)] backdrop-blur-md">
                     <i data-lucide="table" class="w-4 h-4 text-blue-400"></i> لخص القوانين
                 </button>
-                <button onclick="usePrompt('اشرحلي الموضوع ده كأني طالب في أولى ابتدائي بأسلوب مبسط جداً واديني أمثلة من الواقع')" class="flex items-center gap-2 px-5 py-3 bg-black/40 hover:bg-white/10 border border-white/10 hover:border-green-500/50 rounded-full text-sm text-gray-300 transition-all duration-300 shadow-lg hover:shadow-[0_0_15px_rgba(74,222,128,0.2)] backdrop-blur-md">
+                <button onclick="usePrompt('اشرح لي موضوع: [اكتب الموضوع هنا] وكأني طالب مبتدئ. استخدم أسلوباً مبسطاً جداً، وابتعد عن التعقيد، واذكر أمثلة وتشبيهات من الواقع اليومي لتثبيت المعلومة.')" class="flex items-center gap-2 px-5 py-3 bg-black/40 hover:bg-white/10 border border-white/10 hover:border-green-500/50 rounded-full text-sm text-gray-300 transition-all duration-300 shadow-lg hover:shadow-[0_0_15px_rgba(74,222,128,0.2)] backdrop-blur-md">
                     <i data-lucide="baby" class="w-4 h-4 text-green-400"></i> اشرحلي كأني طفل
                 </button>
-                <button onclick="usePrompt('اعملي امتحان MCQ من 5 أسئلة صعبة على الموضوع ده، واكتب الإجابات في الآخر مع الشرح')" class="flex items-center gap-2 px-5 py-3 bg-black/40 hover:bg-white/10 border border-white/10 hover:border-purple-500/50 rounded-full text-sm text-gray-300 transition-all duration-300 shadow-lg hover:shadow-[0_0_15px_rgba(168,85,247,0.2)] backdrop-blur-md">
+                <button onclick="usePrompt('قم بإعداد امتحان MCQ (اختيار من متعدد) مكون من 5 أسئلة بمستوى متقدم لتقييم فهمي في: [اكتب اسم الموضوع هنا]. اكتب الأسئلة أولاً، ثم في نهاية الرد ضع الإجابات الصحيحة مع شرح تفصيلي لسبب اختيارها.')" class="flex items-center gap-2 px-5 py-3 bg-black/40 hover:bg-white/10 border border-white/10 hover:border-purple-500/50 rounded-full text-sm text-gray-300 transition-all duration-300 shadow-lg hover:shadow-[0_0_15px_rgba(168,85,247,0.2)] backdrop-blur-md">
                     <i data-lucide="file-question" class="w-4 h-4 text-purple-400"></i> امتحان MCQ
                 </button>
-                <button onclick="usePrompt('ترجملي النص ده لعربي علمي دقيق ومفهوم')" class="flex items-center gap-2 px-5 py-3 bg-black/40 hover:bg-white/10 border border-white/10 hover:border-yellow-500/50 rounded-full text-sm text-gray-300 transition-all duration-300 shadow-lg hover:shadow-[0_0_15px_rgba(234,179,8,0.2)] backdrop-blur-md">
+                <button onclick="usePrompt('قم بترجمة النص العلمي التالي إلى لغة عربية دقيقة، واضحة، ومفهومة لطلاب كلية العلوم، مع الحفاظ على دقة المصطلحات العلمية: \n\n[الصق النص الإنجليزي هنا]')" class="flex items-center gap-2 px-5 py-3 bg-black/40 hover:bg-white/10 border border-white/10 hover:border-yellow-500/50 rounded-full text-sm text-gray-300 transition-all duration-300 shadow-lg hover:shadow-[0_0_15px_rgba(234,179,8,0.2)] backdrop-blur-md">
                     <i data-lucide="languages" class="w-4 h-4 text-yellow-400"></i> ترجمة علمية
                 </button>
             </div>
@@ -2096,15 +2096,17 @@ async function signInWithGoogle() {
         // 🚀 مميزات كوارك الجديدة (القوالب، المشاركة، التصدير)
         // ==========================================
 
-       // 1. دالة القوالب السريعة (معدلة للإرسال الفوري)
+       // 1. دالة القوالب السريعة (معدلة لوضع النص في المربع بدون إرسال)
         function usePrompt(text) {
             const input = document.getElementById('user-input');
             input.value = text;
+            
+            // تظبيط ارتفاع مربع الكتابة عشان لو النص طويل
             input.style.height = 'auto';
             input.style.height = (input.scrollHeight) + 'px';
             
-            // استدعاء دالة الإرسال فوراً عشان تبدأ المحادثة وتخفي شاشة الترحيب
-            sendMessage(); 
+            // عمل Focus على المربع عشان الكيبورد يفتح على طول واليوزر يكمل كتابة
+            input.focus();
         }
 
         // 2. دالة التصدير كـ Markdown
