@@ -467,41 +467,41 @@
                             
                             <!-- خيار 1 -->
                             <label class="relative flex items-center gap-3 p-4 border border-white/10 rounded-xl cursor-pointer hover:border-blue-500/50 hover:bg-blue-500/5 transition-all group">
-                                <input type="radio" name="voice_selection" value="Puck_calm" checked onchange="saveVoiceSelection()" class="w-4 h-4 text-blue-600 bg-black border-gray-600 focus:ring-blue-600 focus:ring-2">
+                                <input type="radio" name="voice_selection" value="Puck_smooth" checked onchange="saveVoiceSelection()" class="w-4 h-4 text-blue-600 bg-black border-gray-600 focus:ring-blue-600 focus:ring-2">
                                 <div>
-                                    <h4 class="text-sm font-bold text-white group-hover:text-blue-400 transition-colors">صوت رجل (هادئ)</h4>
-                                    <p class="text-[10px] text-gray-500 mt-1">مريح، بطيء نسبياً، مثالي للشرح</p>
+                                    <h4 class="text-sm font-bold text-white group-hover:text-blue-400 transition-colors">صوت رجل (طبيعي وسلس)</h4>
+                                    <p class="text-[10px] text-gray-500 mt-1">نبرة دافئة، واضحة جداً، ومريحة للأذن</p>
                                 </div>
                             </label>
                             
                             <!-- خيار 2 -->
                             <label class="relative flex items-center gap-3 p-4 border border-white/10 rounded-xl cursor-pointer hover:border-blue-500/50 hover:bg-blue-500/5 transition-all group">
-                                <input type="radio" name="voice_selection" value="Charon_enthusiastic" onchange="saveVoiceSelection()" class="w-4 h-4 text-blue-600 bg-black border-gray-600 focus:ring-blue-600 focus:ring-2">
+                                <input type="radio" name="voice_selection" value="Charon_dynamic" onchange="saveVoiceSelection()" class="w-4 h-4 text-blue-600 bg-black border-gray-600 focus:ring-blue-600 focus:ring-2">
                                 <div>
-                                    <h4 class="text-sm font-bold text-white group-hover:text-blue-400 transition-colors">صوت رجل (حماسي)</h4>
-                                    <p class="text-[10px] text-gray-500 mt-1">قوي، نشط، مثالي للتحفيز</p>
+                                    <h4 class="text-sm font-bold text-white group-hover:text-blue-400 transition-colors">صوت رجل (حيوي وتفاعلي)</h4>
+                                    <p class="text-[10px] text-gray-500 mt-1">نبرة قوية، جذابة، ومثالية للتحفيز</p>
                                 </div>
                             </label>
 
                             <!-- خيار 3 -->
                             <label class="relative flex items-center gap-3 p-4 border border-white/10 rounded-xl cursor-pointer hover:border-blue-500/50 hover:bg-blue-500/5 transition-all group">
-                                <input type="radio" name="voice_selection" value="Kore_calm" onchange="saveVoiceSelection()" class="w-4 h-4 text-blue-600 bg-black border-gray-600 focus:ring-blue-600 focus:ring-2">
+                                <input type="radio" name="voice_selection" value="Kore_warm" onchange="saveVoiceSelection()" class="w-4 h-4 text-blue-600 bg-black border-gray-600 focus:ring-blue-600 focus:ring-2">
                                 <div>
-                                    <h4 class="text-sm font-bold text-white group-hover:text-blue-400 transition-colors">صوت فتاة (هادئة)</h4>
-                                    <p class="text-[10px] text-gray-500 mt-1">لطيف، سلس، مثالي للمناقشات الطويلة</p>
+                                    <h4 class="text-sm font-bold text-white group-hover:text-blue-400 transition-colors">صوت فتاة (رقيق وواضح)</h4>
+                                    <p class="text-[10px] text-gray-500 mt-1">صوت عذب، متناغم، وممتاز للمناقشات</p>
                                 </div>
                             </label>
 
                             <!-- خيار 4 -->
                             <label class="relative flex items-center gap-3 p-4 border border-white/10 rounded-xl cursor-pointer hover:border-blue-500/50 hover:bg-blue-500/5 transition-all group">
-                                <input type="radio" name="voice_selection" value="Aoede_enthusiastic" onchange="saveVoiceSelection()" class="w-4 h-4 text-blue-600 bg-black border-gray-600 focus:ring-blue-600 focus:ring-2">
+                                <input type="radio" name="voice_selection" value="Aoede_energetic" onchange="saveVoiceSelection()" class="w-4 h-4 text-blue-600 bg-black border-gray-600 focus:ring-blue-600 focus:ring-2">
                                 <div>
-                                    <h4 class="text-sm font-bold text-white group-hover:text-blue-400 transition-colors">صوت فتاة (حماسية)</h4>
-                                    <p class="text-[10px] text-gray-500 mt-1">سريع، حيوي، مثالي للمراجعة السريعة</p>
+                                    <h4 class="text-sm font-bold text-white group-hover:text-blue-400 transition-colors">صوت فتاة (حماسي ومبهج)</h4>
+                                    <p class="text-[10px] text-gray-500 mt-1">إيقاع سريع، مليء بالطاقة الإيجابية</p>
                                 </div>
                             </label>
                         </div>
-                        <input type="hidden" id="voice-selector" value="Puck_calm"> <!-- عنصر مخفي لحفظ القيمة وتمريرها للكود القديم -->
+                        <input type="hidden" id="voice-selector" value="Puck_smooth"> <!-- عنصر مخفي لحفظ القيمة وتمريرها للكود القديم -->
                     </div>
                 </div>
             </div>
@@ -1658,18 +1658,25 @@ async function signInWithGoogle() {
                 chatAudioWs.onopen = () => {
                     // جلب الصوت والنبرة
                     const voiceSelector = document.getElementById('voice-selector');
-                    const voiceVal = voiceSelector ? voiceSelector.value : "Puck_calm";
+                    const voiceVal = voiceSelector ? voiceSelector.value : "Puck_smooth";
                     const [voiceName, tone] = voiceVal.split('_');
                     
-                    let toneInstruction = tone === "calm" 
-                        ? "تحدث بنبرة هادئة جداً ومريحة وبطيئة قليلاً." 
-                        : "تحدث بنبرة حماسية جداً، نشطة، سريعة قليلاً ومليئة بالطاقة.";
+                    let toneInstruction = "";
+                    if (tone === "smooth") {
+                        toneInstruction = "تحدث بنبرة طبيعية، سلسة جداً، دافئة وواضحة بدون أي بطء أو ملل.";
+                    } else if (tone === "dynamic") {
+                        toneInstruction = "تحدث بنبرة حيوية، جذابة، مليئة بالثقة وتشد الانتباه.";
+                    } else if (tone === "warm") {
+                        toneInstruction = "تحدث بنبرة رقيقة، عذبة، متناغمة ومريحة جداً للاستماع.";
+                    } else if (tone === "energetic") {
+                        toneInstruction = "تحدث بنبرة مبهجة، حماسية، سريعة الإيقاع ومليئة بالطاقة الإيجابية.";
+                    }
 
                     const setupMessage = { 
                         setup: { 
                             model: "models/gemini-2.5-flash-native-audio-latest",
                             systemInstruction: {
-                                parts: [{ text: `أنت نظام تحويل النص إلى صوت متطور. قم بقراءة النص التالي الذي يرسله المستخدم بحذافيره. ${toneInstruction} لا تقم بالإجابة على الأسئلة الموجودة في النص، ولا تضف أي كلمة من عندك. فقط اقرأ النص حرفياً.` }]
+                                parts: [{ text: `أنت نظام تحويل النص إلى صوت متطور. قم بقراءة النص التالي الذي يرسله المستخدم بحذافيره. ${toneInstruction} لا تقم بالإجابة على الأسئلة الموجودة في النص، ولا تضف أي كلمة من عندك. فقط اقرأ النص حرفياً بطريقة احترافية تشبه المذيعين أو البودكاست.` }]
                             },
                             generationConfig: { 
                                 responseModalities: ["AUDIO"],
@@ -1825,18 +1832,25 @@ async function signInWithGoogle() {
                     console.log("🟢 متصل بـ Quark Live!");
                     
                     const voiceSelector = document.getElementById('voice-selector');
-                    const voiceVal = voiceSelector ? voiceSelector.value : "Puck_calm";
+                    const voiceVal = voiceSelector ? voiceSelector.value : "Puck_smooth";
                     const [voiceName, tone] = voiceVal.split('_');
                     
-                    let toneInstruction = tone === "calm" 
-                        ? "تحدث دائماً بنبرة هادئة ومريحة وبطيئة قليلاً في جميع ردودك." 
-                        : "تحدث دائماً بنبرة حماسية، نشطة، قوية ومليئة بالطاقة في جميع ردودك.";
+                    let toneInstruction = "";
+                    if (tone === "smooth") {
+                        toneInstruction = "تحدث دائماً بنبرة طبيعية، سلسة جداً، دافئة وواضحة بدون أي بطء مبالغ فيه في جميع ردودك.";
+                    } else if (tone === "dynamic") {
+                        toneInstruction = "تحدث دائماً بنبرة حيوية، جذابة، مليئة بالثقة وتشد الانتباه في جميع ردودك.";
+                    } else if (tone === "warm") {
+                        toneInstruction = "تحدث دائماً بنبرة رقيقة، عذبة، متناغمة ومريحة جداً للاستماع في جميع ردودك.";
+                    } else if (tone === "energetic") {
+                        toneInstruction = "تحدث دائماً بنبرة مبهجة، حماسية، سريعة الإيقاع ومليئة بالطاقة الإيجابية في جميع ردودك.";
+                    }
 
                     const setupMessage = { 
                         setup: { 
                             model: "models/gemini-2.5-flash-native-audio-latest", 
                             systemInstruction: {
-                                parts: [{ text: SYSTEM_IDENTITY + "\n\n" + toneInstruction }]
+                                parts: [{ text: SYSTEM_IDENTITY + "\n\n[ملاحظة هامة للصوت]:\n" + toneInstruction }]
                             },
                             generationConfig: { 
                                 responseModalities: ["AUDIO"],
