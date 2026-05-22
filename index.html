@@ -942,27 +942,21 @@ async function signInWithGoogle() {
             }
         }
 
-        async function saveMessageToSession(role, content) {
+        async function saveMessageToSession(role, content, fileObj = null) {
             if (!currentState.sessionId) {
                 currentState.sessionId = crypto.randomUUID();
                 
-                // معالجة ذكية للعنوان: لو فيه بلوك كود هنستبدله بكلمة مؤقتة عشان منبوظش الدنيا
-                let cleanText = content.replace(/```[\s\S]*?```/g, '[كود برمجي]');
-                // نشيل المسافات والسطور الكثيرة
-                cleanText = cleanText.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim(); 
-                
-                // لو بعد التنضيف طلع فاضي (يعني كان كله أكواد HTML)، نديله اسم افتراضي
-                if (!cleanText || cleanText.length === 0) {
-                    cleanText = 'محادثة برمجية 💻';
-                }
-                
-                let title = cleanText.substring(0, 30) + (cleanText.length > 30 ? '...' : '');
+                // عنوان مبدئي لحد ما الذكاء الاصطناعي يشتغل في الخلفية
+                let tempTitle = 'جاري توليد العنوان... ⏳';
                 
                 // يحفظ الجلسة في الداتابيز فقط لو مسجل دخول
                 if (currentUserId) {
                     await supabaseClient.from('sessions').insert([
-                        { id: currentState.sessionId, user_id: currentUserId, title: title }
+                        { id: currentState.sessionId, user_id: currentUserId, title: tempTitle }
                     ]);
+
+                    // 🚀 استدعاء دالة توليد العنوان الذكي في الخلفية
+                    generateAndSaveTitle(currentState.sessionId, content, fileObj);
                 }
             }
 
@@ -1247,7 +1241,7 @@ async function signInWithGoogle() {
             }
 
             addMessage(text, 'user', true, attachedFile);
-            saveMessageToSession('user', historyText);
+            saveMessageToSession('user', historyText, attachedFile);
 
             let apiHistory = [...currentState.messages];
             apiHistory.pop(); 
@@ -2177,6 +2171,55 @@ async function signInWithGoogle() {
                 }
             });
         }
+
+        async function generateAndSaveTitle(sessionId, content, fileObj) {
+            try {
+                // بنقص المحتوى لو طويل أوي عشان نوفر توكنز ونسرع الرد
+                const shortContent = content.substring(0, 1000); 
+                
+                const prompt = `أنت مساعد ذكي وظيفتك فقط كتابة عناوين قصيرة جداً للمحادثات.
+اكتب عنوان قصير جداً (من كلمتين إلى 4 كلمات كحد أقصى) يعبر عن محتوى هذه الرسالة أو الملف المرفق.
+إياك كتابة أي مقدمات أو علامات تنصيص، اكتب العنوان فقط مباشرة.
+المحتوى: ${shortContent}`;
+
+                const payloadData = {
+                    message: prompt,
+                    systemInstruction: "أنت صانع عناوين دقيق، ترد بعنوان قصير فقط.",
+                    history: [], // مفيش هيستوري عشان يبقى الرد صاروخ
+                    model: "gemini-2.5-flash", // الموديل السريع
+                    fileObj: fileObj // بنمرر الـ PDF هنا عشان يقراه لو موجود
+                };
+
+                // نكلم الـ Worker في الخلفية
+                const responseData = await callWorkerAPI(payloadData, new AbortController().signal);
+                
+                // ننضف العنوان اللي راجع من أي نجوم أو مسافات
+                let smartTitle = responseData.content.replace(/[\*\#\`\"]/g, '').trim();
+                
+                // لو العنوان طلع طويل غصب عنه، نقصه
+                if (smartTitle.length > 40) smartTitle = smartTitle.substring(0, 40) + '...';
+                if (!smartTitle) smartTitle = 'محادثة جديدة ✨';
+
+                // نحدث العنوان في الداتابيز
+                await supabaseClient
+                    .from('sessions')
+                    .update({ title: smartTitle })
+                    .eq('id', sessionId);
+
+                // نحدث القائمة الجانبية عشان العنوان الجديد يظهر للمستخدم
+                loadSessionsList();
+                
+            } catch (error) {
+                console.error("فشل توليد العنوان الذكي:", error);
+                // لو حصل أي ايرور (مثلاً النت فصل)، نحط عنوان افتراضي شيك
+                await supabaseClient
+                    .from('sessions')
+                    .update({ title: 'محادثة جديدة ✨' })
+                    .eq('id', sessionId);
+                loadSessionsList();
+            }
+        }
+
     </script>
 </body>
 </html>
