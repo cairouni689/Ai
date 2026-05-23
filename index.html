@@ -102,8 +102,14 @@
         }
 
         #main-content-area {
-            mask-image: linear-gradient(to bottom, transparent 80px, black 120px);
-            -webkit-mask-image: linear-gradient(to bottom, transparent 80px, black 120px);
+            mask-image: linear-gradient(to bottom, transparent 95px, black 150px);
+            -webkit-mask-image: linear-gradient(to bottom, transparent 95px, black 150px);
+        }
+        @media (min-width: 768px) {
+            #main-content-area {
+                mask-image: linear-gradient(to bottom, transparent 80px, black 120px);
+                -webkit-mask-image: linear-gradient(to bottom, transparent 80px, black 120px);
+            }
         }
 
         .custom-scrollbar::-webkit-scrollbar {
@@ -210,7 +216,7 @@
 
     <canvas id="space-canvas"></canvas>
 
-    <header class="fixed top-0 w-full z-50 h-20 flex items-center px-6 justify-between pointer-events-none bg-[#0a0a0a]/90 backdrop-blur-md border-b border-white/5 md:bg-transparent md:backdrop-blur-none md:border-transparent">
+    <header class="fixed top-0 w-full z-50 transparent-header h-20 flex items-center px-6 justify-between pointer-events-none">
         <div class="flex items-center gap-3 pointer-events-auto">
             <div class="w-10 h-10 flex items-center justify-center">
                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-8 h-8 text-blue-500 drop-shadow-[0_0_15px_rgba(59,130,246,0.8)]">
