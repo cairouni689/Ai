@@ -102,13 +102,15 @@
         }
 
         #main-content-area {
-            mask-image: linear-gradient(to bottom, rgba(0,0,0,0) 0px, rgba(0,0,0,0) 130px, rgba(0,0,0,1) 160px);
             -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0) 0px, rgba(0,0,0,0) 130px, rgba(0,0,0,1) 160px);
+            mask-image: linear-gradient(to bottom, rgba(0,0,0,0) 0px, rgba(0,0,0,0) 130px, rgba(0,0,0,1) 160px);
+            transform: translate3d(0, 0, 0);
+            -webkit-transform: translate3d(0, 0, 0);
         }
         @media (min-width: 768px) {
             #main-content-area {
-                mask-image: linear-gradient(to bottom, rgba(0,0,0,0) 0px, rgba(0,0,0,0) 80px, rgba(0,0,0,1) 120px);
                 -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0) 0px, rgba(0,0,0,0) 80px, rgba(0,0,0,1) 120px);
+                mask-image: linear-gradient(to bottom, rgba(0,0,0,0) 0px, rgba(0,0,0,0) 80px, rgba(0,0,0,1) 120px);
             }
         }
 
