@@ -37,7 +37,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked-katex-extension/lib/index.umd.js"></script>
     <script type="text/javascript">
         (function(c,l,a,r,i,t,y){
             c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
@@ -535,20 +534,68 @@
             if (!text) return '';
             return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
-        // 🛠️ دالة تنظيف المعادلات لضمان عمل LaTeX بشكل كامل
-function normalizeLaTeX(text) {
-    if (!text) return text;
-    
-    // 0. فك الهروب (Unescape): تحويل أي \$ إلى $ (ودي المشكلة اللي في الصور)
-    text = text.replace(/\\\$/g, '$');
-    
-    // 1. تحويل بلوكات \[ ... \] إلى $$ ... $$
-    text = text.replace(/\\\[([\s\S]*?)\\\]/g, '$$$$$1$$$$');
-    
-    // 2. تحويل المعادلات السطرية \( ... \) إلى $ ... $
-    text = text.replace(/\\\(([\s\S]*?)\\\)/g, '$$$1$$');
-    
-    return text;
+        // 🛠️ نظام الخزنة: دالة رندرة المعادلات الرياضية المعزولة لضمان عدم تعارضها مع الماركداون
+// 🛠️ نظام الخزنة: دالة رندرة المعادلات الرياضية المعزولة (النسخة الخالية من الثغرات)
+function renderBulletproofMath(text) {
+    if (!text) return '';
+
+    // 1. تنظيف أخطاء Gemini الشائعة
+    let processedText = text
+        .replace(/\\\$/g, '$')
+        .replace(/\\\[([\s\S]*?)\\\]/g, '\n$$\n$1\n$$\n')
+        .replace(/\\\(([\s\S]*?)\\\)/g, '$$$1$$')
+        .replace(/\\\\\[([\s\S]*?)\\\\\]/g, '\n$$\n$1\n$$\n')
+        .replace(/\\\\\(([\s\S]*?)\\\\\)/g, '$$$1$$')
+        .replace(/\^\s*\\wedge\s*/g, '^')
+        .replace(/\\wedge\s*\^/g, '^')
+        .replace(/\$([^$]*?)(?<!\\)circ/g, '$$$1\\circ')
+        .replace(/(\d+)\s*\^\s*\\circ\s+C(?!\w)/g, '$1^\\circ\\text{C}')
+        .replace(/\$([^$]*?)(\d+)\s*°\s*C([^$]*?)\$/g, (match, pre, num, post) => `$$${pre}${num}^\\circ\\text{C}${post}$$`);
+
+    // 2. إنشاء الخزنة (Vault) لعزل المعادلات
+    const mathVault = [];
+    let vaultIndex = 0;
+
+    // عزل المعادلات الكبيرة (Block Math) $$ ... $$
+    processedText = processedText.replace(/\$\$([\s\S]*?)\$\$/g, (match, mathCode) => {
+        // استخدمنا كلمة بدون أي علامات _ عشان الماركداون ميتدخلش فيها
+        const placeholder = `MATHVAULTBLOCK${vaultIndex}END`;
+        mathVault.push({ type: 'block', code: mathCode, placeholder: placeholder });
+        vaultIndex++;
+        return placeholder;
+    });
+
+    // عزل المعادلات المدمجة (Inline Math) $ ... $
+    processedText = processedText.replace(/(?<!\\)\$((?:[^$]|\\\$)+?)(?<!\\)\$/g, (match, mathCode) => {
+        // استخدمنا كلمة بدون أي علامات _ عشان الماركداون ميتدخلش فيها
+        const placeholder = `MATHVAULTINLINE${vaultIndex}END`;
+        mathVault.push({ type: 'inline', code: mathCode, placeholder: placeholder });
+        vaultIndex++;
+        return placeholder;
+    });
+
+    // 3. تمرير النص النظيف إلى marked.js
+    let htmlContent = marked.parse(processedText);
+
+    // 4. استرجاع المعادلات من الخزنة ورندرتها بـ KaTeX
+    mathVault.forEach((item) => {
+        try {
+            const renderedMath = katex.renderToString(item.code, {
+                displayMode: item.type === 'block',
+                throwOnError: false,
+                output: 'html',
+                errorColor: '#ef4444' // لون أحمر يتماشى مع الـ Dark mode في حال وجود خطأ باللاتيكس
+            });
+
+            // استبدال الكلمة السرية بالمعادلة الحقيقية
+            htmlContent = htmlContent.replace(item.placeholder, renderedMath);
+        } catch (err) {
+            console.error("KaTeX Render Error:", err);
+            htmlContent = htmlContent.replace(item.placeholder, `<span class="text-red-400 font-mono">${escapeHtmlText(item.code)}</span>`);
+        }
+    });
+
+    return htmlContent;
 }
 // ==========================================
         // 🔔 نظام التنبيهات المخصص (Quark Alert System)
@@ -629,16 +676,7 @@ function normalizeLaTeX(text) {
             }, 300);
         }
 
-        marked.use(markedKatex({
-            throwOnError: false,
-            output: 'html',
-            delimiters: [
-                { left: '$$', right: '$$', display: true },
-                { left: '$', right: '$', display: false },
-                { left: '\\(', right: '\\)', display: false },
-                { left: '\\[', right: '\\]', display: true }
-            ]
-        }));
+        
 
         let currentState = {
             sessionId: null,
@@ -1351,9 +1389,8 @@ async function signInWithGoogle() {
                 lucide.createIcons();
                 if (animate) div.scrollIntoView({ behavior: 'smooth', block: 'end' });
             } else {
-                // تمرير النص على دالة التنظيف قبل الرندرة
-                let cleanLaTeXText = normalizeLaTeX(text);
-                let parsedText = marked.parse(cleanLaTeXText);
+                // استخدام نظام الخزنة الجديد للرندرة الآمنة
+                let parsedText = renderBulletproofMath(text);
                 
                 parsedText += `
                 <div class="message-actions mt-4 pt-3 border-t border-white/10 flex items-center gap-3 opacity-0 transition-opacity duration-500 justify-end w-full" dir="ltr" data-raw-text="${escapeHtmlText(text)}">
@@ -1386,23 +1423,6 @@ async function signInWithGoogle() {
                     targetDiv.innerHTML = parsedText;
                     targetDiv.querySelectorAll('pre code').forEach((block) => hljs.highlightElement(block));
                     
-                    setTimeout(() => {
-                        try {
-                            renderMathInElement(targetDiv, {
-                                delimiters: [
-                                    { left: '$$', right: '$$', display: true },
-                                    { left: '$', right: '$', display: false },
-                                    { left: '\\(', right: '\\)', display: false },
-                                    { left: '\\[', right: '\\]', display: true }
-                                ],
-                                throwOnError: false,
-                                strict: false
-                            });
-                        } catch (e) {
-                            console.warn("KaTeX rendering warning:", e);
-                        }
-                    }, 100);
-
                     targetDiv.querySelector('.message-actions').classList.remove('opacity-0');
                     div.scrollIntoView({ behavior: 'smooth', block: 'end' });
                 }
@@ -1424,26 +1444,7 @@ async function signInWithGoogle() {
 
             // حفظ الرسالة
             if(!stopTypingFlag) saveMessageToSession('ai', originalText);
-
-            // رندرة معادلات KaTeX
-            setTimeout(() => {
-                try {
-                    renderMathInElement(element, {
-                        delimiters: [
-                            { left: '$$', right: '$$', display: true },
-                            { left: '$', right: '$', display: false },
-                            { left: '\\(', right: '\\)', display: false },
-                            { left: '\\[', right: '\\]', display: true }
-                        ],
-                        throwOnError: false,
-                        strict: false
-                    });
-                } catch (e) {
-                    console.warn("KaTeX rendering warning:", e);
-                }
-            }, 80);
-
-            // إظهار أزرار التحكم
+            
             const actionsDiv = element.querySelector('.message-actions');
             if (actionsDiv) {
                 setTimeout(() => actionsDiv.classList.remove('opacity-0'), 100);
