@@ -600,7 +600,7 @@ function renderBulletproofMath(text) {
 // ==========================================
         // 🔔 نظام التنبيهات المخصص (Quark Alert System)
         // ==========================================
-        function showQuarkAlert(message, type = 'info', isConfirm = false, onConfirm = null) {
+        function showQuarkAlert(message, type = 'info', isConfirm = false, onConfirm = null, onOk = null) {
             const modal = document.getElementById('quark-alert-modal');
             const box = document.getElementById('quark-alert-box');
             const iconContainer = document.getElementById('quark-alert-icon');
@@ -650,7 +650,10 @@ function renderBulletproofMath(text) {
                 const okBtn = document.createElement('button');
                 okBtn.className = 'w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl transition-all font-bold shadow-[0_0_20px_rgba(59,130,246,0.3)]';
                 okBtn.innerText = 'حسناً';
-                okBtn.onclick = hideQuarkAlert;
+                okBtn.onclick = () => {
+                    hideQuarkAlert();
+                    if (onOk) onOk(); // هنا التنفيذ بعد الضغط على حسناً
+                };
                 btnContainer.appendChild(okBtn);
             }
 
@@ -994,9 +997,12 @@ async function signInWithGoogle() {
             
             loadSessionsList();
             
-            if (window.innerWidth < 768) {
-                const sidebar = document.getElementById('sidebar');
-                if (!sidebar.classList.contains('translate-x-full')) toggleSidebar();
+            // قفل السايد بار فوراً في جميع الشاشات
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            if (!sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
             }
         }
 
@@ -1272,8 +1278,18 @@ async function signInWithGoogle() {
                 let userMsgCount = currentState.messages.filter(m => m.role === 'user').length;
                 
                 if (userMsgCount >= 4) {
-                    showQuarkAlert("يا بطل إنت استهلكت الـ 4 رسائل التجريبية في الشات ده! 🚀<br><br>عشان تكمل المحادثة وتحفظها، سجل دخول بحساب جوجل من القائمة الجانبية.", "warning");
-                    if (document.getElementById('sidebar').classList.contains('translate-x-full')) toggleSidebar();
+                    showQuarkAlert(
+                        "يا بطل إنت استهلكت الـ 4 رسائل التجريبية في الشات ده! 🚀<br><br>عشان تكمل المحادثة وتحفظها، سجل دخول بحساب جوجل من القائمة الجانبية.", 
+                        "warning", 
+                        false, 
+                        null, 
+                        () => { // الكود ده هيتنفذ لما المستخدم يدوس "حسناً" ويقفل التنبيه
+                            const sidebar = document.getElementById('sidebar');
+                            if (sidebar.classList.contains('-translate-x-full')) {
+                                toggleSidebar();
+                            }
+                        }
+                    );
                     return;
                 }
             }
