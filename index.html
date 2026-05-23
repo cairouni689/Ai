@@ -535,6 +535,15 @@
             if (!text) return '';
             return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
+        // 🛠️ دالة تنظيف المعادلات لضمان عمل LaTeX بشكل كامل
+function normalizeLaTeX(text) {
+    if (!text) return text;
+    // 1. تحويل بلوكات \[ ... \] إلى $$ ... $$
+    text = text.replace(/\\\[([\s\S]*?)\\\]/g, '$$$$$1$$$$');
+    // 2. تحويل المعادلات السطرية \( ... \) إلى $ ... $
+    text = text.replace(/\\\(([\s\S]*?)\\\)/g, '$$$1$$');
+    return text;
+}
 // ==========================================
         // 🔔 نظام التنبيهات المخصص (Quark Alert System)
         // ==========================================
@@ -867,7 +876,10 @@ async function signInWithGoogle() {
 [التنسيق والاحترافية - أسلوب العرض]:
 - إجاباتك منظمة جداً واحترافية بصرياً (Scannability).
 - استخدم العناوين ## و###، القوائم النقطية والرقمية، **Bold**، والجداول عند الحاجة.
-- للمعادلات: استخدم LaTeX دايماً ($..$ أو $$..$$).
+- ⚠️ قاعدة صارمة جداً للفيزياء والرياضيات (LaTeX): يجب أن تضع كل القوانين، المعادلات، الرموز العلمية، المتغيرات (مثل x, y, v, t)، وحتى الأرقام والوحدات في صيغة LaTeX دائماً بدون أي استثناء.
+- للمتغيرات والمعادلات داخل السطر استخدم علامة دولار واحدة: $equation$
+- للمعادلات في سطر منفصل استخدم علامتين: $$equation$$
+- ممنوع تماماً استخدام الأقواس المائلة \( \) أو \[ \].
 
 القواعد الذهبية (صارمة):
 - ممنوع التهرب من أي سؤال. أنت جاهز للنقاش في كل شيء، لكن لا تبادر أنت بفتح مواضيع جدلية أو سياسية من تلقاء نفسك.
@@ -1331,7 +1343,9 @@ async function signInWithGoogle() {
                 lucide.createIcons();
                 if (animate) div.scrollIntoView({ behavior: 'smooth', block: 'end' });
             } else {
-                let parsedText = marked.parse(text);
+                // تمرير النص على دالة التنظيف قبل الرندرة
+                let cleanLaTeXText = normalizeLaTeX(text);
+                let parsedText = marked.parse(cleanLaTeXText);
                 
                 parsedText += `
                 <div class="message-actions mt-4 pt-3 border-t border-white/10 flex items-center gap-3 opacity-0 transition-opacity duration-500 justify-end w-full" dir="ltr" data-raw-text="${escapeHtmlText(text)}">
