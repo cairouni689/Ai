@@ -1313,8 +1313,21 @@ async function signInWithGoogle() {
                                  onclick="openImageModal(this.src)">
                         </div>`;
                     } else {
-                        contentHTML += `<div class="flex items-center gap-2 mt-2 p-3 bg-black/40 rounded-xl border border-white/10 text-sm text-gray-300 w-fit"><i data-lucide="file-text" class="w-4 h-4 text-purple-400"></i> <span dir="ltr">${escapeHtmlText(attachment.name)}</span></div>`;
-                    }
+    // إعطاء ID مميز للملف وحفظه في الذاكرة
+    const fileId = 'file_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    window.transientFilesMap.set(fileId, attachment);
+    
+    // تصميم جديد كلياً قابل للضغط والتفاعل 
+    contentHTML += `<div onclick="openFilePreview('${fileId}')" class="flex items-center gap-3 mt-3 p-3 bg-[#1e1e1e]/80 hover:bg-purple-900/20 cursor-pointer rounded-xl border border-white/10 hover:border-purple-500/40 transition-all duration-300 w-fit group shadow-lg">
+        <div class="p-2.5 bg-purple-500/10 rounded-lg group-hover:bg-purple-500/20 transition-colors shrink-0">
+            <i data-lucide="file-text" class="w-5 h-5 text-purple-400"></i>
+        </div>
+        <div class="flex flex-col overflow-hidden pr-2">
+            <span dir="ltr" class="font-bold text-white text-sm max-w-[150px] md:max-w-[220px] truncate font-sans">${escapeHtmlText(attachment.name)}</span>
+            <span class="text-[10px] text-gray-400 group-hover:text-purple-300 transition-colors mt-0.5">اضغط لفتح الملف (Preview)</span>
+        </div>
+    </div>`;
+}
                 }
 
                 div.innerHTML = `
@@ -2235,6 +2248,41 @@ async function signInWithGoogle() {
                 loadSessionsList();
             }
         }
+
+// متغير لتخزين الملفات مؤقتاً في الذاكرة عشان نقدر نفتحها
+window.transientFilesMap = new Map();
+
+function openFilePreview(fileId) {
+    const file = window.transientFilesMap.get(fileId);
+    if (!file) {
+        showQuarkAlert('عفواً، الملف غير متاح الآن. يرجى إعادة رفعه إذا كنت تريد فتحه.', 'warning');
+        return;
+    }
+    
+    try {
+        // تحويل الـ Base64 لـ Blob عشان نفتح الملف بشكل آمن وسريع
+        const byteCharacters = atob(file.data);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: file.mimeType });
+        const url = URL.createObjectURL(blob);
+        
+        // فتح الملف في تبويبة جديدة
+        const newWindow = window.open(url, '_blank');
+        if (newWindow) {
+            // تنظيف الرابط من الذاكرة بعد 15 ثانية عشان منستهلكش الرامات
+            setTimeout(() => URL.revokeObjectURL(url), 15000);
+        } else {
+            showQuarkAlert('يرجى السماح للمتصفح بفتح النوافذ المنبثقة (Pop-ups) لعرض الملف.', 'warning');
+        }
+    } catch (e) {
+        console.error("Error opening file:", e);
+        showQuarkAlert('حدث خطأ أثناء محاولة فتح الملف.', 'error');
+    }
+}
 
     </script>
 </body>
