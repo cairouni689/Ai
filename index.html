@@ -1410,57 +1410,22 @@ async function signInWithGoogle() {
         }
 
         async function typeWriterHTML(element, html, scrollContainer, originalText) {
-            element.innerHTML = '';
-            element.classList.add('typing-cursor');
-            
-            let tempDiv = document.createElement('div');
-            tempDiv.innerHTML = html;
-            
-            async function processNode(node, target) {
-                if (stopTypingFlag) return;
+            // عرض النص بالكامل فوراً
+            element.innerHTML = html;
 
-                if (node.nodeType === Node.TEXT_NODE) {
-                    let text = node.textContent;
-                    for (let i = 0; i < text.length; i++) {
-                        if (stopTypingFlag) break; 
-                        
-                        const isAtBottom = scrollContainer.scrollHeight - scrollContainer.scrollTop <= scrollContainer.clientHeight + 100;
-                        target.appendChild(document.createTextNode(text[i]));
-                        if (isAtBottom) scrollContainer.scrollTop = scrollContainer.scrollHeight;
-                        
-                        await new Promise(r => setTimeout(r, 10)); 
-                    }
-                } else if (node.nodeType === Node.ELEMENT_NODE) {
-                    if (node.tagName === 'BUTTON' || (node.classList && node.classList.contains('message-actions'))) {
-                        let clone = node.cloneNode(true);
-                        target.appendChild(clone);
-                        return;
-                    }
+            // تفعيل تلوين الأكواد البرمجية
+            element.querySelectorAll('pre code').forEach((block) => hljs.highlightElement(block));
 
-                    let clone = node.cloneNode(false);
-                    target.appendChild(clone);
-                    
-                    for (let child of node.childNodes) {
-                        if (stopTypingFlag) break;
-                        await processNode(child, clone);
-                    }
-                    
-                    if (node.tagName === 'PRE') {
-                        let codeBlock = clone.querySelector('code');
-                        if(codeBlock) hljs.highlightElement(codeBlock);
-                        
-                        const isAtBottom = scrollContainer.scrollHeight - scrollContainer.scrollTop <= scrollContainer.clientHeight + 150;
-                        if (isAtBottom) scrollContainer.scrollTop = scrollContainer.scrollHeight;
-                    }
-                }
+            // النزول التلقائي لنهاية الشاشة إذا كان المستخدم بالأسفل
+            const isAtBottom = scrollContainer.scrollHeight - scrollContainer.scrollTop <= scrollContainer.clientHeight + 150;
+            if (isAtBottom) {
+                scrollContainer.scrollTop = scrollContainer.scrollHeight;
             }
-            
-            await processNode(tempDiv, element);
-            
-            element.classList.remove('typing-cursor');
-            
+
+            // حفظ الرسالة
             if(!stopTypingFlag) saveMessageToSession('ai', originalText);
-            
+
+            // رندرة معادلات KaTeX
             setTimeout(() => {
                 try {
                     renderMathInElement(element, {
@@ -1478,12 +1443,14 @@ async function signInWithGoogle() {
                 }
             }, 80);
 
+            // إظهار أزرار التحكم
             const actionsDiv = element.querySelector('.message-actions');
             if (actionsDiv) {
                 setTimeout(() => actionsDiv.classList.remove('opacity-0'), 100);
             }
             lucide.createIcons();
 
+            // إنهاء حالة التحميل
             isGenerating = false;
             toggleSendButtonState(false);
         }
