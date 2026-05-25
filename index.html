@@ -1336,13 +1336,22 @@ async function signInWithGoogle() {
             const modelSelector = document.getElementById('model-selector');
             const selectedModel = modelSelector ? modelSelector.value : "gemini-2.5-flash";
 
-            const payloadData = {
-                message: text,
-                systemInstruction: SYSTEM_IDENTITY,
-                history: apiHistory,
-                model: selectedModel,
-                fileObj: attachedFile 
-            };
+            // هنجيب التوكن بتاع اليوزر الحالي عشان نبعته للووركر
+let currentToken = null;
+if (currentUser) {
+    const { data: sessionData } = await supabaseClient.auth.getSession();
+    currentToken = sessionData.session?.access_token;
+}
+
+const payloadData = {
+    message: text,
+    systemInstruction: SYSTEM_IDENTITY,
+    history: apiHistory,
+    model: selectedModel,
+    fileObj: attachedFile,
+    userId: currentUserId,   // ضفنا الـ ID عشان الذاكرة
+    userToken: currentToken  // ضفنا التوكن عشان حماية الداتا
+};
 
             userInput.value = '';
             userInput.style.height = 'auto';
