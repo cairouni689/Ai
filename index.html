@@ -539,6 +539,27 @@
         </div>
     </div>
 
+<div id="quark-canvas-modal" class="fixed inset-0 z-[150] hidden bg-black/80 backdrop-blur-xl flex flex-col transform translate-y-full transition-transform duration-500 ease-out">
+        
+        <div class="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-[#131314]/90 shrink-0">
+            <h2 class="text-xl font-bold text-white flex items-center gap-3 font-mono tracking-wide">
+                <i data-lucide="layout-template" class="w-6 h-6 text-blue-500"></i> Quark Canvas
+            </h2>
+            <div class="flex gap-3">
+                <button onclick="copyCanvasCode()" class="text-gray-300 hover:text-green-400 transition-all p-2 bg-white/5 hover:bg-white/10 rounded-xl border border-white/5 text-sm flex items-center gap-2 font-bold shadow-lg">
+                    <i data-lucide="copy" class="w-4 h-4"></i> نسخ الكود
+                </button>
+                <button onclick="closeQuarkCanvas()" class="text-gray-400 hover:text-red-500 hover:bg-red-500/10 transition-all p-2 bg-white/5 rounded-xl border border-white/5 shadow-lg">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="flex-1 w-full bg-white relative overflow-hidden">
+            <iframe id="canvas-iframe" class="w-full h-full border-none" sandbox="allow-scripts allow-same-origin allow-forms allow-modals"></iframe>
+        </div>
+    </div>
+
     <script>
         lucide.createIcons();
 
@@ -1269,6 +1290,9 @@ async function signInWithGoogle() {
             if (rawText) {
                 navigator.clipboard.writeText(rawText);
                 
+                // استدعاء التنبيه الشيك اللي عملناه
+                showToast('تم نسخ الرد بالكامل يا بطل! 📝');
+                
                 const icon = btn.querySelector('i');
                 const label = btn.querySelector('.copy-text-label');
                 
@@ -1521,6 +1545,9 @@ const payloadData = {
                     targetDiv.innerHTML = parsedText;
                     targetDiv.querySelectorAll('pre code').forEach((block) => hljs.highlightElement(block));
                     
+                    // حقن زرار الكانفاس
+                    injectCanvasButtons(targetDiv);
+                    
                     targetDiv.querySelector('.message-actions').classList.remove('opacity-0');
                     div.scrollIntoView({ behavior: 'smooth', block: 'end' });
                 }
@@ -1533,6 +1560,9 @@ const payloadData = {
 
             // تفعيل تلوين الأكواد البرمجية
             element.querySelectorAll('pre code').forEach((block) => hljs.highlightElement(block));
+            
+            // حقن زرار الكانفاس
+            injectCanvasButtons(element);
 
             // النزول التلقائي لنهاية الشاشة إذا كان المستخدم بالأسفل
             const isAtBottom = scrollContainer.scrollHeight - scrollContainer.scrollTop <= scrollContainer.clientHeight + 150;
@@ -2336,6 +2366,138 @@ const payloadData = {
                     .eq('id', sessionId);
                 loadSessionsList();
             }
+        }
+
+        // ==========================================
+        // 🎨 Quark Canvas & Artifacts
+        // ==========================================
+        let currentCanvasCode = "";
+
+        function openQuarkCanvas(btn) {
+            // تعديل مسار البحث: الزرار مبقاش جوه pre، بقى جوه الغلاف الخارجي
+            const wrapper = btn.closest('.code-wrapper-container');
+            const codeBlock = wrapper.querySelector('code');
+            if (!codeBlock) return;
+
+            currentCanvasCode = codeBlock.innerText;
+            
+            const modal = document.getElementById('quark-canvas-modal');
+            const iframe = document.getElementById('canvas-iframe');
+
+            iframe.srcdoc = currentCanvasCode;
+
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('translate-y-full');
+            }, 10);
+        }
+
+        function closeQuarkCanvas() {
+            const modal = document.getElementById('quark-canvas-modal');
+            modal.classList.add('translate-y-full');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                document.getElementById('canvas-iframe').srcdoc = ''; 
+            }, 500);
+        }
+
+        function copyCanvasCode() {
+            navigator.clipboard.writeText(currentCanvasCode);
+            showQuarkAlert('تم نسخ الكود بنجاح يا بطل! 📋', 'success');
+        }
+
+        function copyExtractedCode(btn) {
+            const wrapper = btn.closest('.code-wrapper-container');
+            const codeBlock = wrapper.querySelector('code');
+            if (codeBlock) {
+                navigator.clipboard.writeText(codeBlock.innerText);
+                showToast('عاش! تم نسخ الكود بنجاح 💻');
+            }
+        }
+
+        function injectCanvasButtons(element) {
+            element.querySelectorAll('pre').forEach(pre => {
+                // لو عملناله غلاف قبل كده، نتخطاه
+                if (pre.parentElement.classList.contains('code-wrapper-container')) return;
+
+                // 1. هنعمل غلاف (Wrapper) بره الـ pre عشان الزراير متتقصش
+                const wrapper = document.createElement('div');
+                wrapper.className = 'code-wrapper-container relative mt-8 mb-4'; // مسافة من فوق عشان الزراير
+                
+                // تغليف الـ pre جوه الـ wrapper
+                pre.parentNode.insertBefore(wrapper, pre);
+                wrapper.appendChild(pre);
+
+                // 2. تظبيط شكل الـ pre نفسه
+                pre.classList.add('border', 'border-white/20', 'bg-[#131314]', 'rounded-xl', 'p-4', 'overflow-x-auto');
+
+                const codeBlock = pre.querySelector('code');
+                if (!codeBlock) return;
+                
+                const codeText = codeBlock.innerText;
+                
+                // 3. حاوية الزراير (هتقعد على البوردر بتاع الغلاف الخارجي مش الـ pre)
+                const btnWrapper = document.createElement('div');
+                btnWrapper.className = 'absolute -top-4 left-4 flex gap-2 z-10'; 
+                
+                let canvasBtnHTML = '';
+                // لو الكود HTML نظهر زرار الكانفاس
+                if (codeBlock.classList.contains('language-html') || codeText.includes('<html') || codeText.includes('<!DOCTYPE') || (codeText.includes('<div') && codeText.includes('class='))) {
+                    canvasBtnHTML = `
+                        <button onclick='openQuarkCanvas(this)' class="w-8 h-8 bg-[#1e1e1e] hover:bg-blue-600 text-gray-300 hover:text-white rounded-md flex items-center justify-center shadow-[0_4px_10px_rgba(0,0,0,0.8)] transition-all duration-300 border border-white/20 hover:border-blue-500 hover:shadow-[0_0_15px_rgba(59,130,246,0.6)] group" title="تشغيل في Canvas">
+                            <i data-lucide="play" class="w-4 h-4 ml-0.5 group-hover:scale-110 transition-transform"></i>
+                        </button>
+                    `;
+                }
+
+                // زرار النسخ ثابت لكل الأكواد
+                const copyBtnHTML = `
+                    <button onclick='copyExtractedCode(this)' class="w-8 h-8 bg-[#1e1e1e] hover:bg-green-600 text-gray-300 hover:text-white rounded-md flex items-center justify-center shadow-[0_4px_10px_rgba(0,0,0,0.8)] transition-all duration-300 border border-white/20 hover:border-green-500 hover:shadow-[0_0_15px_rgba(34,197,94,0.6)] group" title="نسخ الكود">
+                        <i data-lucide="copy" class="w-4 h-4 group-hover:scale-110 transition-transform"></i>
+                    </button>
+                `;
+
+                btnWrapper.innerHTML = canvasBtnHTML + copyBtnHTML;
+                wrapper.appendChild(btnWrapper);
+                lucide.createIcons({root: wrapper});
+            });
+        }
+
+// ==========================================
+        // 🔔 نظام الإشعارات المنبثقة (Toast Notification)
+        // ==========================================
+        function showToast(message) {
+            let toastContainer = document.getElementById('toast-container');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.id = 'toast-container';
+                toastContainer.className = 'fixed bottom-5 right-5 flex flex-col gap-2 z-[250] pointer-events-none';
+                document.body.appendChild(toastContainer);
+            }
+
+            const toast = document.createElement('div');
+            toast.className = 'bg-[#1e1e1e] border border-white/10 text-white px-4 py-3 rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.8)] flex items-center gap-3 transform translate-y-10 opacity-0 transition-all duration-300 pointer-events-auto';
+            toast.innerHTML = `
+                <div class="bg-green-500/20 text-green-400 p-1.5 rounded-lg border border-green-500/30">
+                    <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+                </div>
+                <span class="text-sm font-sans font-medium">${message}</span>
+            `;
+
+            toastContainer.appendChild(toast);
+            lucide.createIcons({root: toast});
+
+            // إظهار بنعومة
+            setTimeout(() => {
+                toast.classList.remove('translate-y-10', 'opacity-0');
+            }, 10);
+
+            // إخفاء بعد 3 ثواني
+            setTimeout(() => {
+                toast.classList.add('translate-y-10', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
         }
 
     </script>
