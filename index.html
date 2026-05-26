@@ -356,7 +356,12 @@
                         </button>
                     </div>
 
-                    <textarea id="user-input" rows="1" class="flex-1 bg-transparent border-none focus:ring-0 text-white placeholder-gray-500 resize-none py-3 px-3 max-h-32 text-base leading-relaxed font-sans" placeholder="تحدث مع كوارك..."></textarea>
+<div class="flex-1 relative flex items-center">
+    <textarea id="user-input" rows="1" class="w-full bg-transparent border-none focus:ring-0 text-white placeholder-gray-500 resize-none py-3 pl-12 pr-3 max-h-32 text-base leading-relaxed font-sans" placeholder="تحدث مع كوارك..."></textarea>
+    <button id="enhance-prompt-btn" onclick="enhanceUserPrompt()" class="absolute left-2 p-1.5 text-gray-400 hover:text-yellow-400 hover:bg-yellow-400/10 rounded-lg transition-all duration-300 hidden z-10" title="تحسين السؤال سحرياً">
+        <i data-lucide="wand-2" class="w-5 h-5"></i>
+    </button>
+</div>
 
                     <button onclick="sendMessage()" id="send-btn" class="p-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-full shadow-lg transition-all flex items-center justify-center ml-1 w-11 h-11 shrink-0">
                         <i data-lucide="send-horizontal" class="w-5 h-5 transform rotate-180"></i>
@@ -1171,6 +1176,14 @@ async function signInWithGoogle() {
         userInput.addEventListener('input', function() {
             this.style.height = 'auto';
             this.style.height = (this.scrollHeight) + 'px';
+            // إظهار زرار التحسين السحري لو النص قصير (أكثر من 5 حروف وأقل من 60)
+            const enhanceBtn = document.getElementById('enhance-prompt-btn');
+            const textLen = this.value.trim().length;
+            if (textLen > 5 && textLen < 60) {
+                enhanceBtn.classList.remove('hidden');
+            } else {
+                enhanceBtn.classList.add('hidden');
+            }
         });
 
         userInput.addEventListener('keydown', function(e) {
@@ -1179,6 +1192,51 @@ async function signInWithGoogle() {
                 sendMessage();
             }
         });
+
+// 🚀 دالة تحسين الـ Prompt سحرياً
+        async function enhanceUserPrompt() {
+            const input = document.getElementById('user-input');
+            const enhanceBtn = document.getElementById('enhance-prompt-btn');
+            const text = input.value.trim();
+            
+            if (!text) return;
+
+            // تغيير شكل الزرار للتحميل عشان اليوزر يعرف إنه شغال
+            const originalIcon = enhanceBtn.innerHTML;
+            enhanceBtn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin text-yellow-400"></i>';
+            enhanceBtn.disabled = true;
+            lucide.createIcons();
+
+            try {
+                const payloadData = {
+                    message: `قم بتحسين وتوسيع هذا السؤال القصير ليكون Prompt احترافي، دقيق، وشامل للحصول على أفضل وأدق إجابة من نموذج ذكاء اصطناعي. لا تضف أي مقدمات أو شروحات، اكتب الـ Prompt المحسن فقط مباشرة وكأنك أنت المستخدم الذي يسأل. السؤال الأصلي: ${text}`,
+                    systemInstruction: "أنت خبير متقدم في هندسة الأوامر (Prompt Engineering). وظيفتك الوحيدة تحويل الأسئلة البسيطة إلى أوامر احترافية مفصلة.",
+                    history: [], // بدون هيستوري عشان السرعة
+                    model: "gemini-2.5-flash",
+                    fileObj: null
+                };
+
+                // بنستغل دالة callWorkerAPI اللي إنت عاملها
+                const responseData = await callWorkerAPI(payloadData, new AbortController().signal);
+                
+                // تنظيف الرد وتحديث المربع بالنص المحسن
+                input.value = responseData.content.replace(/[\`]/g, '').trim();
+                
+                // تظبيط ارتفاع المربع على الحجم الجديد
+                input.style.height = 'auto';
+                input.style.height = (input.scrollHeight) + 'px';
+                
+            } catch (error) {
+                showQuarkAlert('فشل تحسين السؤال، جرب تاني يا بطل! ⚠️', 'warning');
+            } finally {
+                // إرجاع الزرار لشكله الطبيعي وإخفاءه عشان اليوزر يبعت
+                enhanceBtn.innerHTML = originalIcon;
+                enhanceBtn.disabled = false;
+                enhanceBtn.classList.add('hidden');
+                lucide.createIcons();
+                input.focus();
+            }
+        }
 
         function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
