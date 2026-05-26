@@ -995,61 +995,8 @@ async function signInWithGoogle() {
             loadSessionsList();
             initStars();    
             animateStars(); 
-            initWakeWord(); // 🎙️ تفعيل رادار الاستدعاء الصوتي (Wake Word)
         });
 
-// 🎙️ نظام الاستدعاء الصوتي (Wake Word: يا كوارك)
-        function initWakeWord() {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SpeechRecognition) {
-                console.warn("المتصفح بتاعك يا بطل مش بيدعم رادار الصوت الخلفي.");
-                return;
-            }
-            
-            const recognition = new SpeechRecognition();
-            recognition.lang = 'ar-EG';
-            recognition.continuous = true;
-            recognition.interimResults = false;
-
-            recognition.onresult = (event) => {
-                const transcript = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
-                console.log("🎙️ الرادار لقط: ", transcript);
-                
-                // لو سمع اسم كوارك وشاشة المكالمة مش مفتوحة
-                if ((transcript.includes('كوارك') || transcript.includes('quark')) && document.getElementById('live-call-overlay').classList.contains('hidden')) {
-                    
-                    // نعمل تأثير دلع في مربع الكتابة عشان اليوزر يعرف إنه اتسمع
-                    const inputField = document.getElementById('user-input');
-                    const originalPlaceholder = inputField.placeholder;
-                    inputField.placeholder = "أيوة يا بطل، سامعك.. جاري فتح الاتصال 🚀";
-                    inputField.classList.add('bg-blue-500/20');
-                    
-                    setTimeout(() => {
-                        inputField.placeholder = originalPlaceholder;
-                        inputField.classList.remove('bg-blue-500/20');
-                    }, 3000);
-
-                    // نفتح المكالمة المباشرة ونبعتله (true) عشان ينطق أول ما يفتح
-                    toggleLiveCall(true);
-                }
-            };
-
-            recognition.onerror = (event) => {
-                if(event.error === 'not-allowed') {
-                    console.warn("عشان الرادار يشتغل لازم تديله صلاحية المايك يا غالي.");
-                }
-            };
-
-            recognition.onend = () => {
-                // اللوب الشرير: لو فصل لأي سبب، نشغله تاني عشان يفضل باصص عليك
-                try { recognition.start(); } catch(e) {}
-            };
-
-            // المتصفحات الحديثة بتمنع المايك يفتح لوحده، فهنشغله في الخلفية أول ما اليوزر يدوس أي كليك على الموقع
-            document.body.addEventListener('click', () => {
-                try { recognition.start(); } catch(e) {}
-            }, { once: true });
-        }
 
 
         function startNewSession() {
