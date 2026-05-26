@@ -335,6 +335,7 @@
                 </div>
 
                 <div class="rounded-[2rem] flex items-end p-2 bg-[#1e1e1e] border border-white/10 transition-all duration-300 focus-within:border-blue-500/50 focus-within:shadow-[0_0_15px_rgba(59,130,246,0.15)]">
+                    
                     <div class="pl-1 relative" id="attachment-container">
                         <input type="file" id="file-upload" class="hidden" onchange="handleFileUpload(event)">
                         <div id="attachment-menu" class="absolute bottom-[120%] right-0 mb-1 w-40 bg-[#1e1e1e]/95 backdrop-blur-md border border-white/10 rounded-xl shadow-[0_10px_25px_rgba(0,0,0,0.8)] overflow-hidden transition-all duration-200 opacity-0 pointer-events-none transform translate-y-2 z-50">
@@ -351,17 +352,34 @@
                                 <span>مستند</span>
                             </button>
                         </div>
-                        <button onclick="toggleAttachmentMenu(event)" class="p-2.5 text-gray-400 hover:text-blue-400 hover:bg-white/5 rounded-full transition-colors flex items-center justify-center relative z-10">
+                        <button onclick="toggleAttachmentMenu(event)" class="p-2.5 text-gray-400 hover:text-blue-400 hover:bg-white/5 rounded-full transition-colors flex items-center justify-center relative z-10" title="إرفاق ملف">
                             <i data-lucide="paperclip" class="w-5 h-5"></i>
                         </button>
                     </div>
 
-<div class="flex-1 relative flex items-center">
-    <textarea id="user-input" rows="1" class="w-full bg-transparent border-none focus:ring-0 text-white placeholder-gray-500 resize-none py-3 pl-12 pr-3 max-h-32 text-base leading-relaxed font-sans" placeholder="تحدث مع كوارك..."></textarea>
-    <button id="enhance-prompt-btn" onclick="enhanceUserPrompt()" class="absolute left-2 p-1.5 text-gray-400 hover:text-yellow-400 hover:bg-yellow-400/10 rounded-lg transition-all duration-300 hidden z-10" title="تحسين السؤال سحرياً">
-        <i data-lucide="wand-2" class="w-5 h-5"></i>
-    </button>
-</div>
+                    <div class="flex-1 relative flex items-center">
+                        <textarea id="user-input" rows="1" class="w-full bg-transparent border-none focus:ring-0 text-white placeholder-gray-500 resize-none py-3 pr-3 pl-[50px] max-h-32 text-base leading-relaxed font-sans" placeholder="تحدث مع كوارك..."></textarea>
+                        
+                        <div class="absolute left-2 z-20" id="ai-tools-container">
+                            <div id="ai-tools-menu" class="absolute bottom-[120%] left-0 mb-1 w-36 bg-[#1e1e1e]/95 backdrop-blur-md border border-white/10 rounded-xl shadow-[0_10px_25px_rgba(0,0,0,0.8)] overflow-hidden transition-all duration-200 opacity-0 pointer-events-none transform translate-y-2 flex flex-col">
+                                
+                                <button onclick="toggleWebSearch(); toggleAiToolsMenu(event);" class="w-full flex items-center gap-2 px-3 py-2.5 text-xs text-gray-300 hover:text-white hover:bg-white/5 transition-colors border-b border-white/5 text-right">
+                                    <i data-lucide="globe" id="web-search-menu-icon" class="w-4 h-4 text-gray-400"></i>
+                                    <span id="web-search-menu-text">البحث اللحظي</span>
+                                </button>
+                                
+                                <button onclick="enhanceUserPrompt(); toggleAiToolsMenu(event);" id="enhance-prompt-btn" class="w-full flex items-center gap-2 px-3 py-2.5 text-xs text-gray-300 hover:text-yellow-400 hover:bg-yellow-400/5 transition-colors text-right">
+                                    <i data-lucide="wand-2" class="w-4 h-4 text-yellow-400"></i>
+                                    <span id="enhance-prompt-text">تحسين السؤال</span>
+                                </button>
+
+                            </div>
+                            
+                            <button onclick="toggleAiToolsMenu(event)" class="p-1.5 text-gray-400 hover:text-blue-400 hover:bg-blue-400/10 rounded-md transition-all duration-300" title="أدوات كوارك الذكية">
+                                <i data-lucide="sparkles" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                    </div>
 
                     <button onclick="sendMessage()" id="send-btn" class="p-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-full shadow-lg transition-all flex items-center justify-center ml-1 w-11 h-11 shrink-0">
                         <i data-lucide="send-horizontal" class="w-5 h-5 transform rotate-180"></i>
@@ -1176,14 +1194,6 @@ async function signInWithGoogle() {
         userInput.addEventListener('input', function() {
             this.style.height = 'auto';
             this.style.height = (this.scrollHeight) + 'px';
-            // إظهار زرار التحسين السحري لو النص قصير (أكثر من 5 حروف وأقل من 60)
-            const enhanceBtn = document.getElementById('enhance-prompt-btn');
-            const textLen = this.value.trim().length;
-            if (textLen > 5 && textLen < 60) {
-                enhanceBtn.classList.remove('hidden');
-            } else {
-                enhanceBtn.classList.add('hidden');
-            }
         });
 
         userInput.addEventListener('keydown', function(e) {
@@ -1199,11 +1209,14 @@ async function signInWithGoogle() {
             const enhanceBtn = document.getElementById('enhance-prompt-btn');
             const text = input.value.trim();
             
-            if (!text) return;
+            if (!text) {
+                showQuarkAlert('اكتب أي كلمة الأول يا بطل عشان أقدر أحسنها لك! ✨', 'warning');
+                return;
+            }
 
             // تغيير شكل الزرار للتحميل عشان اليوزر يعرف إنه شغال
-            const originalIcon = enhanceBtn.innerHTML;
-            enhanceBtn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin text-yellow-400"></i>';
+            const originalHTML = enhanceBtn.innerHTML;
+            enhanceBtn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin text-yellow-400"></i><span class="text-yellow-400">جاري التحسين...</span>';
             enhanceBtn.disabled = true;
             lucide.createIcons();
 
@@ -1216,23 +1229,17 @@ async function signInWithGoogle() {
                     fileObj: null
                 };
 
-                // بنستغل دالة callWorkerAPI اللي إنت عاملها
                 const responseData = await callWorkerAPI(payloadData, new AbortController().signal);
                 
-                // تنظيف الرد وتحديث المربع بالنص المحسن
                 input.value = responseData.content.replace(/[\`]/g, '').trim();
-                
-                // تظبيط ارتفاع المربع على الحجم الجديد
                 input.style.height = 'auto';
                 input.style.height = (input.scrollHeight) + 'px';
                 
             } catch (error) {
                 showQuarkAlert('فشل تحسين السؤال، جرب تاني يا بطل! ⚠️', 'warning');
             } finally {
-                // إرجاع الزرار لشكله الطبيعي وإخفاءه عشان اليوزر يبعت
-                enhanceBtn.innerHTML = originalIcon;
+                enhanceBtn.innerHTML = originalHTML;
                 enhanceBtn.disabled = false;
-                enhanceBtn.classList.add('hidden');
                 lucide.createIcons();
                 input.focus();
             }
@@ -1401,14 +1408,15 @@ if (currentUser) {
     currentToken = sessionData.session?.access_token;
 }
 
-const payloadData = {
+     const payloadData = {
     message: text,
     systemInstruction: SYSTEM_IDENTITY,
     history: apiHistory,
     model: selectedModel,
     fileObj: attachedFile,
-    userId: currentUserId,   // ضفنا الـ ID عشان الذاكرة
-    userToken: currentToken  // ضفنا التوكن عشان حماية الداتا
+    userId: currentUserId,
+    userToken: currentToken,
+    tools: isWebSearchEnabled ? [{ googleSearch: {} }] : undefined // 🌐 إضافة أداة البحث في جوجل
 };
 
             userInput.value = '';
@@ -1594,6 +1602,26 @@ const payloadData = {
 
         let attachedFile = null;
 
+        let isWebSearchEnabled = false;
+
+        function toggleWebSearch() {
+            isWebSearchEnabled = !isWebSearchEnabled;
+            const icon = document.getElementById('web-search-menu-icon');
+            const textSpan = document.getElementById('web-search-menu-text');
+            
+            if (isWebSearchEnabled) {
+                icon.classList.replace('text-gray-400', 'text-green-400');
+                icon.classList.add('animate-pulse');
+                textSpan.classList.replace('text-gray-300', 'text-green-400');
+                showQuarkAlert('تم تفعيل الاتصال بالإنترنت! 🌐<br><br>كوارك دلوقتي متصل بالنت وهيبحث عن أحدث المعلومات وهو بيرد عليك.', 'success');
+            } else {
+                icon.classList.replace('text-green-400', 'text-gray-400');
+                icon.classList.remove('animate-pulse');
+                textSpan.classList.replace('text-green-400', 'text-gray-300');
+            }
+            lucide.createIcons();
+        }
+
         function handleFileUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -1679,7 +1707,30 @@ const payloadData = {
             if (container && !container.contains(e.target)) {
                 closeAttachmentMenu();
             }
+            const toolsContainer = document.getElementById('ai-tools-container');
+            if (toolsContainer && !toolsContainer.contains(e.target)) {
+                closeAiToolsMenu();
+            }
         });
+
+        function toggleAiToolsMenu(e) {
+            if(e) { e.preventDefault(); e.stopPropagation(); }
+            const menu = document.getElementById('ai-tools-menu');
+            if (menu.classList.contains('opacity-0')) {
+                menu.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-2');
+                menu.classList.add('opacity-100', 'translate-y-0');
+            } else {
+                closeAiToolsMenu();
+            }
+        }
+
+        function closeAiToolsMenu() {
+            const menu = document.getElementById('ai-tools-menu');
+            if (menu && !menu.classList.contains('opacity-0')) {
+                menu.classList.add('opacity-0', 'pointer-events-none', 'translate-y-2');
+                menu.classList.remove('opacity-100', 'translate-y-0');
+            }
+        }
 
         function openImageModal(imgSrc) {
             const modal = document.getElementById('image-modal');
