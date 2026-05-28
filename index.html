@@ -314,7 +314,7 @@
         </div>
     </aside>
 
-    <main id="main-content-area" class="flex-1 flex flex-col relative w-full max-w-5xl mx-auto h-full z-10">
+    <main id="main-content-area" class="flex-1 flex flex-col relative w-full max-w-7xl mx-auto h-full z-10"></main>
         <div id="welcome-screen" class="absolute inset-0 top-0 flex flex-col items-center justify-center p-6 pt-24 pb-20 transition-all duration-500 z-20">
             <div id="welcome-logo-container" class="mb-8 relative group cursor-default mt-10 flex flex-col items-center">
     <div class="absolute -inset-10 bg-blue-500/10 rounded-full blur-3xl animate-pulse-slow z-0"></div>
@@ -347,7 +347,7 @@
     </main>
 
     <div class="fixed bottom-0 left-0 right-0 w-full z-40 bg-gradient-to-t from-black via-black/95 to-transparent pt-4 pb-6 px-4">
-        <div class="max-w-3xl mx-auto flex items-end gap-2">
+    <div class="max-w-5xl mx-auto flex items-end gap-2">
         
             <div class="flex-1 relative">
                 <div id="file-preview-container" class="hidden mb-3 relative inline-flex items-center gap-3 p-2 bg-[#1e1e1e] border border-white/20 rounded-xl max-w-xs shadow-lg">
@@ -1501,8 +1501,8 @@ const payloadData = {
             div.className = `flex w-full mb-6 ${isUser ? 'justify-end' : 'justify-start'} ${animate ? 'fade-in' : ''}`;
             
             const textStyle = isUser 
-                ? 'text-gray-200 font-sans text-base md:text-lg text-left' 
-                : 'markdown-content text-blue-100 font-sans text-base md:text-lg text-right w-full flex flex-col';
+    ? 'text-gray-200 font-sans text-sm md:text-base text-left' 
+    : 'markdown-content text-blue-100 font-sans text-sm md:text-base text-right w-full flex flex-col';
 
             const textId = `msg-text-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
