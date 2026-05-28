@@ -257,16 +257,43 @@
             <button onclick="startNewSession()" class="w-full py-2.5 mb-4 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 rounded-lg text-sm flex items-center justify-center gap-2 transition-all text-blue-200 hover:text-white shadow-[0_0_10px_rgba(37,99,235,0.1)]">
                 <i data-lucide="plus" class="w-4 h-4"></i> شات جديد
             </button>
-            <div class="px-4 pb-4 border-b border-white/5 mb-4">
-                <label class="text-[10px] text-gray-500 uppercase tracking-widest block mb-2 font-mono">Select Model</label>
-                <div class="relative">
-                    <select id="model-selector" class="w-full bg-[#1e1e1e] border border-white/10 text-gray-300 text-xs rounded-lg p-2.5 appearance-none focus:border-blue-500/50 outline-none font-sans cursor-pointer hover:bg-white/5">
-    <option value="gemini-2.5-flash" selected>Quark 2.5 Flash</option>
-    <option value="gemini-2.5-flash-lite">Quark 2.5 Flash Lite</option>
-    <option value="glm-4-flash">Quark 2 Flash</option>
-                    </select>
-                    <div class="absolute inset-y-0 left-0 flex items-center pl-2 pointer-events-none text-gray-500">
-                        <i data-lucide="cpu" class="w-3.5 h-3.5"></i>
+<div class="px-4 pb-4 border-b border-white/5 mb-4 relative z-[100]">
+                <label class="text-[10px] text-gray-500 uppercase tracking-widest block mb-2 font-mono ml-1">AI Engine</label>
+                
+                <input type="hidden" id="model-selector" value="gemini-2.5-flash">
+                
+                <div class="relative" id="model-dropdown-container">
+                    <button onclick="toggleModelMenu()" id="model-toggle-btn" class="w-full bg-[#1a1a1c] hover:bg-[#252528] border border-white/10 rounded-xl p-3 flex items-center justify-between transition-colors duration-200 shadow-sm">
+                        <div class="flex items-center gap-3">
+                            <i data-lucide="zap" id="current-model-icon" class="w-4 h-4 text-gray-300"></i>
+                            <div class="text-right flex flex-col justify-center">
+                                <span id="current-model-name" class="font-semibold text-gray-200 text-sm font-sans leading-none">Quark 2.5 Flash</span>
+                            </div>
+                        </div>
+                        <i data-lucide="chevron-down" id="model-chevron" class="w-4 h-4 text-gray-500 transition-transform duration-200"></i>
+                    </button>
+
+                    <div id="custom-model-menu" class="absolute top-full left-0 right-0 mt-1.5 bg-[#1a1a1c] border border-white/10 rounded-xl shadow-xl overflow-hidden transition-all duration-200 opacity-0 pointer-events-none transform -translate-y-2 z-50">
+                        <div class="p-1.5 flex flex-col gap-0.5">
+                            
+                            <div onclick="selectModel('gemini-2.5-flash', 'Quark 2.5 Flash', 'zap')" class="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-white/5 cursor-pointer transition-colors text-gray-400 hover:text-gray-200">
+                                <i data-lucide="zap" class="w-4 h-4"></i>
+                                <span class="block font-medium text-sm font-sans flex-1 text-right">Quark 2.5 Flash</span>
+                            </div>
+                            
+                            <div onclick="selectModel('gemini-2.5-flash-lite', 'Quark 2.5 Lite', 'feather')" class="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-white/5 cursor-pointer transition-colors text-gray-400 hover:text-gray-200">
+                                <i data-lucide="feather" class="w-4 h-4"></i>
+                                <span class="block font-medium text-sm font-sans flex-1 text-right">Quark 2.5 Lite</span>
+                            </div>
+
+                            <div class="h-px w-full bg-white/5 my-1"></div>
+
+                            <div onclick="selectModel('glm-4-flash', 'Quark 2 Flash', 'cpu')" class="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-white/5 cursor-pointer transition-colors text-gray-400 hover:text-gray-200">
+                                <i data-lucide="cpu" class="w-4 h-4"></i>
+                                <span class="block font-medium text-sm font-sans flex-1 text-right">Quark 2 Flash</span>
+                            </div>
+
+                        </div>
                     </div>
                 </div>
             </div>
@@ -296,8 +323,6 @@
                 </svg>
             </div>
             
-            <h2 class="text-5xl md:text-7xl font-bold text-center mb-6 tracking-tighter text-white drop-shadow-2xl font-mono">QUARK</h2>
-            <p class="text-gray-400 text-center max-w-lg text-lg tracking-[0.05em] font-light">SciVerse Intelligence - Cairo University</p>
             
             <!-- القوالب السريعة في الشاشة الترحيبية -->
             <div id="welcome-prompts" class="flex flex-wrap justify-center gap-3 mt-10 w-full max-w-3xl z-30 relative">
@@ -2500,6 +2525,47 @@ const payloadData = {
                 setTimeout(() => toast.remove(), 300);
             }, 3000);
         }
+
+function toggleModelMenu() {
+            const menu = document.getElementById('custom-model-menu');
+            const chevron = document.getElementById('model-chevron');
+            if (menu.classList.contains('opacity-0')) {
+                menu.classList.remove('opacity-0', 'pointer-events-none', '-translate-y-2');
+                menu.classList.add('opacity-100', 'translate-y-0');
+                chevron.style.transform = 'rotate(180deg)';
+            } else {
+                closeModelMenu();
+            }
+        }
+
+        function closeModelMenu() {
+            const menu = document.getElementById('custom-model-menu');
+            const chevron = document.getElementById('model-chevron');
+            if (menu && !menu.classList.contains('opacity-0')) {
+                menu.classList.add('opacity-0', 'pointer-events-none', '-translate-y-2');
+                menu.classList.remove('opacity-100', 'translate-y-0');
+                chevron.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        function selectModel(val, name, iconName) {
+            document.getElementById('model-selector').value = val;
+            document.getElementById('current-model-name').innerText = name;
+            
+            const iconEl = document.getElementById('current-model-icon');
+            iconEl.setAttribute('data-lucide', iconName);
+            lucide.createIcons();
+            
+            closeModelMenu();
+            showToast(`تم التبديل لمحرك ${name} 🚀`);
+        }
+
+        document.addEventListener('click', function(e) {
+            const container = document.getElementById('model-dropdown-container');
+            if (container && !container.contains(e.target)) {
+                closeModelMenu();
+            }
+        });
 
     </script>
 </body>
