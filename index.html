@@ -2032,6 +2032,7 @@ const payloadData = {
                             systemInstruction: {
                                 parts: [{ text: SYSTEM_IDENTITY + "\n\n[ملاحظة هامة للصوت]:\n" + toneInstruction }]
                             },
+                            tools: [{ google_search: {} }], // تفعيل بحث جوجل لايف في المكالمة الصوتية
                             generationConfig: { 
                                 responseModalities: ["AUDIO"],
                                 speechConfig: {
