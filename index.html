@@ -1473,8 +1473,9 @@ const payloadData = {
     history: apiHistory,
     model: selectedModel,
     fileObj: attachedFile,
-    userId: currentUserId,   // ضفنا الـ ID عشان الذاكرة
-    userToken: currentToken  // ضفنا التوكن عشان حماية الداتا
+    userId: currentUserId,
+    userToken: currentToken,
+    tools: ["google_search"] // تفعيل بحث جوجل من الفرونت إند
 };
 
             userInput.value = '';
