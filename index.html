@@ -1964,13 +1964,21 @@ const payloadData = {
         
         let isMicMuted = false;
         let currentFacingMode = "environment"; 
+        let activeAudioSources = [];
 
         async function toggleLiveCall(autoGreet = false) {
             const liveBtn = document.getElementById('live-call-btn');
             if (liveWs && liveWs.readyState === WebSocket.OPEN) { stopLiveCall(); return; }
 
             try {
-                liveStream = await navigator.mediaDevices.getUserMedia({ audio: { sampleRate: 16000 } });
+                liveStream = await navigator.mediaDevices.getUserMedia({ 
+                    audio: { 
+                        sampleRate: 16000,
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        autoGainControl: true
+                    } 
+                });
                 liveAudioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
                 nextAudioTime = liveAudioContext.currentTime;
                 
@@ -2054,34 +2062,49 @@ const payloadData = {
                 };
 
                 liveWs.onmessage = async (event) => {
-                    let data = event.data;
-                    if (data instanceof Blob) data = await data.text();
-                    const response = JSON.parse(data);
-                    
-                    if (response.serverContent && response.serverContent.modelTurn) {
-                        const aurora = document.getElementById('aurora-glow');
-                        if(aurora) {
-                            aurora.classList.replace('from-[#4285f4]', 'from-[#2dd4bf]');
-                            aurora.classList.replace('via-[#4285f4]/40', 'via-[#4ade80]/40');
-                            aurora.classList.replace('opacity-30', 'opacity-60');
-                        }
-                        
-                        const parts = response.serverContent.modelTurn.parts;
-                        parts.forEach(part => {
-                            if (part.inlineData && part.inlineData.data) playQuarkAudio(part.inlineData.data);
-                        });
+            let data = event.data;
+            if (data instanceof Blob) data = await data.text();
+            const response = JSON.parse(data);
+            
+            // لو كوارك سكت عشان إنت اتكلمت (المقاطعة)
+            if (response.serverContent && response.serverContent.interrupted) {
+                // وقف كل الصوت اللي شغال في الطابور فوراً
+                activeAudioSources.forEach(source => {
+                    try { source.stop(); } catch (e) {}
+                });
+                activeAudioSources = [];
+                
+                // ترصيت العداد الزمني عشان الصوت الجديد يبدأ فوراً
+                if (liveAudioContext) {
+                    nextAudioTime = liveAudioContext.currentTime; 
+                }
+                return;
+            }
 
-                        clearTimeout(window.speakingTimeout);
-                        window.speakingTimeout = setTimeout(() => {
-                            const aurora = document.getElementById('aurora-glow');
-                            if(aurora) {
-                                aurora.classList.replace('from-[#2dd4bf]', 'from-[#4285f4]');
-                                aurora.classList.replace('via-[#4ade80]/40', 'via-[#4285f4]/40');
-                                aurora.classList.replace('opacity-60', 'opacity-30');
-                            }
-                        }, 1500); 
+            if (response.serverContent && response.serverContent.modelTurn) {
+                const aurora = document.getElementById('aurora-glow');
+                if(aurora) {
+                    aurora.classList.replace('from-[#4285f4]', 'from-[#2dd4bf]');
+                    aurora.classList.replace('via-[#4285f4]/40', 'via-[#4ade80]/40');
+                    aurora.classList.replace('opacity-30', 'opacity-60');
+                }
+                
+                const parts = response.serverContent.modelTurn.parts;
+                parts.forEach(part => {
+                    if (part.inlineData && part.inlineData.data) playQuarkAudio(part.inlineData.data);
+                });
+
+                clearTimeout(window.speakingTimeout);
+                window.speakingTimeout = setTimeout(() => {
+                    const aurora = document.getElementById('aurora-glow');
+                    if(aurora) {
+                        aurora.classList.replace('from-[#2dd4bf]', 'from-[#4285f4]');
+                        aurora.classList.replace('via-[#4ade80]/40', 'via-[#4285f4]/40');
+                        aurora.classList.replace('opacity-60', 'opacity-30');
                     }
-                };
+                }, 1500); 
+            }
+        };
 
                 liveWs.onerror = (err) => { console.error("عطل:", err); stopLiveCall(); };
                 liveWs.onclose = () => { stopLiveCall(); };
@@ -2192,6 +2215,10 @@ const payloadData = {
         }
 
         function stopLiveCall() {
+            // تنظيف طابور الصوت بالكامل
+            activeAudioSources.forEach(source => { try { source.stop(); } catch(e){} });
+            activeAudioSources = [];
+
             if (liveWs) { liveWs.close(); liveWs = null; }
             if (micProcessor) { micProcessor.disconnect(); micProcessor = null; }
             if (liveAudioContext) { liveAudioContext.close(); liveAudioContext = null; }
@@ -2248,20 +2275,39 @@ const payloadData = {
 
         function playQuarkAudio(base64Data) {
             if (!liveAudioContext) return;
+            
+            // السطرين دول بيعملوا إيقاظ إجباري لكارت الصوت لو المتصفح عمله سليب
+            if (liveAudioContext.state === 'suspended') {
+                liveAudioContext.resume();
+            }
+            
             const binaryString = window.atob(base64Data);
             const bytes = new Uint8Array(binaryString.length);
             for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
+            
             const int16Array = new Int16Array(bytes.buffer);
             const float32Array = new Float32Array(int16Array.length);
             for(let i=0; i<int16Array.length; i++) float32Array[i] = int16Array[i] / 0x7FFF;
+            
             const audioBuffer = liveAudioContext.createBuffer(1, float32Array.length, 24000);
             audioBuffer.getChannelData(0).set(float32Array);
+            
             const source = liveAudioContext.createBufferSource();
             source.buffer = audioBuffer;
             source.connect(liveAudioContext.destination);
-            if (nextAudioTime < liveAudioContext.currentTime) nextAudioTime = liveAudioContext.currentTime;
+            
+            if (nextAudioTime < liveAudioContext.currentTime) {
+                nextAudioTime = liveAudioContext.currentTime;
+            }
+            
             source.start(nextAudioTime);
             nextAudioTime += audioBuffer.duration;
+            
+            activeAudioSources.push(source);
+
+            source.onended = () => {
+                activeAudioSources = activeAudioSources.filter(s => s !== source);
+            };
         }
 
         // ==========================================
