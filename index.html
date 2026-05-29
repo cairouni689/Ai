@@ -1596,22 +1596,36 @@ const payloadData = {
         }
 
         async function typeWriterHTML(element, html, scrollContainer, originalText) {
-            // عرض النص بالكامل فوراً
-            element.innerHTML = html;
+            isGenerating = true;
+            let currentText = "";
+            const chunkSize = 40; // عدد الحروف في كل خبطة (تقدر تكبره أو تصغره براحتك)
 
-            // تفعيل تلوين الأكواد البرمجية
+            // الأنيميشن بتاع الكتابة بالتدريج
+            for (let i = 0; i < originalText.length; i += chunkSize) {
+                if (stopTypingFlag) break;
+                
+                currentText += originalText.substring(i, i + chunkSize);
+                element.innerHTML = renderBulletproofMath(currentText) + '<span class="typing-cursor"></span>';
+                
+                if (scrollContainer.scrollHeight - scrollContainer.scrollTop <= scrollContainer.clientHeight + 150) {
+                    scrollContainer.scrollTop = scrollContainer.scrollHeight;
+                }
+                
+                await new Promise(resolve => setTimeout(resolve, 20)); // سرعة العرض
+            }
+
+            // بعد ما يخلص أنيميشن، يحط الرد النهائي بالزراير
+            element.innerHTML = stopTypingFlag ? renderBulletproofMath(currentText) + '<br><span class="text-red-400 text-xs">[تم الإيقاف]</span>' : html;
+
+            // تفعيل تلوين الأكواد البرمجية وزرار الكانفاس
             element.querySelectorAll('pre code').forEach((block) => hljs.highlightElement(block));
-            
-            // حقن زرار الكانفاس
             injectCanvasButtons(element);
 
-            // النزول التلقائي لنهاية الشاشة إذا كان المستخدم بالأسفل
-            const isAtBottom = scrollContainer.scrollHeight - scrollContainer.scrollTop <= scrollContainer.clientHeight + 150;
-            if (isAtBottom) {
+            if (scrollContainer.scrollHeight - scrollContainer.scrollTop <= scrollContainer.clientHeight + 150) {
                 scrollContainer.scrollTop = scrollContainer.scrollHeight;
             }
 
-            // حفظ الرسالة
+            // حفظ الرسالة وإظهار الزراير
             if(!stopTypingFlag) saveMessageToSession('ai', originalText);
             
             const actionsDiv = element.querySelector('.message-actions');
@@ -1620,7 +1634,6 @@ const payloadData = {
             }
             lucide.createIcons();
 
-            // إنهاء حالة التحميل
             isGenerating = false;
             toggleSendButtonState(false);
         }
