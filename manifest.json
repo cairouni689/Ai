@@ -1,0 +1,22 @@
+{
+  "name": "Quark",
+  "short_name": "Quark",
+  "description": "Quark - المساعد الشخصي الذكي.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "https://i.postimg.cc/J7HjL00c/ʿayzk-tʿmly-lwjw-202603172110.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "https://i.postimg.cc/J7HjL00c/ʿayzk-tʿmly-lwjw-202603172110.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    }
+  ]
+}
