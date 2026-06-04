@@ -1477,6 +1477,7 @@ const payloadData = {
     fileObj: attachedFile,
     userId: currentUserId,
     userToken: currentToken,
+    sessionId: currentState.sessionId, // 👈 السطر ده اللي هيتربط بالذكرى
     tools: ["google_search"] // تفعيل بحث جوجل من الفرونت إند
 };
 
