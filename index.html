@@ -214,6 +214,132 @@
             background: rgba(255, 255, 255, 0.03); padding: 15px; 
             border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.05);
         }
+        /* ==================== THINKING MODE STYLES ==================== */
+.thinking-container {
+    background: rgba(15, 15, 20, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 16px 20px;
+    margin-bottom: 12px;
+    backdrop-filter: blur(12px);
+    transition: all 0.3s ease;
+}
+
+.thinking-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    user-select: none;
+    padding: 4px 0;
+}
+
+.thinking-sparkle {
+    width: 18px;
+    height: 18px;
+    color: #f59e0b;
+    animation: sparkleRotate 3s linear infinite;
+}
+
+@keyframes sparkleRotate {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.thinking-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #f59e0b;
+    letter-spacing: 0.02em;
+}
+
+.thinking-toggle {
+    margin-right: auto;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6b7280;
+    transition: transform 0.3s ease, color 0.2s;
+    border-radius: 6px;
+}
+
+.thinking-toggle:hover {
+    color: #fff;
+    background: rgba(255,255,255,0.05);
+}
+
+.thinking-toggle.collapsed {
+    transform: rotate(-90deg);
+}
+
+.thinking-content {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    color: #9ca3af;
+    font-size: 0.88rem;
+    line-height: 1.85;
+    max-height: 400px;
+    overflow-y: auto;
+    transition: max-height 0.4s ease, opacity 0.3s ease, margin 0.3s ease;
+}
+
+.thinking-content.collapsed {
+    max-height: 0;
+    opacity: 0;
+    margin-top: 0;
+    padding-top: 0;
+    overflow: hidden;
+    border-top-color: transparent;
+}
+
+/* Thinking content markdown styling */
+.thinking-content p { margin-bottom: 0.6em; }
+.thinking-content h1, .thinking-content h2, .thinking-content h3 {
+    font-weight: 600;
+    margin-top: 0.8em;
+    margin-bottom: 0.3em;
+    color: #d1d5db;
+    font-size: 0.92em;
+}
+.thinking-content ul, .thinking-content ol {
+    margin-right: 1.2em;
+    margin-bottom: 0.5em;
+}
+.thinking-content li { margin-bottom: 0.15em; }
+.thinking-content strong { color: #e5e7eb; }
+.thinking-content code {
+    background: rgba(255,255,255,0.06);
+    padding: 0.1em 0.3em;
+    border-radius: 4px;
+    font-size: 0.85em;
+}
+.thinking-content blockquote {
+    border-right: 3px solid #4b5563;
+    padding-right: 0.8em;
+    color: #6b7280;
+    font-style: italic;
+}
+
+/* Thinking shimmer while loading */
+.thinking-shimmer {
+    background: linear-gradient(90deg, transparent 0%, rgba(245, 158, 11, 0.08) 50%, transparent 100%);
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+    border-radius: 8px;
+    height: 16px;
+    margin: 6px 0;
+}
+
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+/* Hide old typing indicator dots */
+#typing-indicator { display: none !important; }
     </style>
 </head>
 <body class="h-screen flex flex-col font-sans selection:bg-quark-primary selection:text-white">
@@ -601,6 +727,9 @@
         }
         // 🛠️ نظام الخزنة: دالة رندرة المعادلات الرياضية المعزولة لضمان عدم تعارضها مع الماركداون
 // 🛠️ نظام الخزنة: دالة رندرة المعادلات الرياضية المعزولة (النسخة الخالية من الثغرات)
+// ==========================================
+// 🛠️ دالة رندرة المعادلات الرياضية - نسخة مؤمنة للـ TypeWriter
+// ==========================================
 function renderBulletproofMath(text) {
     if (!text) return '';
 
@@ -612,10 +741,7 @@ function renderBulletproofMath(text) {
         .replace(/\\\\\[([\s\S]*?)\\\\\]/g, '\n$$\n$1\n$$\n')
         .replace(/\\\\\(([\s\S]*?)\\\\\)/g, '$$$1$$')
         .replace(/\^\s*\\wedge\s*/g, '^')
-        .replace(/\\wedge\s*\^/g, '^')
-        .replace(/\$([^$]*?)(?<!\\)circ/g, '$$$1\\circ')
-        .replace(/(\d+)\s*\^\s*\\circ\s+C(?!\w)/g, '$1^\\circ\\text{C}')
-        .replace(/\$([^$]*?)(\d+)\s*°\s*C([^$]*?)\$/g, (match, pre, num, post) => `$$${pre}${num}^\\circ\\text{C}${post}$$`);
+        .replace(/\\wedge\s*\^/g, '^');
 
     // 2. إنشاء الخزنة (Vault) لعزل المعادلات
     const mathVault = [];
@@ -623,7 +749,6 @@ function renderBulletproofMath(text) {
 
     // عزل المعادلات الكبيرة (Block Math) $$ ... $$
     processedText = processedText.replace(/\$\$([\s\S]*?)\$\$/g, (match, mathCode) => {
-        // استخدمنا كلمة بدون أي علامات _ عشان الماركداون ميتدخلش فيها
         const placeholder = `MATHVAULTBLOCK${vaultIndex}END`;
         mathVault.push({ type: 'block', code: mathCode, placeholder: placeholder });
         vaultIndex++;
@@ -631,8 +756,8 @@ function renderBulletproofMath(text) {
     });
 
     // عزل المعادلات المدمجة (Inline Math) $ ... $
-    processedText = processedText.replace(/(?<!\\)\$((?:[^$]|\\\$)+?)(?<!\\)\$/g, (match, mathCode) => {
-        // استخدمنا كلمة بدون أي علامات _ عشان الماركداون ميتدخلش فيها
+    // نستخدم regex بسيطة ومؤمنة (بدون lookbehind عشان Safari)
+    processedText = processedText.replace(/\$((?:[^$\\]|\\.)+?)\$/g, (match, mathCode) => {
         const placeholder = `MATHVAULTINLINE${vaultIndex}END`;
         mathVault.push({ type: 'inline', code: mathCode, placeholder: placeholder });
         vaultIndex++;
@@ -640,7 +765,13 @@ function renderBulletproofMath(text) {
     });
 
     // 3. تمرير النص النظيف إلى marked.js
-    let htmlContent = marked.parse(processedText);
+    let htmlContent = '';
+    try {
+        htmlContent = marked.parse(processedText);
+    } catch (e) {
+        console.error("Marked parse error:", e);
+        htmlContent = escapeHtmlText(processedText).replace(/\n/g, '<br>');
+    }
 
     // 4. استرجاع المعادلات من الخزنة ورندرتها بـ KaTeX
     mathVault.forEach((item) => {
@@ -649,10 +780,8 @@ function renderBulletproofMath(text) {
                 displayMode: item.type === 'block',
                 throwOnError: false,
                 output: 'html',
-                errorColor: '#ef4444' // لون أحمر يتماشى مع الـ Dark mode في حال وجود خطأ باللاتيكس
+                errorColor: '#ef4444'
             });
-
-            // استبدال الكلمة السرية بالمعادلة الحقيقية
             htmlContent = htmlContent.replace(item.placeholder, renderedMath);
         } catch (err) {
             console.error("KaTeX Render Error:", err);
@@ -662,6 +791,7 @@ function renderBulletproofMath(text) {
 
     return htmlContent;
 }
+
 // ==========================================
         // 🔔 نظام التنبيهات المخصص (Quark Alert System)
         // ==========================================
@@ -1089,35 +1219,37 @@ async function signInWithGoogle() {
             }
         }
 
-        async function saveMessageToSession(role, content, fileObj = null) {
-            if (!currentState.sessionId) {
-                currentState.sessionId = crypto.randomUUID();
-                
-                // عنوان مبدئي لحد ما الذكاء الاصطناعي يشتغل في الخلفية
-                let tempTitle = 'جاري توليد العنوان... ⏳';
-                
-                // يحفظ الجلسة في الداتابيز فقط لو مسجل دخول
-                if (currentUserId) {
-                    await supabaseClient.from('sessions').insert([
-                        { id: currentState.sessionId, user_id: currentUserId, title: tempTitle }
-                    ]);
+        // ==========================================
+// ⚠️ الدالة دي اتصلحت بالكامل
+// ==========================================
+async function saveMessageToSession(role, content, fileObj = null) {
+    if (!currentState.sessionId) {
+        currentState.sessionId = crypto.randomUUID();
+        let tempTitle = 'جاري توليد العنوان... ⏳';
+        
+        if (currentUserId) {
+            await supabaseClient.from('sessions').insert([
+                { id: currentState.sessionId, user_id: currentUserId, title: tempTitle }
+            ]);
 
-                    // 🚀 استدعاء دالة توليد العنوان الذكي في الخلفية
-                    generateAndSaveTitle(currentState.sessionId, content, fileObj);
-                }
-            }
-
-            // بيحفظ الرسالة في الذاكرة المؤقتة للشاشة عشان تفضل ظاهرة
-            currentState.messages.push({ role, content, timestamp: Date.now() });
-
-            // يحفظ الرسالة في الداتابيز ويحدث القائمة فقط لو مسجل دخول
-            if (currentUserId) {
-                await supabaseClient.from('messages').insert([
-                    { session_id: currentState.sessionId, role: role, content: content }
-                ]);
-                loadSessionsList();
+            // 🚀 استدعاء دالة توليد العنوان الذكي في الخلفية (مع Try-Catch عشان لو فشلت متوقفش المحادثة)
+            try {
+                generateAndSaveTitle(currentState.sessionId, content, fileObj);
+            } catch (e) {
+                console.error("فشل توليد العنوان:", e);
             }
         }
+    }
+
+    currentState.messages.push({ role, content, timestamp: Date.now() });
+
+    if (currentUserId) {
+        await supabaseClient.from('messages').insert([
+            { session_id: currentState.sessionId, role: role, content: content }
+        ]);
+        loadSessionsList();
+    }
+}
 
         async function loadSessionsList() {
             const listContainer = document.getElementById('history-list');
@@ -1416,107 +1548,212 @@ async function signInWithGoogle() {
             }
         }
 
-        async function sendMessage() {
-            if (isGenerating) {
-                stopGeneration();
-                return;
-            }
-            if (!currentUserId) {
-                // بنحسب المستخدم بعت كام رسالة في الشات الحالي
-                let userMsgCount = currentState.messages.filter(m => m.role === 'user').length;
-                
-                if (userMsgCount >= 4) {
-                    showQuarkAlert(
-                        "يا بطل إنت استهلكت الـ 4 رسائل التجريبية في الشات ده! 🚀<br><br>عشان تكمل المحادثة وتحفظها، سجل دخول بحساب جوجل من القائمة الجانبية.", 
-                        "warning", 
-                        false, 
-                        null, 
-                        () => { // الكود ده هيتنفذ لما المستخدم يدوس "حسناً" ويقفل التنبيه
-                            const sidebar = document.getElementById('sidebar');
-                            if (sidebar.classList.contains('-translate-x-full')) {
-                                toggleSidebar();
-                            }
-                        }
-                    );
-                    return;
-                }
-            }
+        // ==========================================
+// ⚠️ الدالة دي اتصلحت بالكامل
+// ==========================================
+async function saveMessageToSession(role, content, fileObj = null) {
+    if (!currentState.sessionId) {
+        currentState.sessionId = crypto.randomUUID();
+        let tempTitle = 'جاري توليد العنوان... ⏳';
+        
+        if (currentUserId) {
+            await supabaseClient.from('sessions').insert([
+                { id: currentState.sessionId, user_id: currentUserId, title: tempTitle }
+            ]);
 
-            const text = userInput.value.trim();
-            
-            if (!text && !attachedFile) return;
-
-            if (!currentState.sessionId) {
-                welcomePlane.classList.add('animate-fly-away');
-                setTimeout(() => {
-                    document.getElementById('welcome-screen').classList.add('hidden-force');
-                    document.getElementById('chat-container').classList.remove('hidden');
-                    document.getElementById('chat-container').classList.add('fade-in');
-                }, 800);
-            }
-
-            let historyText = text;
-            if (!text && attachedFile) {
-                historyText = `[تم إرفاق ملف: ${attachedFile.name}]`;
-            } else if (text && attachedFile) {
-                historyText = `${text}\n\n[ملف مرفق: ${attachedFile.name}]`;
-            }
-
-            addMessage(text, 'user', true, attachedFile);
-            saveMessageToSession('user', historyText, attachedFile);
-
-            let apiHistory = [...currentState.messages];
-            apiHistory.pop(); 
-
-            const modelSelector = document.getElementById('model-selector');
-            const selectedModel = modelSelector ? modelSelector.value : "gemini-2.5-flash";
-
-            // هنجيب التوكن بتاع اليوزر الحالي عشان نبعته للووركر
-let currentToken = null;
-if (currentUser) {
-    const { data: sessionData } = await supabaseClient.auth.getSession();
-    currentToken = sessionData.session?.access_token;
-}
-
-const payloadData = {
-    message: text,
-    systemInstruction: SYSTEM_IDENTITY,
-    history: apiHistory,
-    model: selectedModel,
-    fileObj: attachedFile,
-    userId: currentUserId,
-    userToken: currentToken,
-    sessionId: currentState.sessionId, // 👈 السطر ده اللي هيتربط بالذكرى
-    tools: ["google_search"] // تفعيل بحث جوجل من الفرونت إند
-};
-
-            userInput.value = '';
-            userInput.style.height = 'auto';
-            if (attachedFile) {
-                removeAttachedFile();
-            }
-
-            isGenerating = true;
-            stopTypingFlag = false;
-            toggleSendButtonState(true);
-            currentAbortController = new AbortController();
-
-            showTypingIndicator();
-
+            // 🚀 استدعاء دالة توليد العنوان الذكي في الخلفية (مع Try-Catch عشان لو فشلت متوقفش المحادثة)
             try {
-                const responseData = await callWorkerAPI(payloadData, currentAbortController.signal);
-                removeTypingIndicator();
-                addMessage(responseData.content, 'ai', true, null, 'text');
-            } catch (error) {
-                removeTypingIndicator();
-                if (error.name !== 'AbortError') {
-                    addMessage(`🚨 **قفشنا المشكلة في كود الموقع:**\n\n${error.message}`, 'ai', true, null, 'text');
-                    isGenerating = false;
-                    toggleSendButtonState(false);
-                }
-                console.error(error);
+                generateAndSaveTitle(currentState.sessionId, content, fileObj);
+            } catch (e) {
+                console.error("فشل توليد العنوان:", e);
             }
         }
+    }
+
+    currentState.messages.push({ role, content, timestamp: Date.now() });
+
+    if (currentUserId) {
+        await supabaseClient.from('messages').insert([
+            { session_id: currentState.sessionId, role: role, content: content }
+        ]);
+        loadSessionsList();
+    }
+}
+
+// ==========================================
+// ⚠️ الدالة دي اتصلحت بالكامل
+// ==========================================
+async function generateAndSaveTitle(sessionId, content, fileObj) {
+    try {
+        const shortContent = content.substring(0, 1000);
+        
+        const prompt = `أنت مساعد ذكي وظيفتك فقط كتابة عناوين قصيرة جداً للمحادثات.
+اكتب عنوان قصير جداً (من كلمتين إلى 4 كلمات كحد أقصى) يعبر عن محتوى هذه الرسالة أو الملف المرفق.
+إياك كتابة أي مقدمات أو علامات تنصيص، اكتب العنوان فقط مباشرة.
+المحتوى: ${shortContent}`;
+
+        // جلب التوكن الحالي
+        let currentToken = null;
+        if (currentUser) {
+            const { data: sessionData } = await supabaseClient.auth.getSession();
+            currentToken = sessionData.session?.access_token;
+        }
+
+        // قراءة الموديل المختار حالياً
+        const modelSelector = document.getElementById('model-selector');
+        const selectedModel = modelSelector ? modelSelector.value : "gemini-2.5-flash";
+
+        const payloadData = {
+            message: prompt,
+            systemInstruction: "أنت خبير عالمي في هندسة الأوامر (Prompt Engineering). وظيفتك الوحيدة هي صياغة وتحويل النصوص العادية إلى أوامر (Prompts) احترافية جداً وخالية من الثغرات لضمان أقوى وأدق إجابة من نماذج الذكاء الاصطناعي.",
+            history: [],
+            model: selectedModel,
+            fileObj: null,
+            userId: currentUserId,
+            userToken: currentToken,
+            sessionId: sessionId,
+            thinking: false,
+            tools: []
+        };
+
+        const responseData = await callWorkerAPI(payloadData, new AbortController().signal);
+        
+        let smartTitle = responseData.content.replace(/[\*\#\`\"]/g, '').trim();
+        if (smartTitle.length > 40) smartTitle = smartTitle.substring(0, 40) + '...';
+        if (!smartTitle) smartTitle = 'محادثة جديدة ✨';
+
+        await supabaseClient
+            .from('sessions')
+            .update({ title: smartTitle })
+            .eq('id', sessionId);
+
+        loadSessionsList();
+        
+    } catch (error) {
+        console.error("فشل توليد العنوان الذكي:", error);
+        await supabaseClient
+            .from('sessions')
+            .update({ title: 'محادثة جديدة ✨' })
+            .eq('id', sessionId);
+        loadSessionsList();
+    }
+}
+
+// ==========================================
+// ⚠️ الدالة دي اتصلحت (التفكير + الإيقاف)
+// ==========================================
+async function sendMessage() {
+    if (isGenerating) {
+        stopGeneration();
+        return;
+    }
+    if (!currentUserId) {
+        let userMsgCount = currentState.messages.filter(m => m.role === 'user').length;
+        if (userMsgCount >= 4) {
+            showQuarkAlert(
+                "يا بطل إنت استهلكت الـ 4 رسائل التجريبية في الشات ده! 🚀<<br><br>عشان تكمل المحادثة وتحفظها، سجل دخول بحساب جوجل من القائمة الجانبية.", 
+                "warning", 
+                false, 
+                null, 
+                () => {
+                    const sidebar = document.getElementById('sidebar');
+                    if (sidebar.classList.contains('-translate-x-full')) {
+                        toggleSidebar();
+                    }
+                }
+            );
+            return;
+        }
+    }
+
+    const text = userInput.value.trim();
+    if (!text && !attachedFile) return;
+
+    if (!currentState.sessionId) {
+        welcomePlane.classList.add('animate-fly-away');
+        setTimeout(() => {
+            document.getElementById('welcome-screen').classList.add('hidden-force');
+            document.getElementById('chat-container').classList.remove('hidden');
+            document.getElementById('chat-container').classList.add('fade-in');
+        }, 800);
+    }
+
+    let historyText = text;
+    if (!text && attachedFile) {
+        historyText = `[تم إرفاق ملف: ${attachedFile.name}]`;
+    } else if (text && attachedFile) {
+        historyText = `${text}\n\n[ملف مرفق: ${attachedFile.name}]`;
+    }
+
+    addMessage(text, 'user', true, attachedFile);
+    await saveMessageToSession('user', historyText, attachedFile);
+
+    let apiHistory = [...currentState.messages];
+    apiHistory.pop();
+
+    const modelSelector = document.getElementById('model-selector');
+    const selectedModel = modelSelector ? modelSelector.value : "gemini-2.5-flash";
+
+    let currentToken = null;
+    if (currentUser) {
+        const { data: sessionData } = await supabaseClient.auth.getSession();
+        currentToken = sessionData.session?.access_token;
+    }
+
+    const payloadData = {
+        message: text,
+        systemInstruction: SYSTEM_IDENTITY,
+        history: apiHistory,
+        model: selectedModel,
+        fileObj: attachedFile,
+        userId: currentUserId,
+        userToken: currentToken,
+        sessionId: currentState.sessionId,
+        thinking: true,
+        tools: ["google_search"]
+    };
+
+    userInput.value = '';
+    userInput.style.height = 'auto';
+    if (attachedFile) {
+        removeAttachedFile();
+    }
+
+    isGenerating = true;
+    stopTypingFlag = false;
+    toggleSendButtonState(true);
+    currentAbortController = new AbortController();
+
+    // ✅ إظهار الـ Thinking Indicator
+    showThinkingIndicator();
+
+    try {
+        const responseData = await callWorkerAPI(payloadData, currentAbortController.signal);
+        
+        // ✅ لو فيه تفكير، حدثه
+        if (responseData.thinking && currentThinkingId) {
+            updateThinkingContent(responseData.thinking, currentThinkingId);
+            await new Promise(r => setTimeout(r, 800));
+        }
+        
+        // ✅ إخفاء التفكير قبل ما تظهر الإجابة
+        removeThinkingIndicator();
+        
+        // ✅ إضافة رسالة الـ AI
+        addMessage(responseData.content, 'ai', true, null, 'text');
+        
+    } catch (error) {
+        // ✅ إخفاء الـ Thinking Indicator في حالة الخطأ (ده اللي كان ناقص!)
+        removeThinkingIndicator();
+        
+        if (error.name !== 'AbortError') {
+            addMessage(`🚨 **قفشنا المشكلة في كود الموقع:**\n\n${error.message}`, 'ai', true, null, 'text');
+            isGenerating = false;
+            toggleSendButtonState(false);
+        }
+        console.error(error);
+    }
+}
 
         function addMessage(text, sender, animate = true, attachment = null, messageType = 'text') {
             const chatContainer = document.getElementById('chat-container');
@@ -1591,9 +1828,9 @@ const payloadData = {
                 lucide.createIcons();
                 
                 const targetDiv = document.getElementById(textId);
-                
-                if (animate) {
-                    typeWriterHTML(targetDiv, parsedText, chatContainer, text);
+if (animate) {
+    typeWriterHTML(targetDiv, parsedText, chatContainer, text);
+
                 } else {
                     targetDiv.innerHTML = parsedText;
                     targetDiv.querySelectorAll('pre code').forEach((block) => hljs.highlightElement(block));
@@ -1607,70 +1844,191 @@ const payloadData = {
             }
         }
 
-        async function typeWriterHTML(element, html, scrollContainer, originalText) {
-            isGenerating = true;
-            let currentText = "";
-            const chunkSize = 40; // عدد الحروف في كل خبطة (تقدر تكبره أو تصغره براحتك)
+        // ==========================================
+// ⚠️ typeWriterHTML - النسخة المؤمنة والمكتملة
+// ==========================================
+async function typeWriterHTML(element, html, scrollContainer, originalText) {
+    isGenerating = true;
+    stopTypingFlag = false;
+    
+    let currentText = "";
+    const chunkSize = 30; // أصغر شوية عشان نتجنب أخطاء المعادلات النصية المكسورة
 
-            // الأنيميشن بتاع الكتابة بالتدريج
-            for (let i = 0; i < originalText.length; i += chunkSize) {
-                if (stopTypingFlag) break;
-                
-                currentText += originalText.substring(i, i + chunkSize);
-                element.innerHTML = renderBulletproofMath(currentText) + '<span class="typing-cursor"></span>';
-                
-                if (scrollContainer.scrollHeight - scrollContainer.scrollTop <= scrollContainer.clientHeight + 150) {
-                    scrollContainer.scrollTop = scrollContainer.scrollHeight;
-                }
-                
-                await new Promise(resolve => setTimeout(resolve, 20)); // سرعة العرض
+    try {
+        // الأنيميشن بتاع الكتابة بالتدريج
+        for (let i = 0; i < originalText.length; i += chunkSize) {
+            if (stopTypingFlag) break;
+            
+            currentText += originalText.substring(i, i + chunkSize);
+            
+            // ✅ مؤمن: لو renderBulletproofMath فشل، نعرض النص العادي
+            let renderedChunk = '';
+            try {
+                renderedChunk = renderBulletproofMath(currentText);
+            } catch (renderErr) {
+                console.warn("Render error during typing, using plain text:", renderErr);
+                renderedChunk = escapeHtmlText(currentText).replace(/\n/g, '<br>');
             }
-
-            // بعد ما يخلص أنيميشن، يحط الرد النهائي بالزراير
-            element.innerHTML = stopTypingFlag ? renderBulletproofMath(currentText) + '<br><span class="text-red-400 text-xs">[تم الإيقاف]</span>' : html;
-
-            // تفعيل تلوين الأكواد البرمجية وزرار الكانفاس
-            element.querySelectorAll('pre code').forEach((block) => hljs.highlightElement(block));
-            injectCanvasButtons(element);
-
-            if (scrollContainer.scrollHeight - scrollContainer.scrollTop <= scrollContainer.clientHeight + 150) {
+            
+            element.innerHTML = renderedChunk + '<span class="typing-cursor"></span>';
+            
+            // Scroll تلقائي
+            if (scrollContainer.scrollHeight - scrollContainer.scrollTop <= scrollContainer.clientHeight + 200) {
                 scrollContainer.scrollTop = scrollContainer.scrollHeight;
             }
-
-            // حفظ الرسالة وإظهار الزراير
-            if(!stopTypingFlag) saveMessageToSession('ai', originalText);
             
-            const actionsDiv = element.querySelector('.message-actions');
-            if (actionsDiv) {
-                setTimeout(() => actionsDiv.classList.remove('opacity-0'), 100);
-            }
-            lucide.createIcons();
-
-            isGenerating = false;
-            toggleSendButtonState(false);
+            await new Promise(resolve => setTimeout(resolve, 15)); // أسرع شوية
         }
+    } catch (loopError) {
+        console.error("TypeWriter loop error:", loopError);
+    }
 
-        function showTypingIndicator() {
-            const chatContainer = document.getElementById('chat-container');
-            const div = document.createElement('div');
-            div.id = 'typing-indicator';
-            div.className = 'flex w-full mb-4 justify-start fade-in';
-            div.innerHTML = `
-                <div class="flex gap-4 items-center">
-                    <div class="w-8 h-8 flex items-center justify-center shrink-0">
-                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-blue-500 opacity-50"><path d="M12 2L2 22L12 18L22 22L12 2Z" /></svg>
+    // ==========================================
+    // ✅ الخطوات النهائية - لازم تتنفذ مهما حصل
+    // ==========================================
+    
+    // 1. حط الرد النهائي بالكامل
+    let finalHTML = '';
+    try {
+        finalHTML = stopTypingFlag 
+            ? renderBulletproofMath(currentText) + '<br><span class="text-red-400 text-xs">[تم الإيقاف]</span>'
+            : html; // html ده هو الـ parsedText الكامل اللي جه من addMessage
+    } catch (e) {
+        console.error("Final render error:", e);
+        finalHTML = escapeHtmlText(originalText).replace(/\n/g, '<br>');
+    }
+    
+    element.innerHTML = finalHTML;
+
+    // 2. تفعيل تلوين الأكواد البرمجية
+    try {
+        element.querySelectorAll('pre code').forEach((block) => {
+            try { hljs.highlightElement(block); } catch(e) {}
+        });
+    } catch(e) {}
+
+    // 3. حقن زرار الكانفاس
+    try {
+        injectCanvasButtons(element);
+    } catch(e) { console.error("Canvas injection error:", e); }
+
+    // 4. Scroll للآخر
+    try {
+        if (scrollContainer.scrollHeight - scrollContainer.scrollTop <= scrollContainer.clientHeight + 200) {
+            scrollContainer.scrollTop = scrollContainer.scrollHeight;
+        }
+    } catch(e) {}
+
+    // 5. حفظ الرسالة في السيشن
+    if (!stopTypingFlag) {
+        try {
+            await saveMessageToSession('ai', originalText);
+        } catch(e) { console.error("Save message error:", e); }
+    }
+
+    // 6. إظهار زراير الـ Actions (السماع والنسخ)
+    const actionsDiv = element.querySelector('.message-actions');
+    if (actionsDiv) {
+        setTimeout(() => {
+            actionsDiv.classList.remove('opacity-0');
+            actionsDiv.style.opacity = '1';
+        }, 50);
+    }
+
+    // 7. إرجاع زرار الإرسال لوضعه الطبيعي
+    isGenerating = false;
+    toggleSendButtonState(false);
+    
+    // 8. تحديث الأيقونات
+    try { lucide.createIcons(); } catch(e) {}
+}
+
+        // ==================== THINKING INDICATOR ====================
+let currentThinkingId = null;
+let isThinkingCollapsed = false;
+
+function showThinkingIndicator() {
+    const chatContainer = document.getElementById('chat-container');
+    const div = document.createElement('div');
+    const thinkingId = 'thinking-' + Date.now();
+    currentThinkingId = thinkingId;
+    
+    div.id = thinkingId;
+    div.className = 'flex w-full mb-4 justify-start fade-in';
+    div.innerHTML = `
+        <div class="flex gap-4 items-start w-full max-w-[95%] md:max-w-[85%]">
+            <div class="w-8 h-8 flex items-center justify-center shrink-0 mt-1">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-blue-500 opacity-50">
+                    <path d="M12 2L2 22L12 18L22 22L12 2Z" />
+                </svg>
+            </div>
+            <div class="flex-1">
+                <div class="thinking-container" id="thinking-box-${thinkingId}">
+                    <div class="thinking-header" onclick="toggleThinkingCollapse('${thinkingId}')">
+                        <svg class="thinking-sparkle" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 3l1.5 5.5L19 10l-5.5 2.5L12 18l-1.5-5.5L5 10l5.5-2.5z"/>
+                        </svg>
+                        <span class="thinking-label">جاري التفكير...</span>
+                        <div class="thinking-toggle" id="thinking-toggle-${thinkingId}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </div>
                     </div>
-                    <div class="flex gap-1.5 items-center h-8 bg-blue-900/10 border border-blue-500/20 rounded-2xl px-4 py-2">
-                        <span class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce shadow-[0_0_5px_rgba(59,130,246,0.8)]"></span>
-                        <span class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce delay-100 shadow-[0_0_5px_rgba(59,130,246,0.8)]"></span>
-                        <span class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce delay-200 shadow-[0_0_5px_rgba(59,130,246,0.8)]"></span>
+                    <div class="thinking-content" id="thinking-content-${thinkingId}">
+                        <div class="thinking-shimmer" style="width: 80%;"></div>
+                        <div class="thinking-shimmer" style="width: 60%;"></div>
+                        <div class="thinking-shimmer" style="width: 90%;"></div>
                     </div>
                 </div>
-            `;
-            chatContainer.appendChild(div);
-            lucide.createIcons();
-            div.scrollIntoView({ behavior: 'smooth', block: 'end' });
-        }
+            </div>
+        </div>
+    `;
+    chatContainer.appendChild(div);
+    lucide.createIcons();
+    div.scrollIntoView({ behavior: 'smooth', block: 'end' });
+}
+
+function updateThinkingContent(thinkingText, thinkingId) {
+    const contentDiv = document.getElementById('thinking-content-' + thinkingId);
+    const labelSpan = document.querySelector(`#thinking-box-${thinkingId} .thinking-label`);
+    if (!contentDiv) return;
+    
+    // Convert markdown thinking to HTML
+    let html = marked.parse(thinkingText);
+    contentDiv.innerHTML = html;
+    
+    if (labelSpan) labelSpan.innerText = 'التفكير';
+    
+    if (!isThinkingCollapsed) {
+        contentDiv.scrollTop = contentDiv.scrollHeight;
+    }
+}
+
+function toggleThinkingCollapse(thinkingId) {
+    const content = document.getElementById('thinking-content-' + thinkingId);
+    const toggle = document.getElementById('thinking-toggle-' + thinkingId);
+    if (!content || !toggle) return;
+    
+    if (content.classList.contains('collapsed')) {
+        content.classList.remove('collapsed');
+        toggle.classList.remove('collapsed');
+        isThinkingCollapsed = false;
+    } else {
+        content.classList.add('collapsed');
+        toggle.classList.add('collapsed');
+        isThinkingCollapsed = true;
+    }
+}
+
+function removeThinkingIndicator() {
+    const indicator = document.getElementById(currentThinkingId);
+    if (indicator) {
+        // Fade out then remove
+        indicator.style.opacity = '0';
+        indicator.style.transition = 'opacity 0.3s ease';
+        setTimeout(() => indicator.remove(), 300);
+    }
+    currentThinkingId = null;
+}
 
         function removeTypingIndicator() {
             const indicator = document.getElementById('typing-indicator');
@@ -2431,53 +2789,64 @@ const payloadData = {
             });
         }
 
-        async function generateAndSaveTitle(sessionId, content, fileObj) {
-            try {
-                // بنقص المحتوى لو طويل أوي عشان نوفر توكنز ونسرع الرد
-                const shortContent = content.substring(0, 1000); 
-                
-                const prompt = `أنت مساعد ذكي وظيفتك فقط كتابة عناوين قصيرة جداً للمحادثات.
+        // ==========================================
+// ⚠️ الدالة دي اتصلحت بالكامل
+// ==========================================
+async function generateAndSaveTitle(sessionId, content, fileObj) {
+    try {
+        const shortContent = content.substring(0, 1000);
+        
+        const prompt = `أنت مساعد ذكي وظيفتك فقط كتابة عناوين قصيرة جداً للمحادثات.
 اكتب عنوان قصير جداً (من كلمتين إلى 4 كلمات كحد أقصى) يعبر عن محتوى هذه الرسالة أو الملف المرفق.
 إياك كتابة أي مقدمات أو علامات تنصيص، اكتب العنوان فقط مباشرة.
 المحتوى: ${shortContent}`;
 
-                const payloadData = {
-                    message: prompt,
-                    systemInstruction: "أنت صانع عناوين دقيق، ترد بعنوان قصير فقط.",
-                    history: [], // مفيش هيستوري عشان يبقى الرد صاروخ
-                    model: "gemini-2.5-flash", // الموديل السريع
-                    fileObj: fileObj // بنمرر الـ PDF هنا عشان يقراه لو موجود
-                };
-
-                // نكلم الـ Worker في الخلفية
-                const responseData = await callWorkerAPI(payloadData, new AbortController().signal);
-                
-                // ننضف العنوان اللي راجع من أي نجوم أو مسافات
-                let smartTitle = responseData.content.replace(/[\*\#\`\"]/g, '').trim();
-                
-                // لو العنوان طلع طويل غصب عنه، نقصه
-                if (smartTitle.length > 40) smartTitle = smartTitle.substring(0, 40) + '...';
-                if (!smartTitle) smartTitle = 'محادثة جديدة ✨';
-
-                // نحدث العنوان في الداتابيز
-                await supabaseClient
-                    .from('sessions')
-                    .update({ title: smartTitle })
-                    .eq('id', sessionId);
-
-                // نحدث القائمة الجانبية عشان العنوان الجديد يظهر للمستخدم
-                loadSessionsList();
-                
-            } catch (error) {
-                console.error("فشل توليد العنوان الذكي:", error);
-                // لو حصل أي ايرور (مثلاً النت فصل)، نحط عنوان افتراضي شيك
-                await supabaseClient
-                    .from('sessions')
-                    .update({ title: 'محادثة جديدة ✨' })
-                    .eq('id', sessionId);
-                loadSessionsList();
-            }
+        // جلب التوكن الحالي
+        let currentToken = null;
+        if (currentUser) {
+            const { data: sessionData } = await supabaseClient.auth.getSession();
+            currentToken = sessionData.session?.access_token;
         }
+
+        // قراءة الموديل المختار حالياً
+        const modelSelector = document.getElementById('model-selector');
+        const selectedModel = modelSelector ? modelSelector.value : "gemini-2.5-flash";
+
+        const payloadData = {
+            message: prompt,
+            systemInstruction: "أنت خبير عالمي في هندسة الأوامر (Prompt Engineering). وظيفتك الوحيدة هي صياغة وتحويل النصوص العادية إلى أوامر (Prompts) احترافية جداً وخالية من الثغرات لضمان أقوى وأدق إجابة من نماذج الذكاء الاصطناعي.",
+            history: [],
+            model: selectedModel,
+            fileObj: null,
+            userId: currentUserId,
+            userToken: currentToken,
+            sessionId: sessionId,
+            thinking: false,
+            tools: ["google_search"]
+        };
+
+        const responseData = await callWorkerAPI(payloadData, new AbortController().signal);
+        
+        let smartTitle = responseData.content.replace(/[\*\#\`\"]/g, '').trim();
+        if (smartTitle.length > 40) smartTitle = smartTitle.substring(0, 40) + '...';
+        if (!smartTitle) smartTitle = 'محادثة جديدة ✨';
+
+        await supabaseClient
+            .from('sessions')
+            .update({ title: smartTitle })
+            .eq('id', sessionId);
+
+        loadSessionsList();
+        
+    } catch (error) {
+        console.error("فشل توليد العنوان الذكي:", error);
+        await supabaseClient
+            .from('sessions')
+            .update({ title: 'محادثة جديدة ✨' })
+            .eq('id', sessionId);
+        loadSessionsList();
+    }
+}
 
         // ==========================================
         // 🎨 Quark Canvas & Artifacts
