@@ -1612,7 +1612,6 @@ async function generateAndSaveTitle(sessionId, content, fileObj) {
             userId: currentUserId,
             userToken: currentToken,
             sessionId: sessionId,
-            thinking: false,
             tools: []
         };
 
@@ -1709,7 +1708,6 @@ async function sendMessage() {
         userId: currentUserId,
         userToken: currentToken,
         sessionId: currentState.sessionId,
-        thinking: true,
         tools: ["google_search"]
     };
 
@@ -1724,28 +1722,20 @@ async function sendMessage() {
     toggleSendButtonState(true);
     currentAbortController = new AbortController();
 
-    // ✅ إظهار الـ Thinking Indicator
+    // ✅ إظهار بوكس التفكير كشكل بس أثناء التحميل
     showThinkingIndicator();
 
     try {
         const responseData = await callWorkerAPI(payloadData, currentAbortController.signal);
         
-        // ✅ لو فيه تفكير، حدثه
-        if (responseData.thinking && currentThinkingId) {
-            updateThinkingContent(responseData.thinking, currentThinkingId);
-            await new Promise(r => setTimeout(r, 800));
-        }
-        
-        // ✅ إخفاء التفكير قبل ما تظهر الإجابة
+        // ✅ إخفاء البوكس لما الرد يوصل
         removeThinkingIndicator();
-        
-        // ✅ إضافة رسالة الـ AI
+
+        // ✅ إضافة رسالة الـ AI مباشرة
         addMessage(responseData.content, 'ai', true, null, 'text');
         
     } catch (error) {
-        // ✅ إخفاء الـ Thinking Indicator في حالة الخطأ (ده اللي كان ناقص!)
         removeThinkingIndicator();
-        
         if (error.name !== 'AbortError') {
             addMessage(`🚨 **قفشنا المشكلة في كود الموقع:**\n\n${error.message}`, 'ai', true, null, 'text');
             isGenerating = false;
@@ -1936,99 +1926,82 @@ async function typeWriterHTML(element, html, scrollContainer, originalText) {
     }
 
     // 7. إرجاع زرار الإرسال لوضعه الطبيعي
-    isGenerating = false;
-    toggleSendButtonState(false);
-    
-    // 8. تحديث الأيقونات
-    try { lucide.createIcons(); } catch(e) {}
-}
+            isGenerating = false;
+            toggleSendButtonState(false);
+            
+            // 8. تحديث الأيقونات
+            try { lucide.createIcons(); } catch(e) {}
+        }
 
-        // ==================== THINKING INDICATOR ====================
-let currentThinkingId = null;
-let isThinkingCollapsed = false;
+        // ==================== THINKING INDICATOR (UI ONLY) ====================
+        let currentThinkingId = null;
+        let isThinkingCollapsed = false;
 
-function showThinkingIndicator() {
-    const chatContainer = document.getElementById('chat-container');
-    const div = document.createElement('div');
-    const thinkingId = 'thinking-' + Date.now();
-    currentThinkingId = thinkingId;
-    
-    div.id = thinkingId;
-    div.className = 'flex w-full mb-4 justify-start fade-in';
-    div.innerHTML = `
-        <div class="flex gap-4 items-start w-full max-w-[95%] md:max-w-[85%]">
-            <div class="w-8 h-8 flex items-center justify-center shrink-0 mt-1">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-blue-500 opacity-50">
-                    <path d="M12 2L2 22L12 18L22 22L12 2Z" />
-                </svg>
-            </div>
-            <div class="flex-1">
-                <div class="thinking-container" id="thinking-box-${thinkingId}">
-                    <div class="thinking-header" onclick="toggleThinkingCollapse('${thinkingId}')">
-                        <svg class="thinking-sparkle" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M12 3l1.5 5.5L19 10l-5.5 2.5L12 18l-1.5-5.5L5 10l5.5-2.5z"/>
+        function showThinkingIndicator() {
+            const chatContainer = document.getElementById('chat-container');
+            const div = document.createElement('div');
+            const thinkingId = 'thinking-' + Date.now();
+            currentThinkingId = thinkingId;
+            
+            div.id = thinkingId;
+            div.className = 'flex w-full mb-4 justify-start fade-in';
+            div.innerHTML = `
+                <div class="flex gap-4 items-start w-full max-w-[95%] md:max-w-[85%]">
+                    <div class="w-8 h-8 flex items-center justify-center shrink-0 mt-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-blue-500 opacity-50">
+                            <path d="M12 2L2 22L12 18L22 22L12 2Z" />
                         </svg>
-                        <span class="thinking-label">جاري التفكير...</span>
-                        <div class="thinking-toggle" id="thinking-toggle-${thinkingId}">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </div>
+                    <div class="flex-1">
+                        <div class="thinking-container" id="thinking-box-${thinkingId}">
+                            <div class="thinking-header" onclick="toggleThinkingCollapse('${thinkingId}')">
+                                <svg class="thinking-sparkle" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 3l1.5 5.5L19 10l-5.5 2.5L12 18l-1.5-5.5L5 10l5.5-2.5z"/>
+                                </svg>
+                                <span class="thinking-label">جاري التفكير...</span>
+                                <div class="thinking-toggle" id="thinking-toggle-${thinkingId}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                                </div>
+                            </div>
+                            <div class="thinking-content" id="thinking-content-${thinkingId}">
+                                <div class="thinking-shimmer" style="width: 80%;"></div>
+                                <div class="thinking-shimmer" style="width: 60%;"></div>
+                                <div class="thinking-shimmer" style="width: 90%;"></div>
+                            </div>
                         </div>
                     </div>
-                    <div class="thinking-content" id="thinking-content-${thinkingId}">
-                        <div class="thinking-shimmer" style="width: 80%;"></div>
-                        <div class="thinking-shimmer" style="width: 60%;"></div>
-                        <div class="thinking-shimmer" style="width: 90%;"></div>
-                    </div>
                 </div>
-            </div>
-        </div>
-    `;
-    chatContainer.appendChild(div);
-    lucide.createIcons();
-    div.scrollIntoView({ behavior: 'smooth', block: 'end' });
-}
+            `;
+            chatContainer.appendChild(div);
+            lucide.createIcons();
+            div.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        }
 
-function updateThinkingContent(thinkingText, thinkingId) {
-    const contentDiv = document.getElementById('thinking-content-' + thinkingId);
-    const labelSpan = document.querySelector(`#thinking-box-${thinkingId} .thinking-label`);
-    if (!contentDiv) return;
-    
-    // Convert markdown thinking to HTML
-    let html = marked.parse(thinkingText);
-    contentDiv.innerHTML = html;
-    
-    if (labelSpan) labelSpan.innerText = 'التفكير';
-    
-    if (!isThinkingCollapsed) {
-        contentDiv.scrollTop = contentDiv.scrollHeight;
-    }
-}
+        function toggleThinkingCollapse(thinkingId) {
+            const content = document.getElementById('thinking-content-' + thinkingId);
+            const toggle = document.getElementById('thinking-toggle-' + thinkingId);
+            if (!content || !toggle) return;
+            
+            if (content.classList.contains('collapsed')) {
+                content.classList.remove('collapsed');
+                toggle.classList.remove('collapsed');
+                isThinkingCollapsed = false;
+            } else {
+                content.classList.add('collapsed');
+                toggle.classList.add('collapsed');
+                isThinkingCollapsed = true;
+            }
+        }
 
-function toggleThinkingCollapse(thinkingId) {
-    const content = document.getElementById('thinking-content-' + thinkingId);
-    const toggle = document.getElementById('thinking-toggle-' + thinkingId);
-    if (!content || !toggle) return;
-    
-    if (content.classList.contains('collapsed')) {
-        content.classList.remove('collapsed');
-        toggle.classList.remove('collapsed');
-        isThinkingCollapsed = false;
-    } else {
-        content.classList.add('collapsed');
-        toggle.classList.add('collapsed');
-        isThinkingCollapsed = true;
-    }
-}
-
-function removeThinkingIndicator() {
-    const indicator = document.getElementById(currentThinkingId);
-    if (indicator) {
-        // Fade out then remove
-        indicator.style.opacity = '0';
-        indicator.style.transition = 'opacity 0.3s ease';
-        setTimeout(() => indicator.remove(), 300);
-    }
-    currentThinkingId = null;
-}
+        function removeThinkingIndicator() {
+            const indicator = document.getElementById(currentThinkingId);
+            if (indicator) {
+                indicator.style.opacity = '0';
+                indicator.style.transition = 'opacity 0.3s ease';
+                setTimeout(() => indicator.remove(), 300);
+            }
+            currentThinkingId = null;
+        }
 
         function removeTypingIndicator() {
             const indicator = document.getElementById('typing-indicator');
