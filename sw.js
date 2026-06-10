@@ -1,41 +1,36 @@
-const CACHE_NAME = 'quark-cache-v1';
-const urlsToCache = [
-  '/',
-  '/index.html'
-];
+// اسم الكاش متغير دائماً بناءً على الوقت لضمان عدم تطابقه
+const CACHE_NAME = 'quark-zero-cache-' + new Date().getTime();
 
-// تثبيت ملفات الكاش الأساسية
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        return cache.addAll(urlsToCache);
-      })
-  );
+// التثبيت الفوري وتخطي الانتظار
+self.addEventListener('install', (event) => {
+    self.skipWaiting();
 });
 
-// تشغيل الطلبات من الكاش لو النت فصل
-self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        return response || fetch(event.request);
-      })
-  );
+// التفعيل وتدمير أي كاش مخزن سابقاً على جهاز الطالب
+self.addEventListener('activate', (event) => {
+    event.waitUntil(
+        caches.keys().then((cacheNames) => {
+            return Promise.all(
+                cacheNames.map((cache) => {
+                    console.log('🗑️ جاري تدمير الكاش القديم:', cache);
+                    return caches.delete(cache);
+                })
+            );
+        }).then(() => self.clients.claim())
+    );
 });
 
-// تنظيف الكاش القديم لو حدثت البرنامج
-self.addEventListener('activate', event => {
-  const cacheWhitelist = [CACHE_NAME];
-  event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheWhitelist.indexOf(cacheName) === -1) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
-  );
+// استراتيجية Network Only: اطلب من السيرفر مباشرة وتجاهل الكاش نهائياً
+self.addEventListener('fetch', (event) => {
+    event.respondWith(
+        fetch(event.request, { cache: 'no-store' }) // إجبار الطلب يتجاهل كاش المتصفح كمان
+            .catch(() => {
+                // في حالة انقطاع الإنترنت
+                return new Response('أنت غير متصل بالإنترنت يا بطل. مفيش كاش متاح عشان إنت طالب تلغيه!', {
+                    status: 503,
+                    statusText: 'Service Unavailable',
+                    headers: new Headers({ 'Content-Type': 'text/plain; charset=utf-8' })
+                });
+            })
+    );
 });
