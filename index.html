@@ -2067,6 +2067,7 @@ function startFakeThinking(thinkingId) {
         }
 
         function removeThinkingIndicator() {
+            // 1. نوقف التايمر عشان ميرميش جمل تانية
             if (thinkingInterval) {
                 clearInterval(thinkingInterval);
                 thinkingInterval = null;
@@ -2074,10 +2075,41 @@ function startFakeThinking(thinkingId) {
             
             const indicator = document.getElementById(currentThinkingId);
             if (indicator) {
-                indicator.style.opacity = '0';
-                indicator.style.transition = 'opacity 0.3s ease';
-                setTimeout(() => indicator.remove(), 300);
+                // 2. نغير شكل الهيدر عشان يبان إنه خلص تفكير
+                const sparkle = indicator.querySelector('.thinking-sparkle');
+                if (sparkle) {
+                    sparkle.style.animation = 'none'; // نوقف اللف
+                    sparkle.style.color = '#10b981'; // نقلبه أخضر
+                }
+                const label = indicator.querySelector('.thinking-label');
+                if (label) {
+                    label.innerText = 'تم التفكير';
+                    label.style.color = '#10b981';
+                }
+                
+                // 3. لو كان فيه سطر أخير لسه بيحمل، نقلبه لعلامة صح
+                const contentDiv = document.getElementById(`thinking-content-${currentThinkingId}`);
+                if (contentDiv) {
+                    const lastStep = contentDiv.lastElementChild;
+                    // شيكنا على animate-spin لأن loader-2 بتكون اتشالت جوه الـ SVG
+                    if (lastStep && lastStep.innerHTML.includes('animate-spin')) {
+                        lastStep.classList.replace('text-gray-300', 'text-gray-500');
+                        
+                        // بنجيب النص المكتوب في الخطوة الأخيرة عشان نحافظ عليه
+                        const spanElement = lastStep.querySelector('span');
+                        const stepText = spanElement ? spanElement.innerText : 'تمت المعالجة';
+                        
+                        // بنعيد بناء السطر بالكامل بأيقونة الصح الخضراء
+                        lastStep.innerHTML = `
+                            <i data-lucide="check" class="w-3 h-3 text-green-500 shrink-0"></i> 
+                            <span class="font-mono tracking-wide">${stepText}</span>
+                        `;
+                        lucide.createIcons({root: lastStep});
+                    }
+                }
             }
+            
+            // 4. مش هنمسح البوكس من الشاشة خالص، هيفضل موجود زي ما طلبت
             currentThinkingId = null;
         }
 
