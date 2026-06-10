@@ -2749,18 +2749,46 @@ async function typeWriterHTML(element, html, scrollContainer, originalText) {
                 addMessage(msg.content, msg.role, false);
             });
         }
-       // تسجيل الـ Service Worker الجديد لبرنامج الـ PWA
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(registration => {
-                        console.log('✅ تم تسجيل Service Worker بنجاح!', registration.scope);
-                    })
-                    .catch(err => {
-                        console.log('❌ فشل تسجيل الـ Service Worker:', err);
-                    });
-            });
-        }
+       // تسجيل الـ Service Worker مع كسر الكاش وحذف القديم إجباريا
+        if ('serviceWorker' in navigator) {
+            // منع كاش المتصفح العادي (BFCache) عند الرجوع للخلف
+            window.addEventListener('pageshow', function (event) {
+                if (event.persisted) {
+                    window.location.reload(true);
+                }
+            });
+
+            window.addEventListener('load', () => {
+                // إضافة متغير زمني لرابط الـ sw.js لكسر كاش المتصفح
+                const swUrl = `/sw.js?v=${new Date().getTime()}`;
+                
+                navigator.serviceWorker.register(swUrl)
+                    .then(registration => {
+                        console.log('✅ تم تسجيل Service Worker بنجاح!', registration.scope);
+                        
+                        // إجبار التحديث في كل مرة الصفحة تفتح
+                        registration.update();
+                        
+                        registration.onupdatefound = () => {
+                            const installingWorker = registration.installing;
+                            installingWorker.onstatechange = () => {
+                                if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    console.log('🔄 تحديث جديد متاح! جاري مسح الكاش وإعادة التحميل...');
+                                    // مسح كل الكاش القديم يدوياً من المتصفح
+                                    caches.keys().then(function(names) {
+                                        for (let name of names) caches.delete(name);
+                                    });
+                                    // إعادة تحميل الصفحة إجبارياً من السيرفر
+                                    window.location.reload(true);
+                                }
+                            };
+                        };
+                    })
+                    .catch(err => {
+                        console.log('❌ فشل تسجيل الـ Service Worker:', err);
+                    });
+            });
+        }
 
         // ==========================================
 // ⚠️ الدالة دي اتصلحت بالكامل
