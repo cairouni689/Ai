@@ -340,6 +340,18 @@
 
 /* Hide old typing indicator dots */
 #typing-indicator { display: none !important; }
+
+/* تنسيقات خطوات التفكير الصايعة */
+.thinking-step {
+    opacity: 0;
+    transform: translateY(8px);
+    animation: stepFadeIn 0.4s ease-out forwards;
+    padding: 6px 0;
+}
+@keyframes stepFadeIn {
+    to { opacity: 1; transform: translateY(0); }
+}
+
     </style>
 </head>
 <body class="h-screen flex flex-col font-sans selection:bg-quark-primary selection:text-white">
@@ -884,6 +896,15 @@ function renderBulletproofMath(text) {
         let isGenerating = false;
         let currentAbortController = null;
         let stopTypingFlag = false;
+
+// مصفوفة الجمل العشوائية اللي بتدي شكل احترافي لعملية التفكير
+const thinkingPhrasesLists = [
+    ["Analyzing semantic context...", "Parsing user request vectors...", "Querying Quark knowledge base...", "Synthesizing optimal response..."],
+    ["Initializing neural pathways...", "Extracting core entities...", "Evaluating response logic...", "Formatting output structure..."],
+    ["Decoding prompt intent...", "Cross-referencing internal data...", "Generating dynamic response...", "Refining execution plan..."]
+];
+let thinkingInterval = null; // متغير لحفظ التايمر
+
 
         const SUPABASE_URL = 'https://wgxtjczrdfpqwrwiyzia.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_Vbf-TkChu4JzTs-jHUD3DA_IoIAWRLm';
@@ -1943,6 +1964,8 @@ async function typeWriterHTML(element, html, scrollContainer, originalText) {
             const thinkingId = 'thinking-' + Date.now();
             currentThinkingId = thinkingId;
             
+            isThinkingCollapsed = true; 
+
             div.id = thinkingId;
             div.className = 'flex w-full mb-4 justify-start fade-in';
             div.innerHTML = `
@@ -1959,14 +1982,11 @@ async function typeWriterHTML(element, html, scrollContainer, originalText) {
                                     <path d="M12 3l1.5 5.5L19 10l-5.5 2.5L12 18l-1.5-5.5L5 10l5.5-2.5z"/>
                                 </svg>
                                 <span class="thinking-label">جاري التفكير...</span>
-                                <div class="thinking-toggle" id="thinking-toggle-${thinkingId}">
+                                <div class="thinking-toggle collapsed" id="thinking-toggle-${thinkingId}">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
                                 </div>
                             </div>
-                            <div class="thinking-content" id="thinking-content-${thinkingId}">
-                                <div class="thinking-shimmer" style="width: 80%;"></div>
-                                <div class="thinking-shimmer" style="width: 60%;"></div>
-                                <div class="thinking-shimmer" style="width: 90%;"></div>
+                            <div class="thinking-content collapsed custom-scrollbar" id="thinking-content-${thinkingId}" dir="ltr">
                             </div>
                         </div>
                     </div>
@@ -1975,6 +1995,59 @@ async function typeWriterHTML(element, html, scrollContainer, originalText) {
             chatContainer.appendChild(div);
             lucide.createIcons();
             div.scrollIntoView({ behavior: 'smooth', block: 'end' });
+
+            startFakeThinking(thinkingId);
+        }
+
+
+function startFakeThinking(thinkingId) {
+            const contentDiv = document.getElementById(`thinking-content-${thinkingId}`);
+            if (!contentDiv) return;
+
+            const phrases = thinkingPhrasesLists[Math.floor(Math.random() * thinkingPhrasesLists.length)];
+            let stepIndex = 0;
+
+            const addStep = () => {
+                if (stepIndex >= phrases.length || currentThinkingId !== thinkingId) {
+                    if (thinkingInterval) clearInterval(thinkingInterval);
+                    return;
+                }
+
+                const stepDiv = document.createElement('div');
+                stepDiv.className = 'thinking-step text-xs md:text-sm text-gray-300 flex items-center gap-3';
+                
+                stepDiv.innerHTML = `
+                    <i data-lucide="loader-2" class="w-3 h-3 text-blue-400 animate-spin shrink-0"></i> 
+                    <span class="font-mono tracking-wide">${phrases[stepIndex]}</span>
+                `;
+
+                if (stepIndex > 0) {
+                    const prevStep = contentDiv.children[stepIndex - 1];
+                    if (prevStep) {
+                        prevStep.classList.replace('text-gray-300', 'text-gray-500');
+                        prevStep.innerHTML = `
+                            <i data-lucide="check" class="w-3 h-3 text-green-500 shrink-0"></i> 
+                            <span class="font-mono tracking-wide">${phrases[stepIndex - 1]}</span>
+                        `;
+                        lucide.createIcons({root: prevStep});
+                    }
+                }
+
+                contentDiv.appendChild(stepDiv);
+                lucide.createIcons({root: stepDiv});
+                
+                if (!contentDiv.classList.contains('collapsed')) {
+                    contentDiv.scrollTop = contentDiv.scrollHeight;
+                }
+
+                stepIndex++;
+            };
+
+            addStep();
+
+            thinkingInterval = setInterval(() => {
+                addStep();
+            }, Math.floor(Math.random() * 1000) + 1200); 
         }
 
         function toggleThinkingCollapse(thinkingId) {
@@ -1994,6 +2067,11 @@ async function typeWriterHTML(element, html, scrollContainer, originalText) {
         }
 
         function removeThinkingIndicator() {
+            if (thinkingInterval) {
+                clearInterval(thinkingInterval);
+                thinkingInterval = null;
+            }
+            
             const indicator = document.getElementById(currentThinkingId);
             if (indicator) {
                 indicator.style.opacity = '0';
