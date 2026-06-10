@@ -2749,9 +2749,8 @@ async function typeWriterHTML(element, html, scrollContainer, originalText) {
                 addMessage(msg.content, msg.role, false);
             });
         }
-       // تسجيل الـ Service Worker مع كسر الكاش وحذف القديم إجباريا
+       // تسجيل الـ Service Worker بدون لوب الريفريش الغبي
         if ('serviceWorker' in navigator) {
-            // منع كاش المتصفح العادي (BFCache) عند الرجوع للخلف
             window.addEventListener('pageshow', function (event) {
                 if (event.persisted) {
                     window.location.reload(true);
@@ -2759,30 +2758,13 @@ async function typeWriterHTML(element, html, scrollContainer, originalText) {
             });
 
             window.addEventListener('load', () => {
-                // إضافة متغير زمني لرابط الـ sw.js لكسر كاش المتصفح
-                const swUrl = `/sw.js?v=${new Date().getTime()}`;
-                
-                navigator.serviceWorker.register(swUrl)
+                // شيلنا متغير الوقت ومسح الكاش الإجباري عشان نوقف لوب الريفريش اللانهائي
+                navigator.serviceWorker.register('/sw.js')
                     .then(registration => {
                         console.log('✅ تم تسجيل Service Worker بنجاح!', registration.scope);
                         
-                        // إجبار التحديث في كل مرة الصفحة تفتح
+                        // بيشيك على التحديث في الباك جراوند بهدوء بدون ما يعمل ريفريش يجلطنا
                         registration.update();
-                        
-                        registration.onupdatefound = () => {
-                            const installingWorker = registration.installing;
-                            installingWorker.onstatechange = () => {
-                                if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    console.log('🔄 تحديث جديد متاح! جاري مسح الكاش وإعادة التحميل...');
-                                    // مسح كل الكاش القديم يدوياً من المتصفح
-                                    caches.keys().then(function(names) {
-                                        for (let name of names) caches.delete(name);
-                                    });
-                                    // إعادة تحميل الصفحة إجبارياً من السيرفر
-                                    window.location.reload(true);
-                                }
-                            };
-                        };
                     })
                     .catch(err => {
                         console.log('❌ فشل تسجيل الـ Service Worker:', err);
