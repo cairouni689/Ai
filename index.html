@@ -163,6 +163,20 @@
         .markdown-content ul { list-style-type: disc; margin-right: 1.5em; margin-bottom: 1em; }
         .markdown-content ol { list-style-type: decimal; margin-right: 1.5em; margin-bottom: 1em; }
         .markdown-content li { margin-bottom: 0.25em; }
+
+        /* 🚀 التعديل هنا: تنسيق اللينكات عشان تظهر بلون وتكون قابلة للضغط */
+        .markdown-content a {
+            color: #60a5fa;
+            text-decoration: none;
+            border-bottom: 1px dashed #60a5fa;
+            padding-bottom: 1px;
+            transition: all 0.3s ease;
+        }
+        .markdown-content a:hover {
+            color: #93c5fd;
+            border-bottom-color: #93c5fd;
+            text-shadow: 0 0 8px rgba(96, 165, 250, 0.5);
+        }
         
         .markdown-content pre {
             padding: 1rem; 
@@ -1142,7 +1156,8 @@ async function signInWithGoogle() {
 
 [قاعدة الذكاء التشغيلي والبحث الصامت - صارمة ونهائية]:
 الآن نحن في عام 2026. ذاكرتك مقطوعة عند 2024.
-- قاعدة ذهبية: إذا كان السؤال يحتاج لتحديث أو يخص أحداث جارية → استخدم (Google Search) داخلياً فوراً وبصمت تام.
+- قاعدة ذهبية: إذا كان السؤال يحتاج لتحديث أو يخص أحداث جارية → استخدم (Google Search) أو أداة السوشيال ميديا داخلياً فوراً وبصمت تام.
+- 🔗 قاعدة إجبارية للروابط (اللينكات): عند استخدام أي أداة بحث (جوجل أو سوشيال ميديا)، أنت مجبر ومفروض عليك استخراج الروابط (URLs) للبوستات أو الفيديوهات أو المقالات من البيانات التي تصلك، ووضعها بوضوح في ردك لكي يستطيع المستخدم الضغط عليها والذهاب للمصدر.
 - 🚫 حظر شامل: إياك أن تكتب نصوصاً مثل "tool_code" أو "thought" في ردك النهائي للمستخدم أبداً.
 - 🚫 حظر شامل: لا تكتب كلمات مثل: "هدورلك"، "جاري البحث"، "ثواني هشوف". أعط الإجابة مباشرة كأنك تعرفها.
 - للأسئلة العادية والترحيب (مثل: أهلا، ازيك): إياك استخدام أداة البحث، ورد باختصار شديد فوراً بكلمتين كصديق كاريزما وواثق من نفسه.
