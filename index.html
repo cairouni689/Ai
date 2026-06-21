@@ -794,6 +794,8 @@ function renderBulletproofMath(text) {
     let htmlContent = '';
     try {
         htmlContent = marked.parse(processedText);
+        // التعديل: إجبار اللينكات تفتح في تاب جديدة بأمان
+        htmlContent = htmlContent.replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" ');
     } catch (e) {
         console.error("Marked parse error:", e);
         htmlContent = escapeHtmlText(processedText).replace(/\n/g, '<br>');
