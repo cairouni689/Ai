@@ -518,15 +518,15 @@
                                 <span>مستند</span>
                             </button>
                         </div>
-                        <button onclick="toggleAttachmentMenu(event)" class="p-2.5 text-gray-400 hover:text-blue-400 hover:bg-white/5 rounded-full transition-colors flex items-center justify-center relative z-10">
-                            <i data-lucide="paperclip" class="w-5 h-5"></i>
+                        <button onclick="toggleAttachmentMenu(event)" class="p-2.5 text-gray-400 hover:text-blue-400 hover:bg-white/5 rounded-full transition-colors flex items-center justify-center relative z-10 group">
+                            <i id="attachment-icon" data-lucide="plus" class="w-5 h-5 transition-transform duration-300 transform"></i>
                         </button>
                     </div>
 
                     <div class="flex-1 relative flex items-center">
                         <textarea id="user-input" rows="1" class="w-full bg-transparent border-none focus:ring-0 text-white placeholder-gray-500 resize-none py-3 pl-32 pr-3 max-h-32 text-base leading-relaxed font-sans" placeholder="تحدث مع كوارك..."></textarea>
                         
-                        <div class="absolute left-2 z-20" id="model-dropdown-container">
+                        <div class="absolute left-2 z-20 hidden md:block" id="model-dropdown-container">
                             <input type="hidden" id="model-selector" value="gemini-2.5-flash">
                             
                             <button onclick="toggleModelMenu(event)" id="model-toggle-btn" class="flex items-center gap-1.5 px-3 py-1.5 bg-[#1a1a1c] hover:bg-[#252528] rounded-full text-gray-300 text-xs font-sans transition-colors border border-white/10 shadow-sm" title="تغيير النموذج">
@@ -2253,9 +2253,15 @@ function startFakeThinking(thinkingId) {
         function toggleAttachmentMenu(e) {
             e.preventDefault(); e.stopPropagation();
             const menu = document.getElementById('attachment-menu');
+            const icon = document.getElementById('attachment-icon');
             if (menu.classList.contains('opacity-0')) {
                 menu.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-2');
                 menu.classList.add('opacity-100', 'translate-y-0');
+                if(icon) {
+                    icon.setAttribute('data-lucide', 'x');
+                    icon.classList.add('rotate-90');
+                    lucide.createIcons();
+                }
             } else {
                 closeAttachmentMenu();
             }
@@ -2263,9 +2269,15 @@ function startFakeThinking(thinkingId) {
 
         function closeAttachmentMenu() {
             const menu = document.getElementById('attachment-menu');
+            const icon = document.getElementById('attachment-icon');
             if (menu && !menu.classList.contains('opacity-0')) {
                 menu.classList.add('opacity-0', 'pointer-events-none', 'translate-y-2');
                 menu.classList.remove('opacity-100', 'translate-y-0');
+                if(icon) {
+                    icon.setAttribute('data-lucide', 'plus');
+                    icon.classList.remove('rotate-90');
+                    lucide.createIcons();
+                }
             }
         }
 
