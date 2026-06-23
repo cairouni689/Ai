@@ -1886,18 +1886,7 @@ async function sendMessage() {
                 lucide.createIcons();
                 if (animate) div.scrollIntoView({ behavior: 'smooth', block: 'end' });
             } else {
-                // استخدام نظام الخزنة الجديد للرندرة الآمنة
                 let parsedText = renderBulletproofMath(text);
-                
-                parsedText += `
-                <div class="message-actions mt-4 pt-3 border-t border-white/10 flex items-center gap-3 opacity-0 transition-opacity duration-500 justify-end w-full" dir="ltr" data-raw-text="${escapeHtmlText(text)}">
-                    <button onclick="playAudio(this)" class="p-1.5 hover:bg-white/10 rounded-md text-gray-400 hover:text-white transition-all flex items-center gap-1.5 text-xs" title="استماع للرد">
-                        <i data-lucide="volume-2" class="w-4 h-4 play-icon"></i> <span class="play-text-label">استماع</span>
-                    </button>
-                    <button onclick="copyMessage(this)" class="p-1.5 hover:bg-white/10 rounded-md text-gray-400 hover:text-white transition-all flex items-center gap-1.5 text-xs" title="نسخ الرد بالكامل">
-                        <i data-lucide="copy" class="w-4 h-4"></i> <span class="copy-text-label">نسخ الرد</span>
-                    </button>
-                </div>`;
                 
                 div.innerHTML = `
                     <div class="flex gap-4 max-w-[95%] md:max-w-[85%] items-start w-full">
@@ -1906,24 +1895,31 @@ async function sendMessage() {
                                 <path d="M12 2L2 22L12 18L22 22L12 2Z" />
                             </svg>
                         </div>
-                        <div id="${textId}" class="${textStyle} pt-1 whitespace-pre-wrap" dir="auto" style="unicode-bidi: plaintext; text-align: start;"></div>
+                        <div class="flex flex-col w-full">
+                            <div id="${textId}" class="${textStyle} pt-1 whitespace-pre-wrap" dir="auto" style="unicode-bidi: plaintext; text-align: start;"></div>
+                            
+                            <div class="message-actions mt-2 pt-2 border-t border-white/10 flex items-center gap-3 opacity-0 transition-opacity duration-500 w-full" dir="ltr" data-raw-text="${escapeHtmlText(text)}">
+                                <button onclick="playAudio(this)" class="p-1.5 hover:bg-white/10 rounded-md text-gray-400 hover:text-white transition-all flex items-center gap-1.5 text-xs" title="استماع للرد">
+                                    <i data-lucide="volume-2" class="w-4 h-4 play-icon"></i> <span class="play-text-label">استماع</span>
+                                </button>
+                                <button onclick="copyMessage(this)" class="p-1.5 hover:bg-white/10 rounded-md text-gray-400 hover:text-white transition-all flex items-center gap-1.5 text-xs" title="نسخ الرد بالكامل">
+                                    <i data-lucide="copy" class="w-4 h-4"></i> <span class="copy-text-label">نسخ الرد</span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 `;
                 chatContainer.appendChild(div);
                 lucide.createIcons();
                 
                 const targetDiv = document.getElementById(textId);
-if (animate) {
-    typeWriterHTML(targetDiv, parsedText, chatContainer, text);
-
+                if (animate) {
+                    typeWriterHTML(targetDiv, parsedText, chatContainer, text);
                 } else {
                     targetDiv.innerHTML = parsedText;
                     targetDiv.querySelectorAll('pre code').forEach((block) => hljs.highlightElement(block));
-                    
-                    // حقن زرار الكانفاس
                     injectCanvasButtons(targetDiv);
-                    
-                    targetDiv.querySelector('.message-actions').classList.remove('opacity-0');
+                    div.querySelector('.message-actions').classList.remove('opacity-0');
                     div.scrollIntoView({ behavior: 'smooth', block: 'end' });
                 }
             }
