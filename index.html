@@ -91,14 +91,15 @@
             padding: 0;
         }
 
-        #space-canvas {
+                #space-canvas {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: -1;
+            z-index: 0;
             background: #000000;
+            pointer-events: none;
         }
 
         .glass-sidebar {
@@ -386,7 +387,8 @@
 
     </style>
 </head>
-<body id="main-body" class="h-screen flex flex-col font-sans selection:bg-quark-primary selection:text-white transition-all duration-300 md:pr-80">
+
+<body id="main-body" class="relative h-screen flex flex-col font-sans selection:bg-quark-primary selection:text-white transition-all duration-300 md:pr-80">
 
     <canvas id="space-canvas"></canvas>
 
