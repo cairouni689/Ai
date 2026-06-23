@@ -147,6 +147,16 @@
             border-right: 2px solid #3b82f6;
         }
 
+
+        /* تنسيق textarea الإدخال عشان النص يلف بشكل طبيعي جنب بعض */
+        #user-input {
+            unicode-bidi: plaintext !important;
+            text-align: start !important;
+            white-space: pre-wrap !important;
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+        }
+
         .markdown-content {
             line-height: 1.8;
             font-size: 1.05rem;
@@ -524,8 +534,10 @@
                     </div>
 
                     <div class="flex-1 relative flex items-center">
-                        <textarea id="user-input" rows="1" class="w-full bg-transparent border-none focus:ring-0 text-white placeholder-gray-500 resize-none py-3 pl-32 pr-3 max-h-32 text-base leading-relaxed font-sans" placeholder="اسأل Quark"></textarea>
+                    
                         
+                    <textarea id="user-input" rows="1" dir="auto" class="w-full bg-transparent border-none focus:ring-0 text-white placeholder-gray-500 resize-none py-3 pl-16 md:pl-32 pr-3 max-h-32 text-base leading-relaxed font-sans text-start [unicode-bidi:plaintext]" placeholder="اسأل Quark"></textarea>
+
                         <div class="absolute left-2 z-20 hidden md:block" id="model-dropdown-container">
                             <input type="hidden" id="model-selector" value="gemini-2.5-flash">
                             
