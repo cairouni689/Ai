@@ -77,10 +77,18 @@
     </script>
 
     <style>
-        body {
+        html {
+            overflow: hidden;
+            height: 100%;
+        }
+
+                body {
             background-color: #000000;
             color: #ffffff;
-            overflow: hidden; 
+            overflow: hidden;
+            height: 100%;
+            margin: 0;
+            padding: 0;
         }
 
         #space-canvas {
@@ -378,7 +386,7 @@
 
     </style>
 </head>
-<body id="main-body" class="h-screen flex flex-col font-sans selection:bg-quark-primary selection:text-white transition-all duration-300 md:pr-80"></body>
+<body id="main-body" class="h-screen flex flex-col font-sans selection:bg-quark-primary selection:text-white transition-all duration-300 md:pr-80">
 
     <canvas id="space-canvas"></canvas>
 
