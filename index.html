@@ -372,28 +372,69 @@
 
     <canvas id="space-canvas"></canvas>
 
-    <header id="main-header" class="fixed top-0 left-0 right-0 md:right-80 z-50 transparent-header h-20 flex items-center px-6 justify-between pointer-events-none transition-all duration-300"></header>
-    
-<div class="flex items-center pointer-events-auto mr-auto ml-4" id="header-ad-slot">
-    <div class="w-[320px] h-[50px] flex items-center justify-center overflow-hidden rounded-md bg-white/5 border border-white/10">
-        <script>
-          atOptions = {
-            'key' : '0c0c2057158a3402eadbe3a26263b267',
-            'format' : 'iframe',
-            'height' : 50,
-            'width' : 320,
-            'params' : {}
-          };
-        </script>
-        <script src="https://www.highperformanceformat.com/0c0c2057158a3402eadbe3a26263b267/invoke.js"></script>
-    </div>
-</div>
+    <header id="main-header" class="fixed top-0 left-0 right-0 md:right-80 z-50 transparent-header h-16 md:h-20 flex items-center px-3 md:px-6 justify-between pointer-events-none transition-all duration-300">
+        
+        <div class="flex md:hidden items-center gap-2 pointer-events-auto bg-[#1a1a1c]/80 backdrop-blur-md border border-white/10 rounded-2xl p-1 shadow-lg">
+            
+            <button onclick="toggleSidebar()" class="p-1.5 hover:bg-white/10 rounded-xl text-gray-300 hover:text-white transition-colors flex items-center justify-center">
+                <i data-lucide="menu" class="w-5 h-5"></i>
+            </button>
+            
+            <span class="font-bold text-sm text-white tracking-widest font-mono">QUARK</span>
+            
+            <div class="w-px h-4 bg-white/20 mx-1"></div>
+            
+            <button onclick="toggleMobileModelMenu(event)" id="mobile-model-toggle-btn" class="flex items-center gap-1 px-2 py-1.5 hover:bg-white/10 rounded-lg text-gray-300 text-xs font-sans transition-colors relative">
+                <span id="mobile-current-model-name" class="font-medium truncate max-w-[80px]">Quark 2.5 Flash</span>
+                <i data-lucide="chevron-down" id="mobile-model-chevron" class="w-3 h-3 transition-transform duration-200"></i>
+                
+                <div id="mobile-model-menu" class="absolute top-[120%] right-0 mt-1 w-48 bg-[#1a1a1c] border border-white/10 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.8)] overflow-hidden transition-all duration-200 opacity-0 pointer-events-none transform -translate-y-2 z-50 py-1.5 text-right">
+                    
+                    <div onclick="selectModel('gemini-2.5-flash', 'Quark 2.5 Flash', this)" class="w-full flex items-center justify-between px-4 py-2.5 hover:bg-white/5 cursor-pointer transition-colors text-gray-200 group">
+                        <div class="text-right flex-1">
+                            <span class="block font-medium text-sm font-sans text-right">Quark 2.5 Flash</span>
+                        </div>
+                        <i data-lucide="check" class="w-4 h-4 text-blue-400 opacity-100 transition-opacity mobile-check-icon"></i>
+                    </div>
+                    
+                    <div onclick="selectModel('gemini-2.5-flash-lite', 'Quark 2.5 Lite', this)" class="w-full flex items-center justify-between px-4 py-2.5 hover:bg-white/5 cursor-pointer transition-colors text-gray-200 group">
+                        <div class="text-right flex-1">
+                            <span class="block font-medium text-sm font-sans text-right">Quark 2.5 Lite</span>
+                        </div>
+                        <i data-lucide="check" class="w-4 h-4 text-blue-400 opacity-0 transition-opacity mobile-check-icon"></i>
+                    </div>
+                    
+                    <div class="h-px w-full bg-white/5 my-1"></div>
+                    
+                    <div onclick="selectModel('glm-4-flash', 'Quark 2 Flash', this)" class="w-full flex items-center justify-between px-4 py-2.5 hover:bg-white/5 cursor-pointer transition-colors text-gray-200 group">
+                        <div class="text-right flex-1">
+                            <span class="block font-medium text-sm font-sans text-right">Quark 2 Flash</span>
+                        </div>
+                        <i data-lucide="check" class="w-4 h-4 text-blue-400 opacity-0 transition-opacity mobile-check-icon"></i>
+                    </div>
+                    
+                </div>
+            </button>
+        </div>
 
-
+        <div class="flex items-center pointer-events-auto mr-auto ml-0 md:ml-4 scale-[0.80] md:scale-100 origin-left" id="header-ad-slot">
+            <div class="w-[320px] h-[50px] flex items-center justify-center overflow-hidden rounded-md bg-white/5 border border-white/10">
+                <script>
+                 atOptions = {
+                    'key' : '0c0c2057158a3402eadbe3a26263b267',
+                    'format' : 'iframe',
+                    'height' : 50,
+                    'width' : 320,
+                    'params' : {}
+                 };
+                </script>
+                <script src="https://www.highperformanceformat.com/0c0c2057158a3402eadbe3a26263b267/invoke.js"></script>
+            </div>
+        </div>
     </header>
 
        <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/80 z-[60] hidden transition-opacity backdrop-blur-sm md:hidden"></div>
-    <aside id="sidebar" class="fixed top-0 right-0 h-full w-80 glass-sidebar transition-all duration-300 z-[70] flex flex-col bg-black/90">
+    <aside id="sidebar" class="fixed top-0 right-0 h-full w-80 glass-sidebar transition-all duration-300 z-[70] flex flex-col bg-black/90 translate-x-full md:translate-x-0">
         <div class="p-5 border-b border-white/5 flex justify-between items-center">
             <div class="flex items-center gap-3 overflow-hidden">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-8 h-8 text-blue-500 shrink-0 drop-shadow-[0_0_10px_rgba(59,130,246,0.8)]">
@@ -1475,35 +1516,37 @@ async function saveMessageToSession(role, content, fileObj = null) {
             const bottomBar = document.getElementById('bottom-input-area');
             const toggleIcon = document.getElementById('sidebar-toggle-icon');
             
-            if (sidebar.classList.contains('w-80')) {
-                sidebar.classList.remove('w-80');
-                sidebar.classList.add('w-20');
-                if (toggleIcon) toggleIcon.style.transform = 'rotate(180deg)';
-                
-                if (mainBody) { mainBody.classList.remove('md:pr-80'); mainBody.classList.add('md:pr-20'); }
-                if (mainHeader) { mainHeader.classList.remove('md:right-80'); mainHeader.classList.add('md:right-20'); }
-                if (bottomBar) { bottomBar.classList.remove('md:right-80'); bottomBar.classList.add('md:right-20'); }
-                
-                document.querySelectorAll('.sidebar-text').forEach(el => el.classList.add('hidden'));
-                
-                if(window.innerWidth < 768) {
+            const isMobile = window.innerWidth < 768;
+
+            if (isMobile) {
+                if (sidebar.classList.contains('translate-x-full')) {
+                    sidebar.classList.remove('translate-x-full');
+                    overlay.classList.remove('hidden');
+                } else {
                     sidebar.classList.add('translate-x-full');
                     overlay.classList.add('hidden');
                 }
             } else {
-                sidebar.classList.remove('w-20');
-                sidebar.classList.remove('translate-x-full');
-                sidebar.classList.add('w-80');
-                if (toggleIcon) toggleIcon.style.transform = 'rotate(0deg)';
-                
-                if (mainBody) { mainBody.classList.remove('md:pr-20'); mainBody.classList.add('md:pr-80'); }
-                if (mainHeader) { mainHeader.classList.remove('md:right-20'); mainHeader.classList.add('md:right-80'); }
-                if (bottomBar) { bottomBar.classList.remove('md:right-20'); bottomBar.classList.add('md:right-80'); }
-                
-                document.querySelectorAll('.sidebar-text').forEach(el => el.classList.remove('hidden'));
-                
-                if(window.innerWidth < 768) {
-                    overlay.classList.remove('hidden');
+                if (sidebar.classList.contains('w-80')) {
+                    sidebar.classList.remove('w-80');
+                    sidebar.classList.add('w-20');
+                    if (toggleIcon) toggleIcon.style.transform = 'rotate(180deg)';
+                    
+                    if (mainBody) { mainBody.classList.remove('md:pr-80'); mainBody.classList.add('md:pr-20'); }
+                    if (mainHeader) { mainHeader.classList.remove('md:right-80'); mainHeader.classList.add('md:right-20'); }
+                    if (bottomBar) { bottomBar.classList.remove('md:right-80'); bottomBar.classList.add('md:right-20'); }
+                    
+                    document.querySelectorAll('.sidebar-text').forEach(el => el.classList.add('hidden'));
+                } else {
+                    sidebar.classList.remove('w-20');
+                    sidebar.classList.add('w-80');
+                    if (toggleIcon) toggleIcon.style.transform = 'rotate(0deg)';
+                    
+                    if (mainBody) { mainBody.classList.remove('md:pr-20'); mainBody.classList.add('md:pr-80'); }
+                    if (mainHeader) { mainHeader.classList.remove('md:right-20'); mainHeader.classList.add('md:right-80'); }
+                    if (bottomBar) { bottomBar.classList.remove('md:right-20'); bottomBar.classList.add('md:right-80'); }
+                    
+                    document.querySelectorAll('.sidebar-text').forEach(el => el.classList.remove('hidden'));
                 }
             }
         }
@@ -3127,17 +3170,49 @@ async function generateAndSaveTitle(sessionId, content, fileObj) {
             }
         }
 
+        function toggleMobileModelMenu(e) {
+            if(e) e.stopPropagation();
+            const menu = document.getElementById('mobile-model-menu');
+            const chevron = document.getElementById('mobile-model-chevron');
+            if (menu.classList.contains('opacity-0')) {
+                menu.classList.remove('opacity-0', 'pointer-events-none', '-translate-y-2');
+                menu.classList.add('opacity-100', 'translate-y-0');
+                chevron.style.transform = 'rotate(180deg)';
+            } else {
+                closeMobileModelMenu();
+            }
+        }
+
+        function closeMobileModelMenu() {
+            const menu = document.getElementById('mobile-model-menu');
+            const chevron = document.getElementById('mobile-model-chevron');
+            if (menu && !menu.classList.contains('opacity-0')) {
+                menu.classList.add('opacity-0', 'pointer-events-none', '-translate-y-2');
+                menu.classList.remove('opacity-100', 'translate-y-0');
+                chevron.style.transform = 'rotate(0deg)';
+            }
+        }
+
         function selectModel(val, name, element) {
             document.getElementById('model-selector').value = val;
-            document.getElementById('current-model-name').innerText = name;
             
-            document.querySelectorAll('.model-option .check-icon').forEach(icon => {
+            // تحديث الاسم في الديسكتوب (لو موجود)
+            const desktopName = document.getElementById('current-model-name');
+            if(desktopName) desktopName.innerText = name;
+            
+            // تحديث الاسم في الموبايل (لو موجود)
+            const mobileName = document.getElementById('mobile-current-model-name');
+            if(mobileName) mobileName.innerText = name;
+            
+            // إخفاء كل علامات الصح
+            document.querySelectorAll('.check-icon, .mobile-check-icon').forEach(icon => {
                 icon.classList.remove('opacity-100');
                 icon.classList.add('opacity-0');
             });
             
+            // إظهار علامة الصح المحددة
             if (element) {
-                const selectedIcon = element.querySelector('.check-icon');
+                const selectedIcon = element.querySelector('.check-icon') || element.querySelector('.mobile-check-icon');
                 if (selectedIcon) {
                     selectedIcon.classList.remove('opacity-0');
                     selectedIcon.classList.add('opacity-100');
@@ -3145,12 +3220,18 @@ async function generateAndSaveTitle(sessionId, content, fileObj) {
             }
             
             closeModelMenu();
+            closeMobileModelMenu();
         }
 
         document.addEventListener('click', function(e) {
-            const container = document.getElementById('model-dropdown-container');
-            if (container && !container.contains(e.target)) {
+            const desktopContainer = document.getElementById('model-dropdown-container');
+            if (desktopContainer && !desktopContainer.contains(e.target)) {
                 closeModelMenu();
+            }
+            
+            const mobileToggleBtn = document.getElementById('mobile-model-toggle-btn');
+            if (mobileToggleBtn && !mobileToggleBtn.contains(e.target)) {
+                closeMobileModelMenu();
             }
         });
 
