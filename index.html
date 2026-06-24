@@ -658,79 +658,117 @@
                 </button>
             </div>
             
-            <div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
-                
-                <div id="settings-user-info" class="flex items-center gap-4 bg-black/40 border border-white/10 rounded-2xl p-5 shadow-inner">
-                    </div>
-
-                <div class="bg-black/40 border border-white/10 rounded-2xl p-5 shadow-inner flex flex-col gap-3">
-                    <div class="flex items-center gap-3 mb-1">
-                        <div class="p-2 bg-blue-500/20 rounded-xl border border-blue-500/30">
-                            <i data-lucide="bot" class="w-5 h-5 text-blue-400"></i>
-                        </div>
-                        <div class="text-right flex-1">
-                            <h3 class="text-sm md:text-base font-bold text-white font-sans">تخصيص كوارك</h3>
-                            <p class="text-[10px] text-gray-500 font-sans mt-0.5">اكتب هنا تعليماتك الخاصة عشان كوارك يلتزم بيها (مثال: كلمني بالعامية، اشرحلي في نقط..)</p>
-                        </div>
-                    </div>
-                    <textarea id="custom-instructions-input" oninput="saveCustomInstructions()" rows="3" class="w-full bg-[#131314] border border-white/10 focus:border-blue-500/50 rounded-xl p-3 text-sm text-white placeholder-gray-600 resize-none font-sans" placeholder="عايز كوارك يعاملك إزاي يا بطل؟..."></textarea>
-                </div>
-
-                <div class="bg-black/40 border border-white/10 rounded-2xl overflow-hidden shadow-inner transition-all duration-300">
-                    <button onclick="toggleSettingsDropdown('voice-dropdown')" class="w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors">
-                        <div class="flex items-center gap-3">
-                            <div class="p-2 bg-purple-500/20 rounded-xl border border-purple-500/30">
-                                <i data-lucide="mic" class="w-5 h-5 text-purple-400"></i>
-                            </div>
-                            <div class="text-right">
-                                <h3 class="text-sm md:text-base font-bold text-white font-sans">اختيار الأصوات</h3>
-                                <p class="text-[10px] text-gray-500 font-sans mt-0.5">تحديد صوت كوارك (Voice Selection)</p>
-                            </div>
-                        </div>
-                        <i data-lucide="chevron-down" id="voice-dropdown-icon" class="w-5 h-5 text-gray-400 transition-transform duration-300"></i>
+            <div class="flex flex-1 overflow-hidden h-[60vh]">
+                                <div class="w-1/3 md:w-1/4 border-l border-white/10 bg-[#1a1a1c] p-4 flex flex-col gap-2 z-10 shadow-lg">
+                    <button onclick="switchSettingsTab('account')" id="tab-account" class="settings-tab flex items-center gap-3 w-full p-3 rounded-xl bg-white/10 text-white transition-all text-sm font-bold">
+                        <i data-lucide="user" class="w-5 h-5 text-blue-400"></i> الحساب
                     </button>
-                    
-                    <div id="voice-dropdown" class="max-h-0 overflow-hidden transition-all duration-500 ease-in-out">
-                        <div class="p-4 border-t border-white/5">
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                
-                                <label class="relative flex items-center gap-3 p-3 border border-white/10 rounded-xl cursor-pointer hover:border-blue-500/50 hover:bg-blue-500/5 transition-all group">
-                                    <input type="radio" name="voice_selection" value="Puck_smooth" checked onchange="saveVoiceSelection()" class="w-4 h-4 text-blue-600 bg-black border-gray-600 focus:ring-blue-600 focus:ring-2">
-                                    <div>
-                                        <h4 class="text-xs md:text-sm font-bold text-white group-hover:text-blue-400 transition-colors">صوت رجل (سلس)</h4>
-                                        <p class="text-[9px] md:text-[10px] text-gray-500 mt-1">نبرة دافئة ومريحة</p>
-                                    </div>
-                                </label>
-                                
-                                <label class="relative flex items-center gap-3 p-3 border border-white/10 rounded-xl cursor-pointer hover:border-blue-500/50 hover:bg-blue-500/5 transition-all group">
-                                    <input type="radio" name="voice_selection" value="Charon_dynamic" onchange="saveVoiceSelection()" class="w-4 h-4 text-blue-600 bg-black border-gray-600 focus:ring-blue-600 focus:ring-2">
-                                    <div>
-                                        <h4 class="text-xs md:text-sm font-bold text-white group-hover:text-blue-400 transition-colors">صوت رجل (حيوي)</h4>
-                                        <p class="text-[9px] md:text-[10px] text-gray-500 mt-1">نبرة قوية وجذابة</p>
-                                    </div>
-                                </label>
-
-                                <label class="relative flex items-center gap-3 p-3 border border-white/10 rounded-xl cursor-pointer hover:border-blue-500/50 hover:bg-blue-500/5 transition-all group">
-                                    <input type="radio" name="voice_selection" value="Kore_warm" onchange="saveVoiceSelection()" class="w-4 h-4 text-blue-600 bg-black border-gray-600 focus:ring-blue-600 focus:ring-2">
-                                    <div>
-                                        <h4 class="text-xs md:text-sm font-bold text-white group-hover:text-blue-400 transition-colors">صوت فتاة (رقيق)</h4>
-                                        <p class="text-[9px] md:text-[10px] text-gray-500 mt-1">صوت عذب ومتناغم</p>
-                                    </div>
-                                </label>
-
-                                <label class="relative flex items-center gap-3 p-3 border border-white/10 rounded-xl cursor-pointer hover:border-blue-500/50 hover:bg-blue-500/5 transition-all group">
-                                    <input type="radio" name="voice_selection" value="Aoede_energetic" onchange="saveVoiceSelection()" class="w-4 h-4 text-blue-600 bg-black border-gray-600 focus:ring-blue-600 focus:ring-2">
-                                    <div>
-                                        <h4 class="text-xs md:text-sm font-bold text-white group-hover:text-blue-400 transition-colors">صوت فتاة (حماسي)</h4>
-                                        <p class="text-[9px] md:text-[10px] text-gray-500 mt-1">إيقاع سريع وطاقة</p>
-                                    </div>
-                                </label>
+                    <button onclick="switchSettingsTab('customize')" id="tab-customize" class="settings-tab flex items-center gap-3 w-full p-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white transition-all text-sm font-bold">
+                        <i data-lucide="sliders-horizontal" class="w-5 h-5 text-purple-400"></i> تخصيص
+                    </button>
+                </div>
+                
+                                <div class="w-2/3 md:w-3/4 p-6 overflow-y-auto custom-scrollbar relative bg-[#131314]">
+                                        <div id="view-account" class="settings-view flex flex-col space-y-6 fade-in">
+                                                <div id="settings-user-info" class="flex items-center gap-4 bg-black/40 border border-white/10 rounded-2xl p-5 shadow-inner"></div>
+                        
+                                                <div class="bg-black/40 border border-white/10 rounded-2xl p-5 shadow-inner flex flex-col gap-4">
+                            <div class="flex gap-4">
+                                <div class="w-1/2">
+                                    <label class="text-xs text-gray-400 mb-1 block">الاسم الأول</label>
+                                    <input type="text" id="acc-first-name" class="w-full bg-[#1e1e1e] border border-white/10 rounded-xl p-3 text-sm text-white focus:border-blue-500/50 outline-none transition-all">
+                                </div>
+                                <div class="w-1/2">
+                                    <label class="text-xs text-gray-400 mb-1 block">الاسم الأخير</label>
+                                    <input type="text" id="acc-last-name" class="w-full bg-[#1e1e1e] border border-white/10 rounded-xl p-3 text-sm text-white focus:border-blue-500/50 outline-none transition-all">
+                                </div>
                             </div>
-                            <input type="hidden" id="voice-selector" value="Puck_smooth">
+                            <div>
+                                <label class="text-xs text-gray-400 mb-1 block">رقم الهاتف</label>
+                                <input type="tel" id="acc-phone" dir="ltr" class="w-full bg-[#1e1e1e] border border-white/10 rounded-xl p-3 text-sm text-white text-right focus:border-blue-500/50 outline-none transition-all">
+                            </div>
+                            <div>
+                                <label class="text-xs text-gray-400 mb-1 block flex items-center gap-2">سنة الميلاد <span class="text-[9px] text-red-200 bg-red-500/30 px-2 py-0.5 rounded border border-red-500/20">لا يمكن تغييرها بعد الحفظ</span></label>
+                                <input type="number" id="acc-birthyear" placeholder="مثال: 2006" class="w-full bg-[#1e1e1e] border border-white/10 rounded-xl p-3 text-sm text-white focus:border-blue-500/50 outline-none transition-all">
+                            </div>
+                            <button onclick="saveAccountInfo()" class="mt-2 w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2">
+                                <i data-lucide="save" class="w-4 h-4"></i> حفظ التعديلات
+                            </button>
+                        </div>
+                    </div>
+                    
+                                        <div id="view-customize" class="settings-view hidden flex flex-col space-y-6">
+                        <div class="bg-black/40 border border-white/10 rounded-2xl p-5 shadow-inner flex flex-col gap-4">
+                            <div class="text-center mb-1">
+                                <h3 class="text-base font-bold text-white mb-1">Customize Quark's Response</h3>
+                                <p class="text-[10px] text-gray-500 flex items-center justify-center gap-1"><i data-lucide="info" class="w-3 h-3"></i> اختر أسلوب الشات أو اكتب تعليماتك الخاصة</p>
+                            </div>
+                            
+                                                        <div class="flex items-center justify-center gap-2 flex-wrap mb-2 bg-[#1e1e1e] p-1.5 rounded-full border border-white/10 mx-auto w-fit">
+                                <button onclick="setQuarkMode('formal')" id="btn-mode-formal" class="mode-btn px-4 py-1.5 rounded-full text-xs font-bold text-gray-400 hover:text-white transition-all">الرسمي</button>
+                                <button onclick="setQuarkMode('friendly')" id="btn-mode-friendly" class="mode-btn px-4 py-1.5 rounded-full text-xs font-bold text-gray-400 hover:text-white transition-all">اللطيف</button>
+                                <button onclick="setQuarkMode('custom')" id="btn-mode-custom" class="mode-btn px-4 py-1.5 rounded-full text-xs font-bold bg-white/10 text-white shadow-sm border border-white/5 transition-all">تخصيص</button>
+                            </div>
+
+                            <textarea id="custom-instructions-input" rows="5" class="w-full bg-[#1e1e1e] border border-white/10 focus:border-blue-500/50 rounded-xl p-4 text-sm text-white placeholder-gray-600 resize-none font-sans leading-relaxed" placeholder="اكتب تعليماتك هنا، مثلاً: كلمني بلطافة وود، أو كن رسمياً جداً..."></textarea>
+                            
+                            <button onclick="saveCustomizeInfo()" class="mt-1 w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2">
+                                <i data-lucide="check-circle" class="w-4 h-4"></i> حفظ التخصيص
+                            </button>
+                        </div>
+
+                                                <div class="bg-black/40 border border-white/10 rounded-2xl overflow-hidden shadow-inner transition-all duration-300">
+                            <button onclick="toggleSettingsDropdown('voice-dropdown')" class="w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors">
+                                <div class="flex items-center gap-3">
+                                    <div class="p-2 bg-purple-500/20 rounded-xl border border-purple-500/30">
+                                        <i data-lucide="mic" class="w-5 h-5 text-purple-400"></i>
+                                    </div>
+                                    <div class="text-right">
+                                        <h3 class="text-sm md:text-base font-bold text-white font-sans">اختيار الأصوات</h3>
+                                        <p class="text-[10px] text-gray-500 font-sans mt-0.5">تحديد صوت كوارك (Voice Selection)</p>
+                                    </div>
+                                </div>
+                                <i data-lucide="chevron-down" id="voice-dropdown-icon" class="w-5 h-5 text-gray-400 transition-transform duration-300"></i>
+                            </button>
+                            
+                            <div id="voice-dropdown" class="max-h-0 overflow-hidden transition-all duration-500 ease-in-out">
+                                <div class="p-4 border-t border-white/5">
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        <label class="relative flex items-center gap-3 p-3 border border-white/10 rounded-xl cursor-pointer hover:border-blue-500/50 hover:bg-blue-500/5 transition-all group">
+                                            <input type="radio" name="voice_selection" value="Puck_smooth" checked onchange="saveVoiceSelection()" class="w-4 h-4 text-blue-600 bg-black border-gray-600 focus:ring-blue-600 focus:ring-2">
+                                            <div>
+                                                <h4 class="text-xs md:text-sm font-bold text-white group-hover:text-blue-400 transition-colors">صوت رجل (سلس)</h4>
+                                                <p class="text-[9px] md:text-[10px] text-gray-500 mt-1">نبرة دافئة ومريحة</p>
+                                            </div>
+                                        </label>
+                                        <label class="relative flex items-center gap-3 p-3 border border-white/10 rounded-xl cursor-pointer hover:border-blue-500/50 hover:bg-blue-500/5 transition-all group">
+                                            <input type="radio" name="voice_selection" value="Charon_dynamic" onchange="saveVoiceSelection()" class="w-4 h-4 text-blue-600 bg-black border-gray-600 focus:ring-blue-600 focus:ring-2">
+                                            <div>
+                                                <h4 class="text-xs md:text-sm font-bold text-white group-hover:text-blue-400 transition-colors">صوت رجل (حيوي)</h4>
+                                                <p class="text-[9px] md:text-[10px] text-gray-500 mt-1">نبرة قوية وجذابة</p>
+                                            </div>
+                                        </label>
+                                        <label class="relative flex items-center gap-3 p-3 border border-white/10 rounded-xl cursor-pointer hover:border-blue-500/50 hover:bg-blue-500/5 transition-all group">
+                                            <input type="radio" name="voice_selection" value="Kore_warm" onchange="saveVoiceSelection()" class="w-4 h-4 text-blue-600 bg-black border-gray-600 focus:ring-blue-600 focus:ring-2">
+                                            <div>
+                                                <h4 class="text-xs md:text-sm font-bold text-white group-hover:text-blue-400 transition-colors">صوت فتاة (رقيق)</h4>
+                                                <p class="text-[9px] md:text-[10px] text-gray-500 mt-1">صوت عذب ومتناغم</p>
+                                            </div>
+                                        </label>
+                                        <label class="relative flex items-center gap-3 p-3 border border-white/10 rounded-xl cursor-pointer hover:border-blue-500/50 hover:bg-blue-500/5 transition-all group">
+                                            <input type="radio" name="voice_selection" value="Aoede_energetic" onchange="saveVoiceSelection()" class="w-4 h-4 text-blue-600 bg-black border-gray-600 focus:ring-blue-600 focus:ring-2">
+                                            <div>
+                                                <h4 class="text-xs md:text-sm font-bold text-white group-hover:text-blue-400 transition-colors">صوت فتاة (حماسي)</h4>
+                                                <p class="text-[9px] md:text-[10px] text-gray-500 mt-1">إيقاع سريع وطاقة</p>
+                                            </div>
+                                        </label>
+                                    </div>
+                                    <input type="hidden" id="voice-selector" value="Puck_smooth">
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                
             </div>
         </div>
     </div>
@@ -1120,13 +1158,122 @@ async function signInWithGoogle() {
         // ⚙️ دوال صفحة الإعدادات (Settings Page)
         // ==========================================
         
+        function switchSettingsTab(tabName) {
+            const viewAccount = document.getElementById('view-account');
+            const viewCustomize = document.getElementById('view-customize');
+            const tabAccount = document.getElementById('tab-account');
+            const tabCustomize = document.getElementById('tab-customize');
+
+            if(tabName === 'account') {
+                viewAccount.classList.remove('hidden');
+                viewCustomize.classList.add('hidden');
+                
+                tabAccount.classList.add('bg-white/10', 'text-white');
+                tabAccount.classList.remove('text-gray-400', 'hover:bg-white/5');
+                
+                tabCustomize.classList.remove('bg-white/10', 'text-white');
+                tabCustomize.classList.add('text-gray-400', 'hover:bg-white/5');
+
+                viewAccount.classList.remove('fade-in');
+                void viewAccount.offsetWidth;
+                viewAccount.classList.add('fade-in');
+                
+            } else {
+                viewCustomize.classList.remove('hidden');
+                viewAccount.classList.add('hidden');
+                
+                tabCustomize.classList.add('bg-white/10', 'text-white', 'shadow-sm', 'border', 'border-white/5');
+                tabCustomize.classList.remove('text-gray-400', 'hover:bg-white/5');
+                
+                tabAccount.classList.remove('bg-white/10', 'text-white');
+                tabAccount.classList.add('text-gray-400', 'hover:bg-white/5');
+
+                viewCustomize.classList.remove('fade-in');
+                void viewCustomize.offsetWidth;
+                viewCustomize.classList.add('fade-in');
+            }
+        }
+
+        let isBirthYearSaved = false;
+
+        function loadAccountInfo() {
+            const accData = JSON.parse(localStorage.getItem('quark_account_info') || '{}');
+            if(accData.firstName) document.getElementById('acc-first-name').value = accData.firstName;
+            if(accData.lastName) document.getElementById('acc-last-name').value = accData.lastName;
+            if(accData.phone) document.getElementById('acc-phone').value = accData.phone;
+            if(accData.birthYear) {
+                const birthInput = document.getElementById('acc-birthyear');
+                birthInput.value = accData.birthYear;
+                birthInput.disabled = true;
+                birthInput.classList.add('opacity-50', 'cursor-not-allowed', 'bg-red-500/5', 'border-red-500/20');
+                isBirthYearSaved = true;
+            }
+        }
+
+        function saveAccountInfo() {
+            const firstName = document.getElementById('acc-first-name').value;
+            const lastName = document.getElementById('acc-last-name').value;
+            const phone = document.getElementById('acc-phone').value;
+            const birthInput = document.getElementById('acc-birthyear');
+            const birthYear = birthInput.value;
+
+            if(!isBirthYearSaved && birthYear) {
+                showQuarkAlert('تحذير: مش هتقدر تغير سنة الميلاد بعد ما تحفظ يا هندسة. متأكد من الرقم؟ ⚠️', 'warning', true, () => {
+                    executeSaveAccount(firstName, lastName, phone, birthYear);
+                });
+            } else {
+                executeSaveAccount(firstName, lastName, phone, isBirthYearSaved ? birthInput.value : birthYear);
+            }
+        }
+
+        function executeSaveAccount(firstName, lastName, phone, birthYear) {
+            const accData = { firstName, lastName, phone, birthYear };
+            localStorage.setItem('quark_account_info', JSON.stringify(accData));
+            
+            if(birthYear) {
+                const birthInput = document.getElementById('acc-birthyear');
+                birthInput.disabled = true;
+                birthInput.classList.add('opacity-50', 'cursor-not-allowed', 'bg-red-500/5', 'border-red-500/20');
+                isBirthYearSaved = true;
+            }
+
+            showToast('عاش! تم حفظ بيانات حسابك بنجاح 💾');
+            // ملاحظة: عشان تحفظها في الـ Supabase كمان زي ما طلبت، ضيف الاستعلام بتاعك هنا لو عندك جدول جاهز للحاجات دي
+        }
+
+        function setQuarkMode(mode) {
+            const btns = document.querySelectorAll('.mode-btn');
+            btns.forEach(b => {
+                b.classList.remove('bg-white/10', 'text-white', 'shadow-sm', 'border', 'border-white/5');
+                b.classList.add('text-gray-400');
+            });
+            
+            const btn = document.getElementById(`btn-mode-${mode}`);
+            btn.classList.add('bg-white/10', 'text-white', 'shadow-sm', 'border', 'border-white/5');
+            btn.classList.remove('text-gray-400');
+
+            const txtArea = document.getElementById('custom-instructions-input');
+            if(mode === 'formal') {
+                txtArea.value = "أنت مساعد ذكي رسمي جداً. يجب عليك الرد بطريقة احترافية وعملية جداً، مثل مدير في اجتماع عمل رسمي، بدون أي لطافة أو استخدام للعامية أو الإيموجي.";
+            } else if (mode === 'friendly') {
+                txtArea.value = "أنت كوارك، مساعد ذكي لطيف جداً وودود. كلمني بطريقة مليئة بالحب واللطافة والتشجيع كأننا أصدقاء مقربين، واستخدم الإيموجي الودودة بشكل دائم.";
+            } else {
+                const saved = localStorage.getItem('quark_custom_instructions');
+                txtArea.value = saved && !saved.includes('مساعد ذكي رسمي جداً') && !saved.includes('مساعد ذكي لطيف جداً') ? saved : "";
+            }
+        }
+
+        function saveCustomizeInfo() {
+            saveCustomInstructions(); 
+            showToast('تم حفظ إعدادات التخصيص والمظهر يا معلم! 🚀');
+        }
+
         function openSettings() {
             const modal = document.getElementById('settings-page');
             const content = document.getElementById('settings-modal-content');
             
             modal.classList.remove('hidden');
             
-            // حقن بيانات المستخدم في الإعدادات
             const userInfoContainer = document.getElementById('settings-user-info');
             if (currentUser) {
                 const userName = currentUser.user_metadata.full_name || 'طالب علوم';
@@ -1148,20 +1295,23 @@ async function signInWithGoogle() {
                 userInfoContainer.innerHTML = `<p class="text-gray-400 text-sm">أنت تتصفح كزائر. يرجى تسجيل الدخول لحفظ الإعدادات.</p>`;
             }
 
-            // تشغيل الأنيميشن (Fade In & Fade Up)
+            // جلب بيانات الحساب لو متسجلة
+            loadAccountInfo();
+
             setTimeout(() => {
                 modal.classList.remove('opacity-0');
                 content.classList.remove('translate-y-10', 'scale-95');
                 content.classList.add('translate-y-0', 'scale-100');
             }, 10);
 
-            // جلب التعليمات المخصصة لو موجودة وعرضها في المربع
             const savedInstructions = localStorage.getItem('quark_custom_instructions');
             if (savedInstructions) {
                 document.getElementById('custom-instructions-input').value = savedInstructions;
             }
 
-            // إغلاق القائمة الجانبية لو كانت مفتوحة في الموبايل
+            // التأكد إننا بنفتح على تبويبة الحساب كافتراضي
+            switchSettingsTab('account');
+
             if (window.innerWidth < 768) {
                 const sidebar = document.getElementById('sidebar');
                 if (!sidebar.classList.contains('translate-x-full')) toggleSidebar();
