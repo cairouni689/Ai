@@ -2017,7 +2017,7 @@ async function typeWriterHTML(element, html, scrollContainer, originalText) {
     }
 
     // 6. إظهار زراير الـ Actions (السماع والنسخ)
-    const actionsDiv = element.querySelector('.message-actions');
+    const actionsDiv = element.parentElement.querySelector('.message-actions');
     if (actionsDiv) {
         setTimeout(() => {
             actionsDiv.classList.remove('opacity-0');
