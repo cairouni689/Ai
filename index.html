@@ -77,20 +77,29 @@
     </script>
 
     <style>
-        body {
-            background-color: #000000;
-            color: #ffffff;
-            overflow: hidden; 
+        html {
+            overflow: hidden;
+            height: 100%;
         }
 
-        #space-canvas {
+                body {
+            background-color: #000000;
+            color: #ffffff;
+            overflow: hidden;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+                #space-canvas {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: -1;
+            z-index: 0;
             background: #000000;
+            pointer-events: none;
         }
 
         .glass-sidebar {
@@ -145,6 +154,16 @@
         .history-item.active {
             background: rgba(59, 130, 246, 0.15);
             border-right: 2px solid #3b82f6;
+        }
+
+
+        /* تنسيق textarea الإدخال عشان النص يلف بشكل طبيعي جنب بعض */
+        #user-input {
+            unicode-bidi: plaintext !important;
+            text-align: start !important;
+            white-space: pre-wrap !important;
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
         }
 
         .markdown-content {
@@ -368,7 +387,8 @@
 
     </style>
 </head>
-<body id="main-body" class="h-screen flex flex-col font-sans selection:bg-quark-primary selection:text-white transition-all duration-300 md:pr-80"></body>
+
+<body id="main-body" class="relative h-screen flex flex-col font-sans selection:bg-quark-primary selection:text-white transition-all duration-300 md:pr-80">
 
     <canvas id="space-canvas"></canvas>
 
@@ -524,8 +544,10 @@
                     </div>
 
                     <div class="flex-1 relative flex items-center">
-                        <textarea id="user-input" rows="1" class="w-full bg-transparent border-none focus:ring-0 text-white placeholder-gray-500 resize-none py-3 pl-32 pr-3 max-h-32 text-base leading-relaxed font-sans" placeholder="اسأل Quark"></textarea>
+                    
                         
+                    <textarea id="user-input" rows="1" dir="auto" class="w-full bg-transparent border-none focus:ring-0 text-white placeholder-gray-500 resize-none py-3 pl-16 md:pl-32 pr-3 max-h-32 text-base leading-relaxed font-sans text-start [unicode-bidi:plaintext]" placeholder="اسأل Quark"></textarea>
+
                         <div class="absolute left-2 z-20 hidden md:block" id="model-dropdown-container">
                             <input type="hidden" id="model-selector" value="gemini-2.5-flash">
                             
