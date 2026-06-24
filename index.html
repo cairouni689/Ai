@@ -439,15 +439,16 @@
 
         <div class="flex items-center pointer-events-auto mr-auto ml-2 md:ml-4 w-[210px] md:w-[320px] h-[50px] relative shrink-0" id="header-ad-slot">
             <div class="absolute top-0 left-0 origin-top-left scale-[0.65] md:scale-100 w-[320px] h-[50px] flex items-center justify-center overflow-hidden rounded-md bg-white/5 border border-white/10">
-                <iframe 
-                    sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox"
-                    scrolling="no" 
-                    frameborder="0" 
-                    width="320" 
-                    height="50" 
-                    srcdoc="<script>atOptions = {'key' : '0c0c2057158a3402eadbe3a26263b267','format' : 'iframe','height' : 50,'width' : 320,'params' : {}};</script><script src='https://www.highperformanceformat.com/0c0c2057158a3402eadbe3a26263b267/invoke.js'></script>"
-                    style="overflow: hidden; width: 320px; height: 50px;">
-                </iframe>
+                <script>
+                 atOptions = {
+                    'key' : '0c0c2057158a3402eadbe3a26263b267',
+                    'format' : 'iframe',
+                    'height' : 50,
+                    'width' : 320,
+                    'params' : {}
+                 };
+                </script>
+                <script src="https://www.highperformanceformat.com/0c0c2057158a3402eadbe3a26263b267/invoke.js"></script>
             </div>
         </div>
     </header>
