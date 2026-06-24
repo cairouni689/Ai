@@ -663,6 +663,19 @@
                 <div id="settings-user-info" class="flex items-center gap-4 bg-black/40 border border-white/10 rounded-2xl p-5 shadow-inner">
                     </div>
 
+                <div class="bg-black/40 border border-white/10 rounded-2xl p-5 shadow-inner flex flex-col gap-3">
+                    <div class="flex items-center gap-3 mb-1">
+                        <div class="p-2 bg-blue-500/20 rounded-xl border border-blue-500/30">
+                            <i data-lucide="bot" class="w-5 h-5 text-blue-400"></i>
+                        </div>
+                        <div class="text-right flex-1">
+                            <h3 class="text-sm md:text-base font-bold text-white font-sans">تخصيص كوارك</h3>
+                            <p class="text-[10px] text-gray-500 font-sans mt-0.5">اكتب هنا تعليماتك الخاصة عشان كوارك يلتزم بيها (مثال: كلمني بالعامية، اشرحلي في نقط..)</p>
+                        </div>
+                    </div>
+                    <textarea id="custom-instructions-input" oninput="saveCustomInstructions()" rows="3" class="w-full bg-[#131314] border border-white/10 focus:border-blue-500/50 rounded-xl p-3 text-sm text-white placeholder-gray-600 resize-none font-sans" placeholder="عايز كوارك يعاملك إزاي يا بطل؟..."></textarea>
+                </div>
+
                 <div class="bg-black/40 border border-white/10 rounded-2xl overflow-hidden shadow-inner transition-all duration-300">
                     <button onclick="toggleSettingsDropdown('voice-dropdown')" class="w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors">
                         <div class="flex items-center gap-3">
@@ -1142,6 +1155,12 @@ async function signInWithGoogle() {
                 content.classList.add('translate-y-0', 'scale-100');
             }, 10);
 
+            // جلب التعليمات المخصصة لو موجودة وعرضها في المربع
+            const savedInstructions = localStorage.getItem('quark_custom_instructions');
+            if (savedInstructions) {
+                document.getElementById('custom-instructions-input').value = savedInstructions;
+            }
+
             // إغلاق القائمة الجانبية لو كانت مفتوحة في الموبايل
             if (window.innerWidth < 768) {
                 const sidebar = document.getElementById('sidebar');
@@ -1160,6 +1179,10 @@ async function signInWithGoogle() {
             setTimeout(() => {
                 modal.classList.add('hidden');
             }, 300);
+        }
+        function saveCustomInstructions() {
+            const inputVal = document.getElementById('custom-instructions-input').value;
+            localStorage.setItem('quark_custom_instructions', inputVal);
         }
 
         // دوال القائمة المنبثقة بتاعت البروفايل
@@ -1837,9 +1860,15 @@ async function sendMessage() {
         currentToken = sessionData.session?.access_token;
     }
 
+    // جلب التعليمات المخصصة للمستخدم
+    const userCustomInstructions = localStorage.getItem('quark_custom_instructions') || "";
+    const finalSystemInstruction = userCustomInstructions.trim() !== "" 
+        ? `${SYSTEM_IDENTITY}\n\n[تعليمات خاصة من المستخدم - يجب الالتزام بها بشدة]:\n${userCustomInstructions}`
+        : SYSTEM_IDENTITY;
+
     const payloadData = {
         message: text,
-        systemInstruction: SYSTEM_IDENTITY,
+        systemInstruction: finalSystemInstruction,
         history: apiHistory,
         model: selectedModel,
         fileObj: attachedFile,
@@ -2608,7 +2637,7 @@ function startFakeThinking(thinkingId) {
                         setup: { 
                             model: "models/gemini-2.5-flash-native-audio-latest", 
                             systemInstruction: {
-                                parts: [{ text: SYSTEM_IDENTITY + "\n\n[ملاحظة هامة للصوت]:\n" + toneInstruction }]
+                                parts: [{ text: SYSTEM_IDENTITY + (localStorage.getItem('quark_custom_instructions') ? "\n\n[تعليمات خاصة من المستخدم - يجب الالتزام بها بشدة]:\n" + localStorage.getItem('quark_custom_instructions') : "") + "\n\n[ملاحظة هامة للصوت]:\n" + toneInstruction }]
                             },
                             tools: [{ google_search: {} }], // تفعيل بحث جوجل لايف في المكالمة الصوتية
                             generationConfig: { 
