@@ -645,94 +645,80 @@
         <img id="modal-image" src="" class="max-w-[90vw] max-h-[90vh] object-contain rounded-xl shadow-[0_0_50px_rgba(0,0,0,0.8)] transform scale-95 transition-transform duration-300" onclick="event.stopPropagation()">
     </div>
 
-<!-- صفحة الإعدادات الداخلية (Full Page) -->
-    <div id="settings-page" class="fixed inset-0 z-[120] bg-[#0a0a0a] flex flex-col transform translate-y-full transition-transform duration-500 ease-in-out">
+<div id="settings-page" class="fixed inset-0 z-[120] hidden bg-black/70 backdrop-blur-md flex items-center justify-center opacity-0 transition-opacity duration-300 p-4" onclick="closeSettings()">
         
-        <!-- هيدر الإعدادات -->
-        <div class="flex justify-between items-center px-6 py-5 border-b border-white/10 bg-[#131314]/80 backdrop-blur-md shrink-0">
-            <h2 class="text-2xl font-bold text-white flex items-center gap-3 font-mono tracking-wide">
-                <i data-lucide="settings" class="w-6 h-6 text-blue-500"></i> Settings
-            </h2>
-            <button onclick="closeSettings()" class="text-gray-400 hover:text-white transition-colors p-2.5 bg-white/5 hover:bg-white/10 rounded-full border border-white/5">
-                <i data-lucide="x" class="w-5 h-5"></i>
-            </button>
-        </div>
-        
-        <!-- محتوى الإعدادات -->
-        <div class="flex-1 overflow-y-auto custom-scrollbar p-6 md:p-10 w-full max-w-4xl mx-auto space-y-6">
+        <div id="settings-modal-content" class="bg-[#131314]/95 border border-white/10 rounded-3xl w-full max-w-2xl transform translate-y-10 scale-95 transition-all duration-300 shadow-[0_0_50px_rgba(0,0,0,0.6)] flex flex-col max-h-[85vh] overflow-hidden" onclick="event.stopPropagation()">
             
-            <!-- معلومات المستخدم في الإعدادات -->
-            <div id="settings-user-info" class="flex items-center gap-4 bg-[#1e1e1e]/50 border border-white/10 rounded-2xl p-6 mb-8">
-                <!-- هيتم حقن بيانات المستخدم هنا بالجافاسكريبت -->
-            </div>
-
-            <!-- قسم اختيار الصوت بستايل Dropdown / Accordion -->
-            <div class="bg-[#131314] border border-white/10 rounded-2xl overflow-hidden shadow-lg transition-all duration-300">
-                <!-- زر فتح/قفل القسم -->
-                <button onclick="toggleSettingsDropdown('voice-dropdown')" class="w-full flex items-center justify-between p-5 bg-white/5 hover:bg-white/10 transition-colors">
-                    <div class="flex items-center gap-3">
-                        <div class="p-2.5 bg-purple-500/20 rounded-xl border border-purple-500/30">
-                            <i data-lucide="mic" class="w-5 h-5 text-purple-400"></i>
-                        </div>
-                        <div class="text-right">
-                            <h3 class="text-base font-bold text-white font-sans">اختيار الأصوات</h3>
-                            <p class="text-[11px] text-gray-500 font-sans mt-1">تحديد صوت كوارك في الاستماع والمكالمات (Voice Selection)</p>
-                        </div>
-                    </div>
-                    <i data-lucide="chevron-down" id="voice-dropdown-icon" class="w-5 h-5 text-gray-400 transition-transform duration-300"></i>
+            <div class="flex justify-between items-center px-6 py-5 border-b border-white/10 bg-white/5 shrink-0">
+                <h2 class="text-xl md:text-2xl font-bold text-white flex items-center gap-3 font-mono tracking-wide">
+                    <i data-lucide="settings" class="w-6 h-6 text-blue-500"></i> Settings
+                </h2>
+                <button onclick="closeSettings()" class="text-gray-400 hover:text-red-400 transition-colors p-2 bg-white/5 hover:bg-white/10 rounded-full border border-white/5">
+                    <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
+            </div>
+            
+            <div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
                 
-                <!-- المحتوى المنسدل -->
-                <div id="voice-dropdown" class="max-h-0 overflow-hidden transition-all duration-500 ease-in-out">
-                    <div class="p-5 border-t border-white/5 bg-[#0a0a0a]">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            
-                            <!-- خيار 1 -->
-                            <label class="relative flex items-center gap-3 p-4 border border-white/10 rounded-xl cursor-pointer hover:border-blue-500/50 hover:bg-blue-500/5 transition-all group">
-                                <input type="radio" name="voice_selection" value="Puck_smooth" checked onchange="saveVoiceSelection()" class="w-4 h-4 text-blue-600 bg-black border-gray-600 focus:ring-blue-600 focus:ring-2">
-                                <div>
-                                    <h4 class="text-sm font-bold text-white group-hover:text-blue-400 transition-colors">صوت رجل (طبيعي وسلس)</h4>
-                                    <p class="text-[10px] text-gray-500 mt-1">نبرة دافئة، واضحة جداً، ومريحة للأذن</p>
-                                </div>
-                            </label>
-                            
-                            <!-- خيار 2 -->
-                            <label class="relative flex items-center gap-3 p-4 border border-white/10 rounded-xl cursor-pointer hover:border-blue-500/50 hover:bg-blue-500/5 transition-all group">
-                                <input type="radio" name="voice_selection" value="Charon_dynamic" onchange="saveVoiceSelection()" class="w-4 h-4 text-blue-600 bg-black border-gray-600 focus:ring-blue-600 focus:ring-2">
-                                <div>
-                                    <h4 class="text-sm font-bold text-white group-hover:text-blue-400 transition-colors">صوت رجل (حيوي وتفاعلي)</h4>
-                                    <p class="text-[10px] text-gray-500 mt-1">نبرة قوية، جذابة، ومثالية للتحفيز</p>
-                                </div>
-                            </label>
+                <div id="settings-user-info" class="flex items-center gap-4 bg-black/40 border border-white/10 rounded-2xl p-5 shadow-inner">
+                    </div>
 
-                            <!-- خيار 3 -->
-                            <label class="relative flex items-center gap-3 p-4 border border-white/10 rounded-xl cursor-pointer hover:border-blue-500/50 hover:bg-blue-500/5 transition-all group">
-                                <input type="radio" name="voice_selection" value="Kore_warm" onchange="saveVoiceSelection()" class="w-4 h-4 text-blue-600 bg-black border-gray-600 focus:ring-blue-600 focus:ring-2">
-                                <div>
-                                    <h4 class="text-sm font-bold text-white group-hover:text-blue-400 transition-colors">صوت فتاة (رقيق وواضح)</h4>
-                                    <p class="text-[10px] text-gray-500 mt-1">صوت عذب، متناغم، وممتاز للمناقشات</p>
-                                </div>
-                            </label>
-
-                            <!-- خيار 4 -->
-                            <label class="relative flex items-center gap-3 p-4 border border-white/10 rounded-xl cursor-pointer hover:border-blue-500/50 hover:bg-blue-500/5 transition-all group">
-                                <input type="radio" name="voice_selection" value="Aoede_energetic" onchange="saveVoiceSelection()" class="w-4 h-4 text-blue-600 bg-black border-gray-600 focus:ring-blue-600 focus:ring-2">
-                                <div>
-                                    <h4 class="text-sm font-bold text-white group-hover:text-blue-400 transition-colors">صوت فتاة (حماسي ومبهج)</h4>
-                                    <p class="text-[10px] text-gray-500 mt-1">إيقاع سريع، مليء بالطاقة الإيجابية</p>
-                                </div>
-                            </label>
+                <div class="bg-black/40 border border-white/10 rounded-2xl overflow-hidden shadow-inner transition-all duration-300">
+                    <button onclick="toggleSettingsDropdown('voice-dropdown')" class="w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors">
+                        <div class="flex items-center gap-3">
+                            <div class="p-2 bg-purple-500/20 rounded-xl border border-purple-500/30">
+                                <i data-lucide="mic" class="w-5 h-5 text-purple-400"></i>
+                            </div>
+                            <div class="text-right">
+                                <h3 class="text-sm md:text-base font-bold text-white font-sans">اختيار الأصوات</h3>
+                                <p class="text-[10px] text-gray-500 font-sans mt-0.5">تحديد صوت كوارك (Voice Selection)</p>
+                            </div>
                         </div>
-                        <input type="hidden" id="voice-selector" value="Puck_smooth"> <!-- عنصر مخفي لحفظ القيمة وتمريرها للكود القديم -->
+                        <i data-lucide="chevron-down" id="voice-dropdown-icon" class="w-5 h-5 text-gray-400 transition-transform duration-300"></i>
+                    </button>
+                    
+                    <div id="voice-dropdown" class="max-h-0 overflow-hidden transition-all duration-500 ease-in-out">
+                        <div class="p-4 border-t border-white/5">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                
+                                <label class="relative flex items-center gap-3 p-3 border border-white/10 rounded-xl cursor-pointer hover:border-blue-500/50 hover:bg-blue-500/5 transition-all group">
+                                    <input type="radio" name="voice_selection" value="Puck_smooth" checked onchange="saveVoiceSelection()" class="w-4 h-4 text-blue-600 bg-black border-gray-600 focus:ring-blue-600 focus:ring-2">
+                                    <div>
+                                        <h4 class="text-xs md:text-sm font-bold text-white group-hover:text-blue-400 transition-colors">صوت رجل (سلس)</h4>
+                                        <p class="text-[9px] md:text-[10px] text-gray-500 mt-1">نبرة دافئة ومريحة</p>
+                                    </div>
+                                </label>
+                                
+                                <label class="relative flex items-center gap-3 p-3 border border-white/10 rounded-xl cursor-pointer hover:border-blue-500/50 hover:bg-blue-500/5 transition-all group">
+                                    <input type="radio" name="voice_selection" value="Charon_dynamic" onchange="saveVoiceSelection()" class="w-4 h-4 text-blue-600 bg-black border-gray-600 focus:ring-blue-600 focus:ring-2">
+                                    <div>
+                                        <h4 class="text-xs md:text-sm font-bold text-white group-hover:text-blue-400 transition-colors">صوت رجل (حيوي)</h4>
+                                        <p class="text-[9px] md:text-[10px] text-gray-500 mt-1">نبرة قوية وجذابة</p>
+                                    </div>
+                                </label>
+
+                                <label class="relative flex items-center gap-3 p-3 border border-white/10 rounded-xl cursor-pointer hover:border-blue-500/50 hover:bg-blue-500/5 transition-all group">
+                                    <input type="radio" name="voice_selection" value="Kore_warm" onchange="saveVoiceSelection()" class="w-4 h-4 text-blue-600 bg-black border-gray-600 focus:ring-blue-600 focus:ring-2">
+                                    <div>
+                                        <h4 class="text-xs md:text-sm font-bold text-white group-hover:text-blue-400 transition-colors">صوت فتاة (رقيق)</h4>
+                                        <p class="text-[9px] md:text-[10px] text-gray-500 mt-1">صوت عذب ومتناغم</p>
+                                    </div>
+                                </label>
+
+                                <label class="relative flex items-center gap-3 p-3 border border-white/10 rounded-xl cursor-pointer hover:border-blue-500/50 hover:bg-blue-500/5 transition-all group">
+                                    <input type="radio" name="voice_selection" value="Aoede_energetic" onchange="saveVoiceSelection()" class="w-4 h-4 text-blue-600 bg-black border-gray-600 focus:ring-blue-600 focus:ring-2">
+                                    <div>
+                                        <h4 class="text-xs md:text-sm font-bold text-white group-hover:text-blue-400 transition-colors">صوت فتاة (حماسي)</h4>
+                                        <p class="text-[9px] md:text-[10px] text-gray-500 mt-1">إيقاع سريع وطاقة</p>
+                                    </div>
+                                </label>
+                            </div>
+                            <input type="hidden" id="voice-selector" value="Puck_smooth">
+                        </div>
                     </div>
                 </div>
+                
             </div>
-
-            <!-- زر تسجيل الخروج من الإعدادات -->
-            <button onclick="signOut()" class="w-full md:w-auto mt-8 flex items-center justify-center gap-2 px-8 py-3 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 rounded-xl transition-all">
-                <i data-lucide="log-out" class="w-5 h-5"></i> تسجيل الخروج من الحساب
-            </button>
-            
         </div>
     </div>
 
@@ -1079,20 +1065,27 @@ async function signInWithGoogle() {
                     : `<div class="w-11 h-11 rounded-xl border border-white/10 bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">${firstLetter}</div>`;
 
                 bottomSection.innerHTML = `
-                    <div class="flex items-center gap-3 bg-white/5 hover:bg-white/10 p-3 rounded-xl border border-white/5 transition-all cursor-pointer group" onclick="openSettings()">
-                        <div class="relative shrink-0 transition-transform group-hover:scale-105">
-                            ${avatarHtml}
-                            <div class="absolute -bottom-1.5 -right-1.5 bg-[#1e1e1e] border border-white/10 p-1 rounded-full shadow-lg text-gray-400 group-hover:text-blue-400 transition-colors">
-                                <i data-lucide="settings" class="w-3 h-3"></i>
+                    <div class="relative w-full">
+                        <div id="profile-popup-menu" class="absolute bottom-[110%] left-0 w-full mb-2 bg-[#1a1a1c]/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.8)] overflow-hidden transition-all duration-200 opacity-0 pointer-events-none transform translate-y-2 z-50 flex flex-col">
+                            <button onclick="event.stopPropagation(); openSettings(); closeProfileMenu();" class="flex items-center gap-3 px-4 py-3.5 text-sm font-bold text-gray-200 hover:text-white hover:bg-white/5 transition-colors text-right group">
+                                <i data-lucide="settings" class="w-4 h-4 text-gray-400 group-hover:text-blue-400 transition-colors"></i> الإعدادات
+                            </button>
+                            <div class="h-px w-full bg-white/10"></div>
+                            <button onclick="event.stopPropagation(); signOut();" class="flex items-center gap-3 px-4 py-3.5 text-sm font-bold text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors text-right">
+                                <i data-lucide="log-out" class="w-4 h-4"></i> تسجيل الخروج
+                            </button>
+                        </div>
+
+                        <div class="flex items-center gap-3 bg-white/5 hover:bg-white/10 p-3 rounded-xl border border-white/5 transition-all cursor-pointer group" onclick="toggleProfileMenu(event)">
+                            <div class="relative shrink-0 transition-transform group-hover:scale-105">
+                                ${avatarHtml}
                             </div>
+                            <div class="flex-1 overflow-hidden">
+                                <p class="text-sm text-white truncate font-bold font-sans" dir="ltr">${userName}</p>
+                                <p class="text-[10px] text-gray-400 truncate" dir="ltr">${currentUser.email}</p>
+                            </div>
+                            <i data-lucide="chevron-up" id="profile-chevron" class="w-4 h-4 text-gray-500 group-hover:text-white transition-transform duration-300 shrink-0"></i>
                         </div>
-                        <div class="flex-1 overflow-hidden">
-                            <p class="text-sm text-white truncate font-bold font-sans" dir="ltr">${userName}</p>
-                            <p class="text-[10px] text-gray-400 truncate" dir="ltr">${currentUser.email}</p>
-                        </div>
-                        <button onclick="event.stopPropagation(); signOut();" class="p-2 hover:bg-red-500/20 text-gray-400 hover:text-red-400 rounded-lg transition-colors z-10 shrink-0" title="تسجيل خروج">
-                            <i data-lucide="log-out" class="w-4 h-4"></i>
-                        </button>
                     </div>
                 `;
             } else {
@@ -1115,10 +1108,12 @@ async function signInWithGoogle() {
         // ==========================================
         
         function openSettings() {
-            const page = document.getElementById('settings-page');
-            page.classList.remove('translate-y-full');
+            const modal = document.getElementById('settings-page');
+            const content = document.getElementById('settings-modal-content');
             
-            // حقن بيانات المستخدم في الهيدر بتاع الإعدادات
+            modal.classList.remove('hidden');
+            
+            // حقن بيانات المستخدم في الإعدادات
             const userInfoContainer = document.getElementById('settings-user-info');
             if (currentUser) {
                 const userName = currentUser.user_metadata.full_name || 'طالب علوم';
@@ -1126,19 +1121,26 @@ async function signInWithGoogle() {
                 const avatarImg = currentUser.user_metadata.avatar_url;
                 
                 const avatarHtml = avatarImg 
-                    ? `<img src="${avatarImg}" class="w-16 h-16 rounded-2xl border-2 border-white/10 shadow-lg object-cover">`
-                    : `<div class="w-16 h-16 rounded-2xl border-2 border-white/10 bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-white font-bold text-3xl shadow-lg">${firstLetter}</div>`;
+                    ? `<img src="${avatarImg}" class="w-14 h-14 md:w-16 md:h-16 rounded-2xl border-2 border-white/10 shadow-lg object-cover">`
+                    : `<div class="w-14 h-14 md:w-16 md:h-16 rounded-2xl border-2 border-white/10 bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-white font-bold text-2xl md:text-3xl shadow-lg">${firstLetter}</div>`;
                 
                 userInfoContainer.innerHTML = `
                     ${avatarHtml}
                     <div>
-                        <h3 class="text-xl font-bold text-white font-sans">${userName}</h3>
-                        <p class="text-sm text-gray-400 font-sans mt-1" dir="ltr">${currentUser.email}</p>
+                        <h3 class="text-lg md:text-xl font-bold text-white font-sans">${userName}</h3>
+                        <p class="text-xs md:text-sm text-gray-400 font-sans mt-1" dir="ltr">${currentUser.email}</p>
                     </div>
                 `;
             } else {
                 userInfoContainer.innerHTML = `<p class="text-gray-400 text-sm">أنت تتصفح كزائر. يرجى تسجيل الدخول لحفظ الإعدادات.</p>`;
             }
+
+            // تشغيل الأنيميشن (Fade In & Fade Up)
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('translate-y-10', 'scale-95');
+                content.classList.add('translate-y-0', 'scale-100');
+            }, 10);
 
             // إغلاق القائمة الجانبية لو كانت مفتوحة في الموبايل
             if (window.innerWidth < 768) {
@@ -1148,8 +1150,40 @@ async function signInWithGoogle() {
         }
 
         function closeSettings() {
-            const page = document.getElementById('settings-page');
-            page.classList.add('translate-y-full');
+            const modal = document.getElementById('settings-page');
+            const content = document.getElementById('settings-modal-content');
+            
+            modal.classList.add('opacity-0');
+            content.classList.remove('translate-y-0', 'scale-100');
+            content.classList.add('translate-y-10', 'scale-95');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        // دوال القائمة المنبثقة بتاعت البروفايل
+        function toggleProfileMenu(e) {
+            if(e) e.stopPropagation();
+            const menu = document.getElementById('profile-popup-menu');
+            const chevron = document.getElementById('profile-chevron');
+            if (menu && menu.classList.contains('opacity-0')) {
+                menu.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-2');
+                menu.classList.add('opacity-100', 'translate-y-0');
+                if(chevron) chevron.style.transform = 'rotate(180deg)';
+            } else {
+                closeProfileMenu();
+            }
+        }
+
+        function closeProfileMenu() {
+            const menu = document.getElementById('profile-popup-menu');
+            const chevron = document.getElementById('profile-chevron');
+            if (menu && !menu.classList.contains('opacity-0')) {
+                menu.classList.add('opacity-0', 'pointer-events-none', 'translate-y-2');
+                menu.classList.remove('opacity-100', 'translate-y-0');
+                if(chevron) chevron.style.transform = 'rotate(0deg)';
+            }
         }
 
         function toggleSettingsDropdown(id) {
@@ -3249,6 +3283,12 @@ async function generateAndSaveTitle(sessionId, content, fileObj) {
             const mobileToggleBtn = document.getElementById('mobile-model-toggle-btn');
             if (mobileToggleBtn && !mobileToggleBtn.contains(e.target)) {
                 closeMobileModelMenu();
+            }
+
+            const profileMenuContainer = document.getElementById('profile-popup-menu');
+            // لو الدوسة بره القايمة وبره زرار البروفايل، اقفل القايمة
+            if (profileMenuContainer && !e.target.closest('#profile-popup-menu') && !e.target.closest('[onclick="toggleProfileMenu(event)"]')) {
+                closeProfileMenu();
             }
         });
 
