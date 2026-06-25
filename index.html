@@ -1729,6 +1729,11 @@ async function saveMessageToSession(role, content, fileObj = null) {
                 addMessage(msg.content, msg.role, false);
             });
 
+            setTimeout(() => {
+                const chatContainer = document.getElementById('chat-container');
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }, 50);
+
             loadSessionsList();
             
             // التعديل هنا: قفل السايد بار في الموبايل فقط بمجرد اختيار محادثة
@@ -2249,7 +2254,7 @@ async function sendMessage() {
                     </div>
                 `;
                 chatContainer.appendChild(div);
-                lucide.createIcons();
+                lucide.createIcons({root: div});
                 if (animate) div.scrollIntoView({ behavior: 'smooth', block: 'end' });
             } else {
                 let parsedText = renderBulletproofMath(text);
@@ -2276,7 +2281,7 @@ async function sendMessage() {
                     </div>
                 `;
                 chatContainer.appendChild(div);
-                lucide.createIcons();
+                lucide.createIcons({root: div});
                 
                 const targetDiv = document.getElementById(textId);
                 if (animate) {
@@ -2286,7 +2291,6 @@ async function sendMessage() {
                     targetDiv.querySelectorAll('pre code').forEach((block) => hljs.highlightElement(block));
                     injectCanvasButtons(targetDiv);
                     div.querySelector('.message-actions').classList.remove('opacity-0');
-                    div.scrollIntoView({ behavior: 'smooth', block: 'end' });
                 }
             }
         }
