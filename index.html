@@ -1689,18 +1689,44 @@ function openLoginPage() {
             currentState.sessionId = id;
             currentState.messages = messages || [];
             
-            document.getElementById('welcome-screen').classList.add('hidden-force');
-            document.getElementById('chat-container').classList.remove('hidden');
-            document.getElementById('chat-container').innerHTML = '';
+            const chatContainer = document.getElementById('chat-container');
+            const welcomeScreen = document.getElementById('welcome-screen');
+            
+            welcomeScreen.classList.add('hidden-force');
+            chatContainer.classList.remove('hidden');
+            chatContainer.innerHTML = '';
+            
+            // إخفاء الكونتينر مؤقتاً لحد ما نرص الرسايل عشان مفيش حاجة ترمش
+            chatContainer.style.opacity = '0';
 
             currentState.messages.forEach(msg => {
                 addMessage(msg.content, msg.role, false);
             });
 
-            setTimeout(() => {
-                const chatContainer = document.getElementById('chat-container');
+            // عمل حركة الـ Stagger (تتابع الظهور) لكل رسالة عشان تدي شكل فخم
+            requestAnimationFrame(() => {
                 chatContainer.scrollTop = chatContainer.scrollHeight;
-            }, 50);
+                
+                const messageElements = Array.from(chatContainer.children);
+                // ندي كل رسالة شفافية صفر قبل ما نظهر الكونتينر
+                messageElements.forEach(el => {
+                    el.style.opacity = '0';
+                    el.style.transform = 'translateY(20px)';
+                });
+
+                requestAnimationFrame(() => {
+                    // نظهر الكونتينر نفسه بنعومة
+                    chatContainer.style.opacity = '1';
+                    chatContainer.style.transition = 'opacity 0.3s ease-out';
+                    
+                    // نشغل الأنيميشن المتتالي للرسايل (كل رسالة تتأخر جزء من الثانية عن اللي قبلها)
+                    messageElements.forEach((el, index) => {
+                        // حددنا سقف للتأخير عشان لو الشات طويل أوي مياخدش وقت ممل
+                        const delay = Math.min(index * 0.05, 0.8);
+                        el.style.animation = `fadeIn 0.5s ease-out ${delay}s forwards`;
+                    });
+                });
+            });
 
             loadSessionsList();
             
