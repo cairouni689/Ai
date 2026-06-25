@@ -2010,7 +2010,12 @@ async function saveMessageToSession(role, content, fileObj = null) {
 // ==========================================
 async function generateAndSaveTitle(sessionId, content, fileObj) {
     try {
-        const shortContent = content.substring(0, 1000);
+        let cleanContent = content;
+        try {
+            let parsed = JSON.parse(content);
+            if (parsed.text !== undefined) cleanContent = parsed.text || "مرفق";
+        } catch(e) {}
+        const shortContent = cleanContent.substring(0, 1000);
         
         const prompt = `أنت مساعد ذكي وظيفتك فقط كتابة عناوين قصيرة جداً للمحادثات.
 اكتب عنوان قصير جداً (من كلمتين إلى 4 كلمات كحد أقصى) يعبر عن محتوى هذه الرسالة أو الملف المرفق.
@@ -2102,45 +2107,55 @@ async function sendMessage() {
         }, 800);
     }
 
-    let historyText = text;
-    if (!text && attachedFile) {
-        historyText = `[تم إرفاق ملف: ${attachedFile.name}]`;
-    } else if (text && attachedFile) {
-        historyText = `${text}\n\n[ملف مرفق: ${attachedFile.name}]`;
-    }
+    let dbContent = text;
+        if (attachedFile) {
+            dbContent = JSON.stringify({ text: text, attachment: attachedFile });
+        }
 
-    addMessage(text, 'user', true, attachedFile);
-    await saveMessageToSession('user', historyText, attachedFile);
+        addMessage(text, 'user', true, attachedFile);
+        await saveMessageToSession('user', dbContent, attachedFile);
 
-    let apiHistory = [...currentState.messages];
-    apiHistory.pop();
+        let apiHistory = [...currentState.messages];
+        apiHistory.pop();
 
-    const modelSelector = document.getElementById('model-selector');
-    const selectedModel = modelSelector ? modelSelector.value : "gemini-2.5-flash";
+        let cleanHistory = apiHistory.map(msg => {
+            let cleanContent = msg.content;
+            try {
+                let parsed = JSON.parse(msg.content);
+                if (parsed.text !== undefined || parsed.attachment !== undefined) {
+                    cleanContent = parsed.text;
+                    if (parsed.attachment) cleanContent += `\n[تم إرفاق ملف: ${parsed.attachment.name}]`;
+                }
+            } catch(e) {}
+            return { role: msg.role, content: cleanContent };
+        });
 
-    let currentToken = null;
-    if (currentUser) {
-        const { data: sessionData } = await supabaseClient.auth.getSession();
-        currentToken = sessionData.session?.access_token;
-    }
+        const modelSelector = document.getElementById('model-selector');
+        const selectedModel = modelSelector ? modelSelector.value : "gemini-2.5-flash";
 
-    // جلب التعليمات المخصصة للمستخدم
-    const userCustomInstructions = localStorage.getItem('quark_custom_instructions') || "";
-    const finalSystemInstruction = userCustomInstructions.trim() !== "" 
-        ? `${SYSTEM_IDENTITY}\n\n[تعليمات خاصة من المستخدم - يجب الالتزام بها بشدة]:\n${userCustomInstructions}`
-        : SYSTEM_IDENTITY;
+        let currentToken = null;
+        if (currentUser) {
+            const { data: sessionData } = await supabaseClient.auth.getSession();
+            currentToken = sessionData.session?.access_token;
+        }
 
-    const payloadData = {
-        message: text,
-        systemInstruction: finalSystemInstruction,
-        history: apiHistory,
-        model: selectedModel,
-        fileObj: attachedFile,
-        userId: currentUserId,
-        userToken: currentToken,
-        sessionId: currentState.sessionId,
-        tools: ["google_search"]
-    };
+        // جلب التعليمات المخصصة للمستخدم
+        const userCustomInstructions = localStorage.getItem('quark_custom_instructions') || "";
+        const finalSystemInstruction = userCustomInstructions.trim() !== "" 
+            ? `${SYSTEM_IDENTITY}\n\n[تعليمات خاصة من المستخدم - يجب الالتزام بها بشدة]:\n${userCustomInstructions}`
+            : SYSTEM_IDENTITY;
+
+        const payloadData = {
+            message: text,
+            systemInstruction: finalSystemInstruction,
+            history: cleanHistory,
+            model: selectedModel,
+            fileObj: attachedFile,
+            userId: currentUserId,
+            userToken: currentToken,
+            sessionId: currentState.sessionId,
+            tools: ["google_search"]
+        };
 
     userInput.value = '';
     userInput.style.height = 'auto';
@@ -2177,6 +2192,16 @@ async function sendMessage() {
 }
 
         function addMessage(text, sender, animate = true, attachment = null, messageType = 'text') {
+            if (sender === 'user' && typeof text === 'string') {
+                try {
+                    let parsed = JSON.parse(text);
+                    if (parsed.text !== undefined || parsed.attachment !== undefined) {
+                        text = parsed.text;
+                        if (!attachment && parsed.attachment) attachment = parsed.attachment;
+                    }
+                } catch(e) {}
+            }
+
             const chatContainer = document.getElementById('chat-container');
             const div = document.createElement('div');
             const isUser = sender === 'user';
@@ -3310,7 +3335,12 @@ function startFakeThinking(thinkingId) {
 // ==========================================
 async function generateAndSaveTitle(sessionId, content, fileObj) {
     try {
-        const shortContent = content.substring(0, 1000);
+        let cleanContent = content;
+        try {
+            let parsed = JSON.parse(content);
+            if (parsed.text !== undefined) cleanContent = parsed.text || "مرفق";
+        } catch(e) {}
+        const shortContent = cleanContent.substring(0, 1000);
         
         const prompt = `أنت مساعد ذكي وظيفتك فقط كتابة عناوين قصيرة جداً للمحادثات.
 اكتب عنوان قصير جداً (من كلمتين إلى 4 كلمات كحد أقصى) يعبر عن محتوى هذه الرسالة أو الملف المرفق.
