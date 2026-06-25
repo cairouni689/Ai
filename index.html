@@ -1608,10 +1608,55 @@ function openLoginPage() {
             currentState.sessionId = null; 
             currentState.messages = [];
             
-            document.getElementById('chat-container').innerHTML = '';
-            document.getElementById('welcome-screen').classList.remove('hidden-force');
-            document.getElementById('chat-container').classList.add('hidden');
-            document.getElementById('welcome-plane').classList.remove('animate-fly-away');
+            const chatContainer = document.getElementById('chat-container');
+            const welcomeScreen = document.getElementById('welcome-screen');
+            const welcomePlane = document.getElementById('welcome-plane');
+            const welcomeLogo = document.getElementById('welcome-logo-container');
+            const welcomePrompts = document.getElementById('welcome-prompts');
+            
+            // 1. خروج الشات بنعومة
+            chatContainer.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+            chatContainer.style.opacity = '0';
+            chatContainer.style.transform = 'translateY(20px)';
+            
+            setTimeout(() => {
+                chatContainer.innerHTML = '';
+                chatContainer.classList.add('hidden');
+                
+                // 2. تجهيز عناصر الشاشة الرئيسية قبل ما تظهر
+                welcomeScreen.classList.remove('hidden-force');
+                welcomePlane.classList.remove('animate-fly-away');
+                
+                welcomeLogo.style.opacity = '0';
+                welcomeLogo.style.transform = 'translateY(-30px) scale(0.9)';
+                if (welcomePrompts) {
+                    welcomePrompts.style.opacity = '0';
+                    welcomePrompts.style.transform = 'translateY(30px)';
+                }
+                
+                // 3. تشغيل الأنيميشن الجمالي
+                requestAnimationFrame(() => {
+                    // حركة Pop خفيفة للوجو
+                    welcomeLogo.style.transition = 'all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)'; 
+                    welcomeLogo.style.opacity = '1';
+                    welcomeLogo.style.transform = 'translateY(0) scale(1)';
+                    
+                    // تأخير بسيط للاقتراحات عشان تظهر بتسلسل
+                    if (welcomePrompts) {
+                        welcomePrompts.style.transition = 'all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s'; 
+                        welcomePrompts.style.opacity = '1';
+                        welcomePrompts.style.transform = 'translateY(0)';
+                    }
+                });
+                
+                // 4. إرجاع إعدادات الشات الافتراضية للمرة القادمة عشان ميحصلش جليتش
+                setTimeout(() => {
+                    chatContainer.style.transition = '';
+                    chatContainer.style.transform = '';
+                    chatContainer.style.opacity = '';
+                }, 300);
+                
+            }, 300);
             
             loadSessionsList();
             
