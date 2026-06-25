@@ -1624,38 +1624,6 @@ function openLoginPage() {
             }
         }
 
-        // ==========================================
-// ⚠️ الدالة دي اتصلحت بالكامل
-// ==========================================
-async function saveMessageToSession(role, content, fileObj = null) {
-    if (!currentState.sessionId) {
-        currentState.sessionId = crypto.randomUUID();
-        let tempTitle = 'جاري توليد العنوان... ⏳';
-        
-        if (currentUserId) {
-            await supabaseClient.from('sessions').insert([
-                { id: currentState.sessionId, user_id: currentUserId, title: tempTitle }
-            ]);
-
-            // 🚀 استدعاء دالة توليد العنوان الذكي في الخلفية (مع Try-Catch عشان لو فشلت متوقفش المحادثة)
-            try {
-                generateAndSaveTitle(currentState.sessionId, content, fileObj);
-            } catch (e) {
-                console.error("فشل توليد العنوان:", e);
-            }
-        }
-    }
-
-    currentState.messages.push({ role, content, timestamp: Date.now() });
-
-    if (currentUserId) {
-        await supabaseClient.from('messages').insert([
-            { session_id: currentState.sessionId, role: role, content: content }
-        ]);
-        loadSessionsList();
-    }
-}
-
         async function loadSessionsList() {
             const listContainer = document.getElementById('history-list');
             
@@ -2227,13 +2195,15 @@ async function sendMessage() {
                 
                 if (attachment) {
                     if (attachment.mimeType.startsWith('image/')) {
-                       contentHTML += `<div class="mt-2">
-                            <img src="data:${attachment.mimeType};base64,${attachment.data}" 
-                                 class="max-w-[200px] md:max-w-[280px] rounded-xl border border-white/10 shadow-lg object-contain cursor-pointer hover:opacity-80 transition-opacity duration-200" 
-                                 alt="صورة مرفقة" 
-                                 onclick="openImageModal(this.src)">
-                        </div>`;
-                    } else {
+    // لو فيها URL (محادثة قديمة) استخدمه، لو مفيش استخدم الـ Base64 (محادثة حية)
+    const imgSrc = attachment.url ? attachment.url : `data:${attachment.mimeType};base64,${attachment.data}`;
+    contentHTML += `<div class="mt-2">
+        <img src="${imgSrc}" 
+             class="max-w-[200px] md:max-w-[280px] rounded-xl border border-white/10 shadow-lg object-contain cursor-pointer hover:opacity-80 transition-opacity duration-200" 
+             alt="صورة مرفقة" 
+             onclick="openImageModal(this.src)">
+    </div>`;
+} else {
                         contentHTML += `<div class="flex items-center gap-2 mt-2 p-3 bg-black/40 rounded-xl border border-white/10 text-sm text-gray-300 w-fit"><i data-lucide="file-text" class="w-4 h-4 text-purple-400"></i> <span dir="ltr">${escapeHtmlText(attachment.name)}</span></div>`;
                     }
                 }
@@ -2574,39 +2544,40 @@ function startFakeThinking(thinkingId) {
         let attachedFile = null;
 
         function handleFileUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
+    const file = event.target.files[0];
+    if (!file) return;
 
-            if (file.size > 10 * 1024 * 1024) {
-                showQuarkAlert('عذراً يا بطل، حجم الملف كبير جداً. أقصى حجم مدعوم هو 10 ميجابايت 📁.', 'error');
-                event.target.value = '';
-                return;
-            }
+    if (file.size > 10 * 1024 * 1024) {
+        showQuarkAlert('عذراً يا بطل، حجم الملف كبير جداً. أقصى حجم مدعوم هو 10 ميجابايت 📁.', 'error');
+        event.target.value = '';
+        return;
+    }
 
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const base64Data = e.target.result.split(',')[1];
-                attachedFile = {
-                    mimeType: file.type || 'text/plain',
-                    data: base64Data,
-                    name: file.name
-                };
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const base64Data = e.target.result.split(',')[1];
+        attachedFile = {
+            mimeType: file.type || 'text/plain',
+            data: base64Data, // عشان Gemini API
+            name: file.name,
+            rawFile: file // عشان نرفعه لـ Supabase Storage
+        };
 
-                document.getElementById('file-preview-container').classList.remove('hidden');
-                document.getElementById('file-name').innerText = file.name;
+        document.getElementById('file-preview-container').classList.remove('hidden');
+        document.getElementById('file-name').innerText = file.name;
 
-                if (file.type.startsWith('image/')) {
-                    document.getElementById('image-preview').src = e.target.result;
-                    document.getElementById('image-preview').classList.remove('hidden');
-                    document.getElementById('file-icon').classList.add('hidden');
-                } else {
-                    document.getElementById('image-preview').classList.add('hidden');
-                    document.getElementById('file-icon').classList.remove('hidden');
-                }
-                lucide.createIcons();
-            };
-            reader.readAsDataURL(file);
+        if (file.type.startsWith('image/')) {
+            document.getElementById('image-preview').src = e.target.result;
+            document.getElementById('image-preview').classList.remove('hidden');
+            document.getElementById('file-icon').classList.add('hidden');
+        } else {
+            document.getElementById('image-preview').classList.add('hidden');
+            document.getElementById('file-icon').classList.remove('hidden');
         }
+        lucide.createIcons();
+    };
+    reader.readAsDataURL(file);
+}
 
         function removeAttachedFile() {
             attachedFile = null;
