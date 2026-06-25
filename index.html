@@ -1263,19 +1263,43 @@ function openLoginPage() {
 
         let isBirthYearSaved = false;
 
-        function loadAccountInfo() {
-            const accData = JSON.parse(localStorage.getItem('quark_account_info') || '{}');
-            if(accData.firstName) document.getElementById('acc-first-name').value = accData.firstName;
-            if(accData.lastName) document.getElementById('acc-last-name').value = accData.lastName;
-            if(accData.phone) document.getElementById('acc-phone').value = accData.phone;
-            if(accData.birthYear) {
-                const birthInput = document.getElementById('acc-birthyear');
-                birthInput.value = accData.birthYear;
-                birthInput.disabled = true;
-                birthInput.classList.add('opacity-50', 'cursor-not-allowed', 'bg-red-500/5', 'border-red-500/20');
-                isBirthYearSaved = true;
-            }
+        async function loadAccountInfo() {
+    if (!currentUserId) return;
+
+    // جلب البيانات من Supabase
+    const { data, error } = await supabaseClient
+        .from('profiles')
+        .select('*')
+        .eq('id', currentUserId)
+        .single();
+
+    if (error && error.code !== 'PGRST116') { // PGRST116 معناها مفيش داتا لسه، وده عادي
+        console.error("Error loading profile:", error);
+        return;
+    }
+
+    if (data) {
+        if (data.first_name) document.getElementById('acc-first-name').value = data.first_name;
+        if (data.last_name) document.getElementById('acc-last-name').value = data.last_name;
+        if (data.phone) document.getElementById('acc-phone').value = data.phone;
+        
+        if (data.birth_year) {
+            const birthInput = document.getElementById('acc-birthyear');
+            birthInput.value = data.birth_year;
+            birthInput.disabled = true;
+            birthInput.classList.add('opacity-50', 'cursor-not-allowed', 'bg-red-500/5', 'border-red-500/20');
+            isBirthYearSaved = true;
         }
+
+        // تحديث اللوكال ستوريدج عشان تبقى متزامنة
+        localStorage.setItem('quark_account_info', JSON.stringify({
+            firstName: data.first_name,
+            lastName: data.last_name,
+            phone: data.phone,
+            birthYear: data.birth_year
+        }));
+    }
+}
 
         function saveAccountInfo() {
             const firstName = document.getElementById('acc-first-name').value;
@@ -1293,20 +1317,43 @@ function openLoginPage() {
             }
         }
 
-        function executeSaveAccount(firstName, lastName, phone, birthYear) {
-            const accData = { firstName, lastName, phone, birthYear };
-            localStorage.setItem('quark_account_info', JSON.stringify(accData));
-            
-            if(birthYear) {
-                const birthInput = document.getElementById('acc-birthyear');
-                birthInput.disabled = true;
-                birthInput.classList.add('opacity-50', 'cursor-not-allowed', 'bg-red-500/5', 'border-red-500/20');
-                isBirthYearSaved = true;
-            }
+        async function executeSaveAccount(firstName, lastName, phone, birthYear) {
+    if (!currentUserId) {
+        showToast('لازم تسجل دخول الأول عشان تحفظ بياناتك! ⚠️');
+        return;
+    }
 
-            showToast('عاش! تم حفظ بيانات حسابك بنجاح 💾');
-            // ملاحظة: عشان تحفظها في الـ Supabase كمان زي ما طلبت، ضيف الاستعلام بتاعك هنا لو عندك جدول جاهز للحاجات دي
-        }
+    // حفظ في Supabase (استخدام upsert عشان لو البيانات مش موجودة يضيفها، ولو موجودة يعدلها)
+    const { error } = await supabaseClient
+        .from('profiles')
+        .upsert({ 
+            id: currentUserId, 
+            first_name: firstName, 
+            last_name: lastName, 
+            phone: phone, 
+            birth_year: birthYear ? parseInt(birthYear) : null,
+            updated_at: new Date().toISOString()
+        });
+
+    if (error) {
+        console.error("Error saving profile:", error);
+        showQuarkAlert('حصلت مشكلة في حفظ البيانات، جرب تاني! ❌', 'error');
+        return;
+    }
+
+    // حفظ نسخة احتياطية في اللوكال ستوريدج للسرعة
+    const accData = { firstName, lastName, phone, birthYear };
+    localStorage.setItem('quark_account_info', JSON.stringify(accData));
+    
+    if (birthYear) {
+        const birthInput = document.getElementById('acc-birthyear');
+        birthInput.disabled = true;
+        birthInput.classList.add('opacity-50', 'cursor-not-allowed', 'bg-red-500/5', 'border-red-500/20');
+        isBirthYearSaved = true;
+    }
+
+    showToast('عاش! تم حفظ بيانات حسابك في قاعدة البيانات بنجاح 💾');
+}
 
         function setQuarkMode(mode) {
             const btns = document.querySelectorAll('.mode-btn');
