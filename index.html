@@ -2017,25 +2017,21 @@ function openLoginPage() {
             }
         }
 
+    
         // ==========================================
 // ⚠️ الدالة دي اتصلحت بالكامل
 // ==========================================
 async function saveMessageToSession(role, content, fileObj = null) {
+    let isNewSession = false;
     if (!currentState.sessionId) {
         currentState.sessionId = crypto.randomUUID();
-        let tempTitle = 'جاري توليد العنوان... ⏳';
+        isNewSession = true;
+        let tempTitle = 'محادثة جديدة ✨';
         
         if (currentUserId) {
             await supabaseClient.from('sessions').insert([
                 { id: currentState.sessionId, user_id: currentUserId, title: tempTitle }
             ]);
-
-            // 🚀 استدعاء دالة توليد العنوان الذكي في الخلفية (مع Try-Catch عشان لو فشلت متوقفش المحادثة)
-            try {
-                generateAndSaveTitle(currentState.sessionId, content, fileObj);
-            } catch (e) {
-                console.error("فشل توليد العنوان:", e);
-            }
         }
     }
 
@@ -2047,7 +2043,9 @@ async function saveMessageToSession(role, content, fileObj = null) {
         ]);
         loadSessionsList();
     }
+    return isNewSession;
 }
+
 
 // ==========================================
 // ⚠️ الدالة دي اتصلحت بالكامل
@@ -2157,7 +2155,7 @@ async function sendMessage() {
         }
 
         addMessage(text, 'user', true, attachedFile);
-        await saveMessageToSession('user', dbContent, attachedFile);
+        const isNewSession = await saveMessageToSession('user', dbContent, attachedFile);
 
         let apiHistory = [...currentState.messages];
         apiHistory.pop();
@@ -2223,6 +2221,11 @@ async function sendMessage() {
 
         // ✅ إضافة رسالة الـ AI مباشرة
         addMessage(responseData.content, 'ai', true, null, 'text');
+        
+        // 🚀 توليد العنوان هنا بعد ما الرد يخلص عشان ميتداخلوش مع بعض في السيرفر
+        if (isNewSession && currentUserId) {
+            generateAndSaveTitle(currentState.sessionId, text, attachedFile);
+        }
         
     } catch (error) {
         removeThinkingIndicator();
@@ -3376,69 +3379,7 @@ function startFakeThinking(thinkingId) {
             });
         }
 
-        // ==========================================
-// ⚠️ الدالة دي اتصلحت بالكامل
-// ==========================================
-async function generateAndSaveTitle(sessionId, content, fileObj) {
-    try {
-        let cleanContent = content;
-        try {
-            let parsed = JSON.parse(content);
-            if (parsed.text !== undefined) cleanContent = parsed.text || "مرفق";
-        } catch(e) {}
-        const shortContent = cleanContent.substring(0, 1000);
         
-        const prompt = `أنت مساعد ذكي وظيفتك فقط كتابة عناوين قصيرة جداً للمحادثات.
-اكتب عنوان قصير جداً (من كلمتين إلى 4 كلمات كحد أقصى) يعبر عن محتوى هذه الرسالة أو الملف المرفق.
-إياك كتابة أي مقدمات أو علامات تنصيص، اكتب العنوان فقط مباشرة.
-المحتوى: ${shortContent}`;
-
-        // جلب التوكن الحالي
-        let currentToken = null;
-        if (currentUser) {
-            const { data: sessionData } = await supabaseClient.auth.getSession();
-            currentToken = sessionData.session?.access_token;
-        }
-
-        // قراءة الموديل المختار حالياً
-        const modelSelector = document.getElementById('model-selector');
-        const selectedModel = modelSelector ? modelSelector.value : "gemini-2.5-flash";
-
-        const payloadData = {
-            message: prompt,
-            systemInstruction: "أنت خبير عالمي في هندسة الأوامر (Prompt Engineering). وظيفتك الوحيدة هي صياغة وتحويل النصوص العادية إلى أوامر (Prompts) احترافية جداً وخالية من الثغرات لضمان أقوى وأدق إجابة من نماذج الذكاء الاصطناعي.",
-            history: [],
-            model: selectedModel,
-            fileObj: null,
-            userId: currentUserId,
-            userToken: currentToken,
-            sessionId: sessionId,
-            thinking: false,
-            tools: ["google_search"]
-        };
-
-        const responseData = await callWorkerAPI(payloadData, new AbortController().signal);
-        
-        let smartTitle = responseData.content.replace(/[\*\#\`\"]/g, '').trim();
-        if (smartTitle.length > 40) smartTitle = smartTitle.substring(0, 40) + '...';
-        if (!smartTitle) smartTitle = 'محادثة جديدة ✨';
-
-        await supabaseClient
-            .from('sessions')
-            .update({ title: smartTitle })
-            .eq('id', sessionId);
-
-        loadSessionsList();
-        
-    } catch (error) {
-        console.error("فشل توليد العنوان الذكي:", error);
-        await supabaseClient
-            .from('sessions')
-            .update({ title: 'محادثة جديدة ✨' })
-            .eq('id', sessionId);
-        loadSessionsList();
-    }
-}
 
         // ==========================================
         // 🎨 Quark Canvas & Artifacts
