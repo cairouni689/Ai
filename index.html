@@ -2843,7 +2843,7 @@ function startFakeThinking(thinkingId) {
                                 }
                             }));
                         }
-                    }, 500);
+                    }, 50); // تقليل وقت الانتظار من 500 لـ 50 ملي ثانية لسرعة الاستجابة
                 };
 
                 chatAudioWs.onmessage = async (event) => {
@@ -3015,7 +3015,8 @@ function startFakeThinking(thinkingId) {
                     liveWs.send(JSON.stringify(setupMessage));
 
                     const source = liveAudioContext.createMediaStreamSource(liveStream);
-                    micProcessor = liveAudioContext.createScriptProcessor(4096, 1, 1);
+                    // تم تقليل حجم البافر من 4096 لـ 1024 عشان الصوت يتبعت أسرع بـ 4 مرات ويبقى فوري
+                    micProcessor = liveAudioContext.createScriptProcessor(1024, 1, 1);
                     
                     micProcessor.onaudioprocess = (e) => {
                         if (liveWs.readyState !== WebSocket.OPEN) return;
@@ -3028,7 +3029,7 @@ function startFakeThinking(thinkingId) {
                     source.connect(micProcessor);
                     micProcessor.connect(liveAudioContext.destination);
 
-                    // 🚀 إضافة الترحيب التلقائي لو النداء جي من الرادار الصوتي
+                    // 🚀 إضافة الترحيب التلقائي لو النداء جي من الرادار الصوتي (معدلة لرد أسرع)
                     if (autoGreet) {
                         setTimeout(() => {
                             if (liveWs && liveWs.readyState === WebSocket.OPEN) {
@@ -3039,7 +3040,7 @@ function startFakeThinking(thinkingId) {
                                     }
                                 }));
                             }
-                        }, 800); // بنستنى أقل من ثانية عشان السيرفر يكون استوعب الـ Setup
+                        }, 100); // قللنا الوقت من 800 لـ 100 ملي ثانية عشان الرد يضرب في ساعتها
                     }
                 };
 
