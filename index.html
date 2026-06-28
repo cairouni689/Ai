@@ -165,7 +165,7 @@
         /* تنسيق textarea الإدخال عشان النص يلف بشكل طبيعي جنب بعض */
         #user-input {
             unicode-bidi: plaintext !important;
-            text-align: start !important;
+            text-align: right !important;
             white-space: pre-wrap !important;
             word-wrap: break-word !important;
             overflow-wrap: break-word !important;
@@ -538,7 +538,7 @@
                     <div class="flex-1 relative flex items-center">
                     
                         
-                    <textarea id="user-input" rows="1" dir="auto" class="w-full bg-transparent border-none focus:ring-0 text-white placeholder-gray-500 resize-none py-3 pl-16 md:pl-32 pr-3 max-h-32 text-base leading-relaxed font-sans text-start [unicode-bidi:plaintext]" placeholder="اسأل Quark"></textarea>
+<textarea id="user-input" rows="1" dir="rtl" class="w-full bg-transparent border-none focus:ring-0 text-white placeholder-gray-500 resize-none py-3 pl-16 md:pl-32 pr-4 max-h-32 text-base leading-relaxed font-sans text-right [unicode-bidi:plaintext]" placeholder="اسأل Quark"></textarea>
 
                         <div class="absolute left-2 z-20 hidden md:block" id="model-dropdown-container">
                             <input type="hidden" id="model-selector" value="gemini-2.5-flash">
