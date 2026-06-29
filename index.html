@@ -1288,11 +1288,15 @@ function openLoginPage() {
         
         function switchSettingsTab(tabName) {
             const views = ['account', 'customize', 'voice', 'dashboard'];
-            if (tabName === 'dashboard') updateDashboardStats();
             
+            if (tabName === 'dashboard' && typeof updateDashboardStats === 'function') {
+                updateDashboardStats();
+            }
+
             views.forEach(v => {
                 const viewEl = document.getElementById(`view-${v}`);
                 const tabEl = document.getElementById(`tab-${v}`);
+                if (!viewEl || !tabEl) return;
                 
                 if (v === tabName) {
                     viewEl.classList.remove('hidden');
