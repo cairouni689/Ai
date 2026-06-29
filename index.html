@@ -376,6 +376,17 @@
     100% { background-position: 200% 0; }
 }
 
+.source-card {
+            background: rgba(59, 130, 246, 0.05);
+            border: 1px solid rgba(59, 130, 246, 0.15);
+            transition: all 0.3s ease;
+        }
+        .source-card:hover {
+            background: rgba(59, 130, 246, 0.15);
+            border-color: rgba(59, 130, 246, 0.4);
+            transform: translateY(-2px);
+        }
+
 /* Hide old typing indicator dots */
 #typing-indicator { display: none !important; }
 
@@ -674,6 +685,9 @@
                     <button onclick="switchSettingsTab('voice')" id="tab-voice" class="settings-tab flex items-center gap-3 w-full px-4 py-2.5 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-all text-xs font-bold">
                         <i data-lucide="mic" class="w-4 h-4"></i> الأصوات
                     </button>
+                    <button onclick="switchSettingsTab('dashboard')" id="tab-dashboard" class="settings-tab flex items-center gap-3 w-full px-4 py-2.5 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-all text-xs font-bold mt-2 border-t border-white/5 pt-3">
+                        <i data-lucide="bar-chart-2" class="w-4 h-4 text-blue-400"></i> الإحصائيات
+                    </button>
                 </div>
                 
                 <div class="w-3/4 p-8 overflow-y-auto custom-scrollbar relative bg-[#101010]">
@@ -779,11 +793,40 @@
                         </div>
                         <input type="hidden" id="voice-selector" value="Puck_smooth">
                     </div>
-
                 </div>
             </div>
         </div>
     </div>
+
+<div id="view-dashboard" class="settings-view hidden flex flex-col space-y-6 max-w-3xl mx-auto w-full">
+                        <div class="text-center mb-2">
+                            <h3 class="text-lg font-bold text-white">لوحة الاستخدام والإحصائيات</h3>
+                            <p class="text-[11px] text-gray-500 mt-1">نظرة عامة على نشاطك مع Quark (بيانات محلية)</p>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="bg-[#161618] border border-white/5 rounded-2xl p-5 flex flex-col items-center justify-center text-center shadow-lg">
+                                <div class="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center mb-3">
+                                    <i data-lucide="message-square" class="w-6 h-6 text-blue-400"></i>
+                                </div>
+                                <span class="text-3xl font-bold text-white font-mono" id="stat-msgs">0</span>
+                                <span class="text-xs text-gray-500 mt-1">رسالة مرسلة</span>
+                            </div>
+                            <div class="bg-[#161618] border border-white/5 rounded-2xl p-5 flex flex-col items-center justify-center text-center shadow-lg">
+                                <div class="w-12 h-12 rounded-full bg-purple-500/10 flex items-center justify-center mb-3">
+                                    <i data-lucide="cpu" class="w-6 h-6 text-purple-400"></i>
+                                </div>
+                                <span class="text-3xl font-bold text-white font-mono" id="stat-tokens">0</span>
+                                <span class="text-xs text-gray-500 mt-1">توكن مستهلك (تقريبي)</span>
+                            </div>
+                            <div class="bg-[#161618] border border-white/5 rounded-2xl p-5 flex flex-col items-center justify-center text-center shadow-lg">
+                                <div class="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center mb-3">
+                                    <i data-lucide="hard-drive" class="w-6 h-6 text-green-400"></i>
+                                </div>
+                                <span class="text-3xl font-bold text-white font-mono" id="stat-files" dir="ltr">0 MB</span>
+                                <span class="text-xs text-gray-500 mt-1">مساحة المرفقات</span>
+                            </div>
+                        </div>
+                    </div>
 
 <!-- 🌟 واجهة التنبيهات المخصصة (Quark Alert) 🌟 -->
     <div id="quark-alert-modal" class="fixed inset-0 z-[200] hidden bg-black/80 backdrop-blur-md flex items-center justify-center opacity-0 transition-opacity duration-300">
@@ -1244,7 +1287,8 @@ function openLoginPage() {
         // ==========================================
         
         function switchSettingsTab(tabName) {
-            const views = ['account', 'customize', 'voice'];
+            const views = ['account', 'customize', 'voice', 'dashboard'];
+            if (tabName === 'dashboard') updateDashboardStats();
             
             views.forEach(v => {
                 const viewEl = document.getElementById(`view-${v}`);
@@ -2232,8 +2276,14 @@ async function sendMessage() {
         // ✅ إخفاء البوكس لما الرد يوصل
         removeThinkingIndicator();
 
-        // ✅ إضافة رسالة الـ AI مباشرة
-        addMessage(responseData.content, 'ai', true, null, 'text');
+        // ✅ إضافة رسالة الـ AI مباشرة مع المصادر
+        addMessage(responseData.content, 'ai', true, null, 'text', responseData.sources);
+        
+        // تحديث الإحصائيات محلياً
+        let totalMsgs = parseInt(localStorage.getItem('quark_total_msgs') || '0') + 1;
+        let totalTokens = parseInt(localStorage.getItem('quark_total_tokens') || '0') + Math.floor(text.length * 1.5) + Math.floor(responseData.content.length * 1.5);
+        localStorage.setItem('quark_total_msgs', totalMsgs);
+        localStorage.setItem('quark_total_tokens', totalTokens);
         
         // 🚀 توليد العنوان هنا بعد ما الرد يخلص عشان ميتداخلوش مع بعض في السيرفر
         if (isNewSession && currentUserId) {
@@ -2251,7 +2301,14 @@ async function sendMessage() {
     }
 }
 
-        function addMessage(text, sender, animate = true, attachment = null, messageType = 'text') {
+        function updateDashboardStats() {
+            document.getElementById('stat-msgs').innerText = localStorage.getItem('quark_total_msgs') || '0';
+            document.getElementById('stat-tokens').innerText = localStorage.getItem('quark_total_tokens') || '0';
+            let mbs = parseFloat(localStorage.getItem('quark_total_files_mb') || '0').toFixed(2);
+            document.getElementById('stat-files').innerText = mbs + ' MB';
+        }
+
+        function addMessage(text, sender, animate = true, attachment = null, messageType = 'text', sources = []) {
             if (sender === 'user' && typeof text === 'string') {
                 try {
                     let parsed = JSON.parse(text);
@@ -2326,6 +2383,23 @@ async function sendMessage() {
                         <div class="flex flex-col w-full">
                             <div id="${textId}" class="${textStyle} pt-1 whitespace-pre-wrap" dir="auto" style="unicode-bidi: plaintext; text-align: start;"></div>
                             
+                            ${sources && sources.length > 0 ? `
+                            <div class="mt-4 pt-3 border-t border-white/5 w-full">
+                                <div class="flex items-center gap-1.5 mb-2 opacity-70">
+                                    <i data-lucide="globe" class="w-4 h-4 text-blue-400"></i>
+                                    <span class="text-xs font-bold text-blue-300 font-sans">تم الاطلاع على المصادر:</span>
+                                </div>
+                                <div class="flex gap-2 overflow-x-auto pb-2 custom-scrollbar w-full" dir="ltr">
+                                    ${sources.map(src => `
+                                        <a href="${src.url}" target="_blank" class="source-card shrink-0 px-3 py-2 rounded-xl flex flex-col max-w-[180px] min-w-[140px] text-right" style="direction: rtl;">
+                                            <span class="text-xs text-white truncate font-bold font-sans">${escapeHtmlText(src.title)}</span>
+                                            <span class="text-[10px] text-blue-400 truncate opacity-80 font-sans" dir="ltr">${src.url.replace(/^https?:\/\/(www\.)?/, '').split('/')[0]}</span>
+                                        </a>
+                                    `).join('')}
+                                </div>
+                            </div>
+                            ` : ''}
+
                             <div class="message-actions mt-2 pt-2 border-t border-white/10 flex items-center gap-3 opacity-0 transition-opacity duration-500 w-full" dir="ltr" data-raw-text="${escapeHtmlText(text)}">
                                 <button onclick="playAudio(this)" class="p-1.5 hover:bg-white/10 rounded-md text-gray-400 hover:text-white transition-all flex items-center gap-1.5 text-xs" title="استماع للرد">
                                     <i data-lucide="volume-2" class="w-4 h-4 play-icon"></i> <span class="play-text-label">استماع</span>
@@ -2649,6 +2723,11 @@ function startFakeThinking(thinkingId) {
             name: file.name,
             rawFile: file // عشان نرفعه لـ Supabase Storage
         };
+
+        // تحديث إحصائيات الملفات
+        let currentFilesMb = parseFloat(localStorage.getItem('quark_total_files_mb') || '0');
+        currentFilesMb += (file.size / (1024 * 1024));
+        localStorage.setItem('quark_total_files_mb', currentFilesMb.toString());
 
         document.getElementById('file-preview-container').classList.remove('hidden');
         document.getElementById('file-name').innerText = file.name;
