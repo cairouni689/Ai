@@ -201,6 +201,20 @@
             border-bottom-color: #93c5fd;
             text-shadow: 0 0 8px rgba(96, 165, 250, 0.5);
         }
+
+        .markdown-content img {
+            max-width: 100%;
+            border-radius: 16px;
+            margin: 1.5rem 0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .markdown-content img:hover {
+            transform: scale(1.02);
+            box-shadow: 0 15px 40px rgba(59, 130, 246, 0.3);
+        }
         
         .markdown-content pre {
             padding: 1rem; 
@@ -3685,6 +3699,12 @@ function startFakeThinking(thinkingId) {
             closeModelMenu();
             closeMobileModelMenu();
         }
+
+        document.addEventListener('click', function(e) {
+            if (e.target.tagName === 'IMG' && e.target.closest('.markdown-content')) {
+                openImageModal(e.target.src);
+            }
+        });
 
         document.addEventListener('click', function(e) {
             const desktopContainer = document.getElementById('model-dropdown-container');
