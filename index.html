@@ -2162,7 +2162,8 @@ async function generateAndSaveTitle(sessionId, content, fileObj) {
             userId: currentUserId,
             userToken: currentToken,
             sessionId: sessionId,
-            tools: []
+            tools: [],
+            isBackgroundRequest: true
         };
 
         const responseData = await callWorkerAPI(payloadData, new AbortController().signal);
