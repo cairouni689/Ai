@@ -978,7 +978,16 @@ function renderBulletproofMath(text) {
         // التعديل: إجبار اللينكات تفتح في تاب جديدة بأمان
         htmlContent = htmlContent.replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" ');
         
-    
+                       // إضافة تأثير تحميل أنيق للصور المولدة مع نظام إعادة المحاولة التلقائي (15 محاولة)
+        htmlContent = htmlContent.replace(/<img([^>]*)src="([^"]+)"([^>]*)>/g, (match, before, src, after) => {
+            return `<div class="relative w-full max-w-[400px] min-h-[300px] mx-auto my-4 bg-white/5 rounded-xl border border-white/10 flex items-center justify-center overflow-hidden group">
+                       <div class="absolute inset-0 flex flex-col items-center justify-center gap-3 z-0">
+                           <i data-lucide="image" class="w-8 h-8 text-blue-500/50 animate-pulse"></i>
+                           <span class="text-xs text-gray-500 font-mono tracking-widest animate-pulse">جاري رسم الصورة...</span>
+                       </div>
+                       <img ${before} src="${src}" ${after} data-base-src="${src}" referrerpolicy="no-referrer" class="relative z-10 w-full h-auto object-cover rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] cursor-pointer transition-all duration-500 opacity-0 transform scale-95" onload="this.classList.remove('opacity-0', 'scale-95'); this.classList.add('opacity-100', 'scale-100');" onerror="if(!this.dataset.retries){this.dataset.retries=0;} this.dataset.retries++; if(this.dataset.retries < 15){ setTimeout(()=>{ this.src=this.dataset.baseSrc+'&r='+this.dataset.retries; }, 2000); } else { this.parentElement.innerHTML='<div class=\\'flex flex-col items-center gap-2 p-6 text-red-400\\'><i data-lucide=\\'alert-circle\\' class=\\'w-8 h-8\\'></i><span class=\\'text-xs\\'>فشل تحميل الصورة، حاول مرة أخرى</span></div>'; lucide.createIcons(); }">
+                    </div>`;
+        });
     } catch (e) {
         console.error("Marked parse error:", e);
         htmlContent = escapeHtmlText(processedText).replace(/\n/g, '<br>');
