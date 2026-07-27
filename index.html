@@ -496,9 +496,9 @@
             </div>
     </aside>
 
-    <main id="main-content-area" class="flex-1 flex flex-col relative w-full max-w-5xl mx-auto h-full z-10">
-        <!-- ضفنا pb-48 و overflow-y-auto عشان نرفع المحتوى لفوق وميخبطش في بوكس الكتابة -->
-<div id="welcome-screen" class="absolute inset-0 top-0 flex flex-col items-center justify-center p-6 pt-24 pb-48 transition-all duration-500 z-20 overflow-y-auto custom-scrollbar">
+        <main id="main-content-area" class="flex-1 flex flex-col relative w-full h-full z-10 overflow-y-auto custom-scrollbar scroll-smooth">
+        <!-- خلينا الماين بياخد الشاشة كلها والسكرول بيشمل الاطراف -->
+<div id="welcome-screen" class="flex-1 flex flex-col items-center justify-center p-6 pt-24 pb-48 transition-all duration-500 z-20 max-w-5xl mx-auto w-full">
     
     <!-- صغرنا اللوجو والمسافات شوية عشان الشاشة تفرد -->
     <div id="welcome-logo-container" class="mb-4 relative group cursor-default mt-4 flex flex-col items-center">
@@ -512,7 +512,7 @@
     <div id="welcome-prompts" class="flex flex-wrap justify-center gap-3 mt-6 w-full max-w-3xl z-30 relative"></div>
         </div>
 
-    <div id="chat-container" class="hidden flex-1 overflow-y-auto w-full px-4 pt-40 md:pt-32 pb-48 custom-scrollbar scroll-smooth relative z-10"></div>
+        <div id="chat-container" class="hidden flex-1 w-full max-w-5xl mx-auto px-4 pt-40 md:pt-32 pb-48 relative z-10"></div>
     </main>
 
     <div id="bottom-input-area" class="fixed bottom-0 left-0 right-0 md:right-80 z-40 bg-gradient-to-t from-black via-black/95 to-transparent pt-4 pb-6 px-4 transition-all duration-300">
@@ -1817,8 +1817,9 @@ function openLoginPage() {
             });
 
             // عمل حركة الـ Stagger (تتابع الظهور) لكل رسالة عشان تدي شكل فخم
-            requestAnimationFrame(() => {
-                chatContainer.scrollTop = chatContainer.scrollHeight;
+                        requestAnimationFrame(() => {
+                const mainArea = document.getElementById('main-content-area');
+                mainArea.scrollTop = mainArea.scrollHeight;
                 
                 const messageElements = Array.from(chatContainer.children);
                 // ندي كل رسالة شفافية صفر قبل ما نظهر الكونتينر
@@ -2478,9 +2479,10 @@ async function typeWriterHTML(element, html, scrollContainer, originalText) {
             
             element.innerHTML = renderedChunk + '<span class="typing-cursor"></span>';
             
-            // Scroll تلقائي
-            if (scrollContainer.scrollHeight - scrollContainer.scrollTop <= scrollContainer.clientHeight + 200) {
-                scrollContainer.scrollTop = scrollContainer.scrollHeight;
+                        // Scroll تلقائي
+            const mainArea = document.getElementById('main-content-area');
+            if (mainArea.scrollHeight - mainArea.scrollTop <= mainArea.clientHeight + 200) {
+                mainArea.scrollTop = mainArea.scrollHeight;
             }
             
             await new Promise(resolve => setTimeout(resolve, 15)); // أسرع شوية
@@ -2518,10 +2520,11 @@ async function typeWriterHTML(element, html, scrollContainer, originalText) {
         injectCanvasButtons(element);
     } catch(e) { console.error("Canvas injection error:", e); }
 
-    // 4. Scroll للآخر
+        // 4. Scroll للآخر
     try {
-        if (scrollContainer.scrollHeight - scrollContainer.scrollTop <= scrollContainer.clientHeight + 200) {
-            scrollContainer.scrollTop = scrollContainer.scrollHeight;
+        const mainArea = document.getElementById('main-content-area');
+        if (mainArea.scrollHeight - mainArea.scrollTop <= mainArea.clientHeight + 200) {
+            mainArea.scrollTop = mainArea.scrollHeight;
         }
     } catch(e) {}
 
