@@ -2379,20 +2379,20 @@ async function sendMessage() {
                 }
 
                 div.innerHTML = `
-                    <div class="flex flex-row-reverse gap-4 max-w-[90%] md:max-w-[80%] items-start">
-                        <div class="w-8 h-8 rounded bg-[#222]/50 flex items-center justify-center shrink-0 border border-white/10 mt-1 relative">
-                            <i data-lucide="user" class="w-4 h-4 text-gray-500"></i>
-                        </div>
-                        <div class="flex flex-col items-end pt-1 w-full relative group">
-                            <div class="message-actions-user absolute top-2 -left-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
-                                <button onclick="editUserMessage(this)" class="p-1.5 bg-[#1e1e1e] border border-white/10 hover:border-blue-500 hover:text-blue-400 rounded-lg text-gray-400 transition-all shadow-lg" title="تعديل الرسالة">
-                                    <i data-lucide="edit-2" class="w-4 h-4"></i>
-                                </button>
+                        <div class="flex flex-row-reverse gap-4 max-w-[90%] md:max-w-[80%] items-start">
+                            <div class="w-8 h-8 rounded bg-[#222]/50 flex items-center justify-center shrink-0 border border-white/10 mt-1 relative">
+                                <i data-lucide="user" class="w-4 h-4 text-gray-500"></i>
                             </div>
-                            ${contentHTML}
+                            <div class="flex flex-col items-end pt-1 w-full relative group">
+                                ${contentHTML}
+                                <div class="message-actions-user mt-2 flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-full" dir="ltr">
+                                    <button onclick="editUserMessage(this)" class="p-1.5 hover:bg-white/10 rounded-md text-gray-400 hover:text-white transition-all flex items-center gap-1.5 text-xs" title="تعديل الرسالة">
+                                        <i data-lucide="edit-2" class="w-4 h-4"></i> <span class="edit-text-label">تعديل</span>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                `;
+                    `;
                 chatContainer.appendChild(div);
                 lucide.createIcons({root: div});
                 if (animate) div.scrollIntoView({ behavior: 'smooth', block: 'end' });
