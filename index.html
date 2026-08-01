@@ -2334,12 +2334,13 @@ async function sendMessage() {
         }
 
         function addMessage(text, sender, animate = true, attachment = null, messageType = 'text', sources = []) {
-            if (sender === 'user' && typeof text === 'string') {
+            if (typeof text === 'string') {
                 try {
                     let parsed = JSON.parse(text);
-                    if (parsed.text !== undefined || parsed.attachment !== undefined) {
-                        text = parsed.text;
+                    if (parsed.text !== undefined || parsed.attachment !== undefined || parsed.sources !== undefined) {
+                        if (parsed.text !== undefined) text = parsed.text;
                         if (!attachment && parsed.attachment) attachment = parsed.attachment;
+                        if (parsed.sources && sources.length === 0) sources = parsed.sources;
                     }
                 } catch(e) {}
             }
@@ -2441,7 +2442,7 @@ async function sendMessage() {
                 
                 const targetDiv = document.getElementById(textId);
                 if (animate) {
-                    typeWriterHTML(targetDiv, parsedText, chatContainer, text);
+                    typeWriterHTML(targetDiv, parsedText, chatContainer, text, sources);
                 } else {
                     targetDiv.innerHTML = parsedText;
                     targetDiv.querySelectorAll('pre code').forEach((block) => hljs.highlightElement(block));
@@ -2454,7 +2455,7 @@ async function sendMessage() {
         // ==========================================
 // ⚠️ typeWriterHTML - النسخة المؤمنة والمكتملة
 // ==========================================
-async function typeWriterHTML(element, html, scrollContainer, originalText) {
+async function typeWriterHTML(element, html, scrollContainer, originalText, sources = []) {
     isGenerating = true;
     stopTypingFlag = false;
     
@@ -2531,7 +2532,11 @@ async function typeWriterHTML(element, html, scrollContainer, originalText) {
     // 5. حفظ الرسالة في السيشن
     if (!stopTypingFlag) {
         try {
-            await saveMessageToSession('ai', originalText);
+            let contentToSave = originalText;
+            if (sources && sources.length > 0) {
+                contentToSave = JSON.stringify({ text: originalText, sources: sources });
+            }
+            await saveMessageToSession('ai', contentToSave);
         } catch(e) { console.error("Save message error:", e); }
     }
 
