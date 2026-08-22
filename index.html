@@ -518,20 +518,13 @@
     <div id="bottom-input-area" class="fixed bottom-0 left-0 right-0 md:right-80 z-40 bg-gradient-to-t from-black via-black/95 to-transparent pt-4 pb-6 px-4 transition-all duration-300">
         <div class="max-w-4xl w-full mx-auto">
             <div class="flex-1 relative w-full">
-                <div id="file-preview-container" class="hidden mb-3 relative inline-flex items-center gap-3 p-2 bg-[#1e1e1e] border border-white/20 rounded-xl max-w-xs shadow-lg">
-                    <img id="image-preview" src="" class="hidden w-12 h-12 object-cover rounded border border-white/10" />
-                    <div id="file-icon" class="hidden w-12 h-12 flex items-center justify-center bg-blue-500/20 text-blue-400 rounded border border-blue-500/30">
-                        <i data-lucide="file-text" class="w-6 h-6"></i>
-                    </div>
-                    <span id="file-name" class="text-xs text-gray-300 truncate max-w-[150px] font-sans pr-2" dir="ltr"></span>
-                    <button onclick="removeAttachedFile()" class="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5 transition-colors shadow-lg z-10">
-                        <i data-lucide="x" class="w-3 h-3"></i>
-                    </button>
+                <div id="file-preview-container" class="hidden mb-3 relative flex flex-wrap gap-3 max-h-32 overflow-y-auto custom-scrollbar">
+                    <!-- الملفات المرفقة هتترص هنا بالـ JS -->
                 </div>
 
                 <div class="rounded-[2rem] w-full flex items-end p-2 bg-[#1e1e1e] border border-white/10 transition-all duration-300 focus-within:border-blue-500/50 focus-within:shadow-[0_0_15px_rgba(59,130,246,0.15)]">
                     <div class="pl-1 relative" id="attachment-container">
-                        <input type="file" id="file-upload" class="hidden" onchange="handleFileUpload(event)">
+                    <input type="file" id="file-upload" class="hidden" multiple onchange="handleFileUpload(event)">
                         <div id="attachment-menu" class="absolute bottom-[120%] right-0 mb-1 w-40 bg-[#1e1e1e]/95 backdrop-blur-md border border-white/10 rounded-xl shadow-[0_10px_25px_rgba(0,0,0,0.8)] overflow-hidden transition-all duration-200 opacity-0 pointer-events-none transform translate-y-2 z-50">
                             <button onclick="triggerUpload('camera')" class="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors border-b border-white/5 text-right">
                                 <div class="p-1.5 bg-green-500/20 rounded-md"><i data-lucide="camera" class="w-4 h-4 text-green-400"></i></div>
@@ -2236,7 +2229,7 @@ async function sendMessage() {
     }
 
     const text = userInput.value.trim();
-    if (!text && !attachedFile) return;
+    if (!text && attachedFiles.length === 0) return;
 
     if (!currentState.sessionId) {
         welcomePlane.classList.add('animate-fly-away');
@@ -2248,12 +2241,12 @@ async function sendMessage() {
     }
 
     let dbContent = text;
-        if (attachedFile) {
-            dbContent = JSON.stringify({ text: text, attachment: attachedFile });
+        if (attachedFiles.length > 0) {
+            dbContent = JSON.stringify({ text: text, attachments: attachedFiles });
         }
 
-        addMessage(text, 'user', true, attachedFile);
-        const isNewSession = await saveMessageToSession('user', dbContent, attachedFile);
+        addMessage(text, 'user', true, attachedFiles);
+        const isNewSession = await saveMessageToSession('user', dbContent, attachedFiles);
 
         let apiHistory = [...currentState.messages];
         apiHistory.pop();
@@ -2262,9 +2255,11 @@ async function sendMessage() {
             let cleanContent = msg.content;
             try {
                 let parsed = JSON.parse(msg.content);
-                if (parsed.text !== undefined || parsed.attachment !== undefined) {
+                if (parsed.text !== undefined || parsed.attachments !== undefined) {
                     cleanContent = parsed.text;
-                    if (parsed.attachment) cleanContent += `\n[تم إرفاق ملف: ${parsed.attachment.name}]`;
+                    if (parsed.attachments && Array.isArray(parsed.attachments)) {
+                        parsed.attachments.forEach(att => cleanContent += `\n[تم إرفاق ملف: ${att.name}]`);
+                    }
                 }
             } catch(e) {}
             return { role: msg.role, content: cleanContent };
@@ -2290,7 +2285,7 @@ async function sendMessage() {
             systemInstruction: finalSystemInstruction,
             history: cleanHistory,
             model: selectedModel,
-            fileObj: attachedFile,
+            files: attachedFiles,
             userId: currentUserId,
             userToken: currentToken,
             sessionId: currentState.sessionId,
@@ -2299,8 +2294,9 @@ async function sendMessage() {
 
     userInput.value = '';
     userInput.style.height = 'auto';
-    if (attachedFile) {
-        removeAttachedFile();
+    if (attachedFiles.length > 0) {
+        attachedFiles = [];
+        renderFilePreviews();
     }
 
     isGenerating = true;
@@ -2349,16 +2345,21 @@ async function sendMessage() {
             document.getElementById('stat-files').innerText = mbs + ' MB';
         }
 
-        function addMessage(text, sender, animate = true, attachment = null, messageType = 'text', sources = []) {
+        function addMessage(text, sender, animate = true, attachments = null, messageType = 'text', sources = []) {
             if (typeof text === 'string') {
                 try {
                     let parsed = JSON.parse(text);
-                    if (parsed.text !== undefined || parsed.attachment !== undefined || parsed.sources !== undefined) {
+                    if (parsed.text !== undefined || parsed.attachments !== undefined || parsed.sources !== undefined) {
                         if (parsed.text !== undefined) text = parsed.text;
-                        if (!attachment && parsed.attachment) attachment = parsed.attachment;
+                        if (!attachments && parsed.attachments) attachments = parsed.attachments;
                         if (parsed.sources && sources.length === 0) sources = parsed.sources;
                     }
                 } catch(e) {}
+            }
+            
+            // للحفاظ على توافق الشاتات القديمة لو فيها ملف واحد
+            if (attachments && !Array.isArray(attachments)) {
+                attachments = [attachments];
             }
 
             const chatContainer = document.getElementById('chat-container');
@@ -2379,21 +2380,31 @@ async function sendMessage() {
                     contentHTML += `<div class="message-content-wrapper ${textStyle} bg-white/5 border border-white/10 rounded-2xl p-4 shadow-lg leading-relaxed whitespace-pre-wrap" dir="auto" style="unicode-bidi: plaintext; text-align: start;" data-raw-text="${escapeHtmlText(text)}">${escapeHtmlText(text)}</div>`;
                 }
                 
-                if (attachment) {
-                    if (attachment.mimeType.startsWith('image/')) {
-    // لو فيها URL (محادثة قديمة) استخدمه، لو مفيش استخدم الـ Base64 (محادثة حية)
-    const imgSrc = attachment.url ? attachment.url : `data:${attachment.mimeType};base64,${attachment.data}`;
-    contentHTML += `<div class="mt-2">
-        <img src="${imgSrc}" 
-             class="max-w-[200px] md:max-w-[280px] rounded-xl border border-white/10 shadow-lg object-contain cursor-pointer hover:opacity-80 transition-opacity duration-200" 
-             alt="صورة مرفقة" 
-             onclick="openImageModal(this.src)">
-    </div>`;
-} else {
-                        const fileSrc = attachment.url ? attachment.url : `data:${attachment.mimeType};base64,${attachment.data}`;
-                        const safeName = escapeHtmlText(attachment.name).replace(/'/g, "\\'");
-                        contentHTML += `<div onclick="openDocumentModal('${fileSrc}', '${safeName}')" class="flex items-center gap-3 mt-2 p-3 bg-[#1e1e1e]/80 hover:bg-[#2a2a2c] rounded-xl border border-white/10 hover:border-blue-500/50 text-sm text-gray-200 w-fit cursor-pointer transition-all duration-300 group shadow-lg"><div class="p-2 bg-blue-500/10 rounded-lg group-hover:bg-blue-500/20 transition-colors"><i data-lucide="file-text" class="w-4 h-4 text-blue-400 group-hover:scale-110 transition-transform"></i></div><span dir="ltr" class="font-medium tracking-wide">${escapeHtmlText(attachment.name)}</span></div>`;
-                    }
+                if (attachments && attachments.length > 0) {
+                    contentHTML += `<div class="mt-3 flex flex-wrap gap-2 justify-end w-full">`;
+                    attachments.forEach(attachment => {
+                        if (attachment.mimeType.startsWith('image/')) {
+                            const imgSrc = attachment.url ? attachment.url : `data:${attachment.mimeType};base64,${attachment.data}`;
+                            contentHTML += `
+                                <img src="${imgSrc}" 
+                                     class="w-[120px] h-[120px] md:w-[150px] md:h-[150px] rounded-xl border border-white/10 shadow-lg object-cover cursor-pointer hover:opacity-80 transition-opacity duration-200" 
+                                     alt="صورة مرفقة" 
+                                     onclick="openImageModal(this.src)">
+                            `;
+                        } else {
+                            const fileSrc = attachment.url ? attachment.url : `data:${attachment.mimeType};base64,${attachment.data}`;
+                            const safeName = escapeHtmlText(attachment.name).replace(/'/g, "\\'");
+                            contentHTML += `
+                                <div onclick="openDocumentModal('${fileSrc}', '${safeName}')" class="flex items-center gap-3 p-3 bg-[#1e1e1e]/80 hover:bg-[#2a2a2c] rounded-xl border border-white/10 hover:border-blue-500/50 text-sm text-gray-200 w-fit max-w-[200px] cursor-pointer transition-all duration-300 group shadow-lg shrink-0">
+                                    <div class="p-2 bg-blue-500/10 rounded-lg group-hover:bg-blue-500/20 transition-colors">
+                                        <i data-lucide="file-text" class="w-4 h-4 text-blue-400 group-hover:scale-110 transition-transform"></i>
+                                    </div>
+                                    <span dir="ltr" class="font-medium tracking-wide text-[11px] md:text-xs truncate">${escapeHtmlText(attachment.name)}</span>
+                                </div>
+                            `;
+                        }
+                    });
+                    contentHTML += `</div>`;
                 }
 
                 div.innerHTML = `
@@ -2752,55 +2763,76 @@ function startFakeThinking(thinkingId) {
             if ((event.ctrlKey || event.metaKey) && (event.keyCode === 83 || event.key.toLowerCase() === 's')) { event.preventDefault(); return false; }
         });
 
-        let attachedFile = null;
+        let attachedFiles = [];
 
         function handleFileUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
+            const files = Array.from(event.target.files);
+            if (files.length === 0) return;
 
-    if (file.size > 10 * 1024 * 1024) {
-        showQuarkAlert('عذراً يا بطل، حجم الملف كبير جداً. أقصى حجم مدعوم هو 10 ميجابايت 📁.', 'error');
-        event.target.value = '';
-        return;
-    }
+            let totalSize = files.reduce((sum, file) => sum + file.size, 0);
+            if (totalSize > 20 * 1024 * 1024) {
+                showQuarkAlert('حجم الملفات مجتمعة تخطى 20 ميجابايت يا هندسة. قللهم شوية! 📁', 'error');
+                event.target.value = '';
+                return;
+            }
 
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const base64Data = e.target.result.split(',')[1];
-        attachedFile = {
-            mimeType: file.type || 'text/plain',
-            data: base64Data, // عشان Gemini API
-            name: file.name,
-            rawFile: file // عشان نرفعه لـ Supabase Storage
-        };
+            files.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const base64Data = e.target.result.split(',')[1];
+                    const newFile = {
+                        id: Date.now() + Math.random().toString(36).substr(2, 9),
+                        mimeType: file.type || 'text/plain',
+                        data: base64Data,
+                        name: file.name,
+                        url: e.target.result
+                    };
+                    attachedFiles.push(newFile);
 
-        // تحديث إحصائيات الملفات
-        let currentFilesMb = parseFloat(localStorage.getItem('quark_total_files_mb') || '0');
-        currentFilesMb += (file.size / (1024 * 1024));
-        localStorage.setItem('quark_total_files_mb', currentFilesMb.toString());
+                    let currentFilesMb = parseFloat(localStorage.getItem('quark_total_files_mb') || '0');
+                    currentFilesMb += (file.size / (1024 * 1024));
+                    localStorage.setItem('quark_total_files_mb', currentFilesMb.toString());
 
-        document.getElementById('file-preview-container').classList.remove('hidden');
-        document.getElementById('file-name').innerText = file.name;
-
-        if (file.type.startsWith('image/')) {
-            document.getElementById('image-preview').src = e.target.result;
-            document.getElementById('image-preview').classList.remove('hidden');
-            document.getElementById('file-icon').classList.add('hidden');
-        } else {
-            document.getElementById('image-preview').classList.add('hidden');
-            document.getElementById('file-icon').classList.remove('hidden');
+                    renderFilePreviews();
+                };
+                reader.readAsDataURL(file);
+            });
+            event.target.value = ''; 
         }
-        lucide.createIcons();
-    };
-    reader.readAsDataURL(file);
-}
 
-        function removeAttachedFile() {
-            attachedFile = null;
-            document.getElementById('file-upload').value = ''; 
-            document.getElementById('file-preview-container').classList.add('hidden');
-            document.getElementById('image-preview').src = '';
-            document.getElementById('file-name').innerText = '';
+        function removeAttachedFile(fileId) {
+            attachedFiles = attachedFiles.filter(f => f.id !== fileId);
+            renderFilePreviews();
+        }
+
+        function renderFilePreviews() {
+            const container = document.getElementById('file-preview-container');
+            if (attachedFiles.length === 0) {
+                container.classList.add('hidden');
+                container.innerHTML = '';
+                return;
+            }
+            
+            container.classList.remove('hidden');
+            container.innerHTML = '';
+            
+            attachedFiles.forEach(f => {
+                const isImage = f.mimeType.startsWith('image/');
+                const previewHtml = isImage 
+                    ? `<img src="${f.url}" class="w-12 h-12 object-cover rounded border border-white/10" />`
+                    : `<div class="w-12 h-12 flex items-center justify-center bg-blue-500/20 text-blue-400 rounded border border-blue-500/30"><i data-lucide="file-text" class="w-6 h-6"></i></div>`;
+                    
+                container.innerHTML += `
+                    <div class="relative inline-flex items-center gap-3 p-2 bg-[#1e1e1e] border border-white/20 rounded-xl w-fit max-w-[200px] shadow-lg shrink-0 fade-in">
+                        ${previewHtml}
+                        <span class="text-[10px] text-gray-300 truncate max-w-[80px] font-sans pr-2" dir="ltr">${f.name}</span>
+                        <button onclick="removeAttachedFile('${f.id}')" class="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5 transition-colors shadow-lg z-10">
+                            <i data-lucide="x" class="w-3 h-3"></i>
+                        </button>
+                    </div>
+                `;
+            });
+            lucide.createIcons();
         }
 
         function toggleAttachmentMenu(e) {
