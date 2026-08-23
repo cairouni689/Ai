@@ -38,6 +38,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script type="text/javascript">
         (function(c,l,a,r,i,t,y){
             c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
@@ -2777,25 +2778,69 @@ function startFakeThinking(thinkingId) {
             }
 
             files.forEach(file => {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const base64Data = e.target.result.split(',')[1];
-                    const newFile = {
-                        id: Date.now() + Math.random().toString(36).substr(2, 9),
-                        mimeType: file.type || 'text/plain',
-                        data: base64Data,
-                        name: file.name,
-                        url: e.target.result
+                if (file.name.endsWith('.zip')) {
+                    showToast('جاري تحليل وفك ضغط المشروع... ⏳');
+                    const reader = new FileReader();
+                    reader.onload = async function(e) {
+                        try {
+                            const zip = await JSZip.loadAsync(e.target.result);
+                            let projectContent = `تم رفع مشروع برمجي واسمه: ${file.name}\n\nهيكلة ومحتوى الملفات:\n`;
+                            let fileCount = 0;
+                            
+                            for (let [filename, zipEntry] of Object.entries(zip.files)) {
+                                // نتجاهل مجلدات node_modules و .git وملفات الصور والملفات التنفيذية
+                                if (!zipEntry.dir && !filename.includes('node_modules') && !filename.includes('.git') && !filename.match(/\.(jpg|jpeg|png|gif|ico|mp4|mp3|exe|dll|pdf|woff|ttf|eot)$/i)) {
+                                    const content = await zipEntry.async('string');
+                                    projectContent += `\n--- الملف: ${filename} ---\n\`\`\`\n${content.substring(0, 10000)}\n\`\`\`\n`;
+                                    fileCount++;
+                                }
+                            }
+                            
+                            // تحويل النص لـ base64 عشان يتبعت كملف نصي للباك إند
+                            const encoder = new TextEncoder();
+                            const uint8Array = encoder.encode(projectContent);
+                            let binary = '';
+                            for (let i = 0; i < uint8Array.byteLength; i++) {
+                                binary += String.fromCharCode(uint8Array[i]);
+                            }
+                            const base64Data = window.btoa(binary);
+
+                            const newFile = {
+                                id: Date.now() + Math.random().toString(36).substr(2, 9),
+                                mimeType: 'text/plain',
+                                data: base64Data,
+                                name: file.name + ` (${fileCount} ملفات كود)`,
+                                url: null
+                            };
+                            attachedFiles.push(newFile);
+                            showToast('تم تجهيز المشروع بنجاح! 🚀');
+                            renderFilePreviews();
+                        } catch(err) {
+                            showQuarkAlert('حصلت مشكلة في فك ضغط الملف، اتأكد إنه ZIP سليم.', 'error');
+                        }
                     };
-                    attachedFiles.push(newFile);
+                    reader.readAsArrayBuffer(file);
+                } else {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const base64Data = e.target.result.split(',')[1];
+                        const newFile = {
+                            id: Date.now() + Math.random().toString(36).substr(2, 9),
+                            mimeType: file.type || 'text/plain',
+                            data: base64Data,
+                            name: file.name,
+                            url: e.target.result
+                        };
+                        attachedFiles.push(newFile);
 
-                    let currentFilesMb = parseFloat(localStorage.getItem('quark_total_files_mb') || '0');
-                    currentFilesMb += (file.size / (1024 * 1024));
-                    localStorage.setItem('quark_total_files_mb', currentFilesMb.toString());
+                        let currentFilesMb = parseFloat(localStorage.getItem('quark_total_files_mb') || '0');
+                        currentFilesMb += (file.size / (1024 * 1024));
+                        localStorage.setItem('quark_total_files_mb', currentFilesMb.toString());
 
-                    renderFilePreviews();
-                };
-                reader.readAsDataURL(file);
+                        renderFilePreviews();
+                    };
+                    reader.readAsDataURL(file);
+                }
             });
             event.target.value = ''; 
         }
@@ -2873,7 +2918,7 @@ function startFakeThinking(thinkingId) {
                 input.removeAttribute('capture'); 
             }
             else if (type === 'file') { 
-                input.accept = ".pdf,.txt,.csv,.doc,.docx"; 
+                input.accept = ".pdf,.txt,.csv,.doc,.docx,.zip"; 
                 input.removeAttribute('capture'); 
             }
             else if (type === 'camera') { 
