@@ -2324,7 +2324,7 @@ async function sendMessage() {
         
         // 🚀 توليد العنوان هنا بعد ما الرد يخلص عشان ميتداخلوش مع بعض في السيرفر
         if (isNewSession && currentUserId) {
-            generateAndSaveTitle(currentState.sessionId, text, attachedFile);
+            generateAndSaveTitle(currentState.sessionId, text, null);
         }
         
     } catch (error) {
