@@ -547,8 +547,12 @@
 
                     <div class="flex-1 relative flex items-center">
                     
-                        
-<textarea id="user-input" rows="1" dir="rtl" class="w-full bg-transparent border-none focus:ring-0 focus:outline-none text-white placeholder-gray-500 resize-none py-3 pl-16 md:pl-32 pr-4 max-h-32 text-base leading-relaxed font-sans text-right [unicode-bidi:plaintext]" placeholder="اسأل Quark"></textarea>
+                        <!-- مساحة الإدخال مع الإكمال التلقائي الشبح -->
+                        <div class="relative w-full flex items-center">
+                            <div id="ghost-text" class="absolute inset-0 w-full h-full py-3 pl-16 md:pl-32 pr-4 text-base leading-relaxed font-sans text-right pointer-events-none text-gray-600 whitespace-pre-wrap break-words overflow-hidden z-0" dir="rtl" style="opacity: 0.5;"></div>
+                            
+                            <textarea id="user-input" rows="1" dir="rtl" class="w-full bg-transparent border-none focus:ring-0 focus:outline-none text-white placeholder-gray-500 resize-none py-3 pl-16 md:pl-32 pr-4 max-h-32 text-base leading-relaxed font-sans text-right [unicode-bidi:plaintext] relative z-10" placeholder="اسأل Quark (اضغط Tab للإكمال)"></textarea>
+                        </div>
 
                         <div class="absolute left-2 z-20 hidden md:block" id="model-dropdown-container">
                             <input type="hidden" id="model-selector" value="gemini-2.5-flash">
@@ -843,6 +847,20 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+<!-- ⚡ لوحة الأوامر السريعة (Command Palette) ⚡ -->
+    <div id="command-palette" class="fixed inset-0 z-[400] hidden bg-black/80 backdrop-blur-md flex items-start justify-center pt-[15vh] opacity-0 transition-opacity duration-300" onclick="closeCommandPalette()">
+        <div class="bg-[#131314] w-[90vw] md:w-[600px] rounded-3xl border border-white/10 shadow-[0_0_60px_rgba(59,130,246,0.15)] flex flex-col overflow-hidden transform scale-95 transition-transform duration-300" onclick="event.stopPropagation()">
+            <div class="flex items-center px-4 py-4 border-b border-white/10 bg-[#1e1e1e]/50">
+                <i data-lucide="search" class="w-5 h-5 text-gray-400 mr-3"></i>
+                <input type="text" id="cmd-input" class="flex-1 bg-transparent border-none focus:ring-0 text-white placeholder-gray-500 text-lg outline-none font-sans" placeholder="ابحث عن أمر... (مثال: جديد، إعدادات)" dir="rtl" autocomplete="off">
+                <span class="text-[10px] text-gray-500 border border-white/10 rounded px-1.5 py-0.5 ml-2 font-mono">ESC</span>
+            </div>
+            <div id="cmd-list" class="max-h-[50vh] overflow-y-auto custom-scrollbar p-2 space-y-1">
+                <!-- الأوامر هتترص هنا بالـ JS -->
             </div>
         </div>
     </div>
@@ -1762,7 +1780,6 @@ function openLoginPage() {
                 .order('created_at', { ascending: false });
 
             if (error) { console.error("خطأ في جلب الجلسات:", error); return; }
-
             listContainer.innerHTML = '';
 
             if (!sessionsArr || sessionsArr.length === 0) {
@@ -1770,37 +1787,55 @@ function openLoginPage() {
                 return;
             }
 
+            // ⚡ تصنيف ذكي للمحادثات (مجلدات وهمية)
+            const folders = {
+                '💻 مشاريع البرمجة': [],
+                '📚 الدراسة والأبحاث': [],
+                '💬 محادثات عامة': []
+            };
+
+            const codeKeywords = /برمج|كود|سكريبت|html|css|js|python|react|خطأ|bug|دالة|api|json|قاعدة|موقع/i;
+            const studyKeywords = /اشرح|لخص|درس|طالب|بحث|ما هو|قارن|pdf|امتحان|ملخص/i;
+
             sessionsArr.forEach(session => {
-                const isActive = session.id === currentState.sessionId;
-                
-                // ضفنا relative و overflow-hidden عشان نظبط الزرار المطلق
-                const itemDiv = document.createElement('div');
-                itemDiv.className = `relative w-full text-right p-3 rounded-lg text-sm transition-all flex items-center gap-3 group history-item cursor-pointer overflow-hidden ${isActive ? 'active text-blue-200' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`;
-                
-                itemDiv.onclick = (e) => {
-                    // لو الدوسة مكنتش على زرار الحذف، افتح الشات
-                    if(!e.target.closest('button')) {
-                        loadSession(session.id);
-                    }
-                };
-                
-                // التعديل السحري هنا:
-                // زرار الحذف بقى (absolute left-2) يعني دايماً ثابت على الشمال مهما حصل
-                // وادينا للعنوان (min-h-[20px]) عشان لو فاضي ياخد مساحة وميكشش
-                itemDiv.innerHTML = `
-                    <i data-lucide="message-square" class="w-4 h-4 opacity-70 group-hover:text-blue-400 shrink-0 pointer-events-none"></i>
-                    
-                    <span class="truncate font-sans flex-1 text-right pointer-events-none min-w-0 min-h-[20px]" dir="auto">${escapeHtmlText(session.title) || 'محادثة برمجية'}</span>
-                    
-                    <button onclick="deleteSession(event, '${session.id}')" class="absolute left-2 opacity-0 group-hover:opacity-100 p-1.5 bg-black/80 backdrop-blur-sm hover:bg-red-500/20 hover:text-red-400 rounded-md transition-all z-10 shadow-lg" title="حذف المحادثة">
-                        <i data-lucide="trash-2" class="w-4 h-4"></i>
-                    </button>
-                    
-                    <div class="absolute left-0 top-0 bottom-0 w-10 bg-gradient-to-r from-black/80 to-transparent opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity"></div>
-                `;
-                listContainer.appendChild(itemDiv);
+                if (codeKeywords.test(session.title)) folders['💻 مشاريع البرمجة'].push(session);
+                else if (studyKeywords.test(session.title)) folders['📚 الدراسة والأبحاث'].push(session);
+                else folders['💬 محادثات عامة'].push(session);
             });
-            lucide.createIcons();
+
+            // رسم المجلدات
+            Object.keys(folders).forEach(folderName => {
+                if (folders[folderName].length === 0) return;
+
+                // رأس المجلد
+                const folderHeader = document.createElement('div');
+                folderHeader.className = 'flex items-center gap-2 mt-4 mb-1 px-2 text-gray-500 text-[11px] font-bold font-sans';
+                folderHeader.innerHTML = `<span>${folderName}</span> <div class="flex-1 h-px bg-white/5"></div>`;
+                listContainer.appendChild(folderHeader);
+
+                // محادثات المجلد
+                folders[folderName].forEach(session => {
+                    const isActive = session.id === currentState.sessionId;
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = `relative w-full text-right p-3 rounded-lg text-sm transition-all flex items-center gap-3 group history-item cursor-pointer overflow-hidden ${isActive ? 'active text-blue-200 bg-blue-600/10' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`;
+                    
+                    itemDiv.onclick = (e) => {
+                        if(!e.target.closest('button')) loadSession(session.id);
+                    };
+                    
+                    itemDiv.innerHTML = `
+                        <i data-lucide="${isActive ? 'radio' : 'message-square'}" class="w-4 h-4 opacity-70 group-hover:text-blue-400 shrink-0 pointer-events-none ${isActive ? 'animate-pulse text-blue-400' : ''}"></i>
+                        <span class="truncate font-sans flex-1 text-right pointer-events-none min-w-0 min-h-[20px]" dir="auto">${escapeHtmlText(session.title) || 'محادثة جديدة'}</span>
+                        
+                        <button onclick="deleteSession(event, '${session.id}')" class="absolute left-2 opacity-0 group-hover:opacity-100 p-1.5 bg-black/80 backdrop-blur-sm hover:bg-red-500/20 hover:text-red-400 rounded-md transition-all z-10 shadow-lg" title="حذف المحادثة">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                        <div class="absolute left-0 top-0 bottom-0 w-10 bg-gradient-to-r from-black/80 to-transparent opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity"></div>
+                    `;
+                    listContainer.appendChild(itemDiv);
+                });
+            });
+            lucide.createIcons({root: listContainer});
         }
 
         async function loadSession(id) {
@@ -1921,19 +1956,137 @@ function openLoginPage() {
         const userInput = document.getElementById('user-input');
         const welcomePlane = document.getElementById('welcome-plane');
 
+        // ⚡ ميزة التوقع (Predictive Typing)
+        const commonPrompts = [
+            "اشرح لي الكود التالي بالتفصيل:",
+            "اكتب لي سكريبت باستخدام لغة",
+            "كيف يمكنني برمجة",
+            "قم بمراجعة هذا الكود واستخراج الأخطاء:",
+            "ارسم لي صورة تخيلية لـ",
+            "ما هي أفضل طريقة لعمل",
+            "صمم لي واجهة مستخدم باستخدام React و Tailwind",
+            "لخص لي هذا النص في نقاط رئيسية:"
+        ];
+
         userInput.addEventListener('input', function() {
             this.style.height = 'auto';
             this.style.height = (this.scrollHeight) + 'px';
+            
+            const val = this.value;
+            const ghostEl = document.getElementById('ghost-text');
+            
+            if (!val || val.trim() === '') {
+                ghostEl.innerText = '';
+                return;
+            }
+            
+            const match = commonPrompts.find(p => p.startsWith(val) && p !== val);
+            if (match) {
+                ghostEl.innerText = match;
+            } else {
+                ghostEl.innerText = '';
+            }
         });
 
         userInput.addEventListener('keydown', function(e) {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
+                document.getElementById('ghost-text').innerText = '';
                 sendMessage();
+            }
+            
+            // ⚡ إكمال النص بـ Tab
+            if (e.key === 'Tab') {
+                const ghostEl = document.getElementById('ghost-text');
+                if (ghostEl.innerText && ghostEl.innerText.length > this.value.length) {
+                    e.preventDefault();
+                    this.value = ghostEl.innerText;
+                    ghostEl.innerText = '';
+                    this.dispatchEvent(new Event('input')); // لتحديث الطول
+                }
             }
         });
 
+        // ⚡ لوحة الأوامر (Command Palette - Ctrl+K)
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
+                e.preventDefault();
+                openCommandPalette();
+            }
+            if (e.key === 'Escape') {
+                closeCommandPalette();
+            }
+        });
+
+        function openCommandPalette() {
+            const modal = document.getElementById('command-palette');
+            const input = document.getElementById('cmd-input');
+            input.value = '';
+            renderCommandList(''); 
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modal.querySelector('div').classList.remove('scale-95');
+                modal.querySelector('div').classList.add('scale-100');
+                input.focus();
+            }, 10);
+            
+            if (window.innerWidth < 768) {
+                const sidebar = document.getElementById('sidebar');
+                if (!sidebar.classList.contains('translate-x-full')) toggleSidebar();
+            }
+        }
+
+        function closeCommandPalette() {
+            const modal = document.getElementById('command-palette');
+            modal.classList.add('opacity-0');
+            modal.querySelector('div').classList.remove('scale-100');
+            modal.querySelector('div').classList.add('scale-95');
+            setTimeout(() => { modal.classList.add('hidden'); }, 300);
+        }
+
+        document.getElementById('cmd-input')?.addEventListener('input', function(e) {
+            renderCommandList(e.target.value.toLowerCase());
+        });
+
+        function renderCommandList(query) {
+            const list = document.getElementById('cmd-list');
+            list.innerHTML = '';
+            
+            const commands = [
+                { id: 'new_chat', title: 'محادثة جديدة', desc: 'ابدأ شات جديد ونظيف', icon: 'plus-circle', action: () => { closeCommandPalette(); startNewSession(); } },
+                { id: 'settings', title: 'فتح الإعدادات', desc: 'إدارة حسابك وتخصيص كوارك', icon: 'settings', action: () => { closeCommandPalette(); openSettings(); } },
+                { id: 'model_flash', title: 'تفعيل Quark 2.5 Flash', desc: 'الموديل الذكي الشامل', icon: 'zap', action: () => { closeCommandPalette(); selectModel('gemini-2.5-flash', 'Quark 2.5 Flash'); showToast('تم التبديل إلى Flash ⚡'); } },
+                { id: 'model_glm', title: 'تفعيل Quark 2 Flash', desc: 'للرياضيات والبرمجة', icon: 'code', action: () => { closeCommandPalette(); selectModel('glm-4-flash', 'Quark 2 Flash'); showToast('تم التبديل إلى GLM 💻'); } },
+                { id: 'voice_call', title: 'بدء مكالمة حية', desc: 'تحدث مع كوارك بالصوت والصورة', icon: 'mic', action: () => { closeCommandPalette(); toggleLiveCall(); } },
+            ];
+
+            const filtered = commands.filter(c => c.title.toLowerCase().includes(query) || c.id.includes(query));
+            
+            if (filtered.length === 0) {
+                list.innerHTML = '<div class="p-6 text-center text-gray-500 text-sm font-sans">لا توجد أوامر مطابقة</div>';
+                return;
+            }
+
+            filtered.forEach((cmd, idx) => {
+                const item = document.createElement('div');
+                item.className = `flex items-center gap-4 p-3 rounded-xl cursor-pointer transition-all ${idx === 0 ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30' : 'text-gray-300 hover:bg-white/5 border border-transparent'}`;
+                item.innerHTML = `
+                    <div class="p-2 bg-white/5 rounded-lg"><i data-lucide="${cmd.icon}" class="w-5 h-5"></i></div>
+                    <div class="flex flex-col text-right">
+                        <span class="font-bold font-sans text-sm">${cmd.title}</span>
+                        <span class="text-[10px] text-gray-500">${cmd.desc}</span>
+                    </div>
+                `;
+                item.onclick = cmd.action;
+                list.appendChild(item);
+            });
+            lucide.createIcons({root: list});
+        }
+
 // 🚀 دالة تحسين الـ Prompt سحرياً
+
+
         async function enhanceUserPrompt() {
             const input = document.getElementById('user-input');
             const enhanceBtn = document.getElementById('enhance-prompt-btn');
