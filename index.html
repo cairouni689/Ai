@@ -1787,53 +1787,32 @@ function openLoginPage() {
                 return;
             }
 
-            // ⚡ تصنيف ذكي للمحادثات (مجلدات وهمية)
-            const folders = {
-                '💻 مشاريع البرمجة': [],
-                '📚 الدراسة والأبحاث': [],
-                '💬 محادثات عامة': []
-            };
-
-            const codeKeywords = /برمج|كود|سكريبت|html|css|js|python|react|خطأ|bug|دالة|api|json|قاعدة|موقع/i;
-            const studyKeywords = /اشرح|لخص|درس|طالب|بحث|ما هو|قارن|pdf|امتحان|ملخص/i;
-
             sessionsArr.forEach(session => {
-                if (codeKeywords.test(session.title)) folders['💻 مشاريع البرمجة'].push(session);
-                else if (studyKeywords.test(session.title)) folders['📚 الدراسة والأبحاث'].push(session);
-                else folders['💬 محادثات عامة'].push(session);
-            });
-
-            // رسم المجلدات
-            Object.keys(folders).forEach(folderName => {
-                if (folders[folderName].length === 0) return;
-
-                // رأس المجلد
-                const folderHeader = document.createElement('div');
-                folderHeader.className = 'flex items-center gap-2 mt-4 mb-1 px-2 text-gray-500 text-[11px] font-bold font-sans';
-                folderHeader.innerHTML = `<span>${folderName}</span> <div class="flex-1 h-px bg-white/5"></div>`;
-                listContainer.appendChild(folderHeader);
-
-                // محادثات المجلد
-                folders[folderName].forEach(session => {
-                    const isActive = session.id === currentState.sessionId;
-                    const itemDiv = document.createElement('div');
-                    itemDiv.className = `relative w-full text-right p-3 rounded-lg text-sm transition-all flex items-center gap-3 group history-item cursor-pointer overflow-hidden ${isActive ? 'active text-blue-200 bg-blue-600/10' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`;
+                const isActive = session.id === currentState.sessionId;
+                const itemDiv = document.createElement('div');
+                
+                // تصميم العنصر مع تمييز الشات النشط
+                itemDiv.className = `relative w-full text-right p-3 rounded-lg text-sm transition-all flex items-center gap-3 group history-item cursor-pointer overflow-hidden ${isActive ? 'active text-blue-200 bg-blue-600/10' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`;
+                
+                itemDiv.onclick = (e) => {
+                    // لو الدوسة مكنتش على زرار الحذف، افتح الشات
+                    if(!e.target.closest('button')) {
+                        loadSession(session.id);
+                    }
+                };
+                
+                itemDiv.innerHTML = `
+                    <i data-lucide="${isActive ? 'radio' : 'message-square'}" class="w-4 h-4 opacity-70 group-hover:text-blue-400 shrink-0 pointer-events-none ${isActive ? 'animate-pulse text-blue-400' : ''}"></i>
                     
-                    itemDiv.onclick = (e) => {
-                        if(!e.target.closest('button')) loadSession(session.id);
-                    };
+                    <span class="truncate font-sans flex-1 text-right pointer-events-none min-w-0 min-h-[20px]" dir="auto">${escapeHtmlText(session.title) || 'محادثة جديدة ✨'}</span>
                     
-                    itemDiv.innerHTML = `
-                        <i data-lucide="${isActive ? 'radio' : 'message-square'}" class="w-4 h-4 opacity-70 group-hover:text-blue-400 shrink-0 pointer-events-none ${isActive ? 'animate-pulse text-blue-400' : ''}"></i>
-                        <span class="truncate font-sans flex-1 text-right pointer-events-none min-w-0 min-h-[20px]" dir="auto">${escapeHtmlText(session.title) || 'محادثة جديدة'}</span>
-                        
-                        <button onclick="deleteSession(event, '${session.id}')" class="absolute left-2 opacity-0 group-hover:opacity-100 p-1.5 bg-black/80 backdrop-blur-sm hover:bg-red-500/20 hover:text-red-400 rounded-md transition-all z-10 shadow-lg" title="حذف المحادثة">
-                            <i data-lucide="trash-2" class="w-4 h-4"></i>
-                        </button>
-                        <div class="absolute left-0 top-0 bottom-0 w-10 bg-gradient-to-r from-black/80 to-transparent opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity"></div>
-                    `;
-                    listContainer.appendChild(itemDiv);
-                });
+                    <button onclick="deleteSession(event, '${session.id}')" class="absolute left-2 opacity-0 group-hover:opacity-100 p-1.5 bg-black/80 backdrop-blur-sm hover:bg-red-500/20 hover:text-red-400 rounded-md transition-all z-10 shadow-lg" title="حذف المحادثة">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                    
+                    <div class="absolute left-0 top-0 bottom-0 w-10 bg-gradient-to-r from-black/80 to-transparent opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity"></div>
+                `;
+                listContainer.appendChild(itemDiv);
             });
             lucide.createIcons({root: listContainer});
         }
