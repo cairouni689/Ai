@@ -644,12 +644,16 @@
             </button>
             
             <button onclick="toggleCameraStream()" id="cam-toggle-btn" class="w-[3.5rem] h-[3.5rem] md:w-[4.5rem] md:h-[4.5rem] bg-[#2a2a2c] hover:bg-[#383a3f] text-white rounded-[2rem] flex items-center justify-center transition-all duration-300 border border-white/5">
-                <i data-lucide="video" id="cam-icon" class="w-6 h-6 md:w-7 md:h-7"></i>
-            </button>
+                        <i data-lucide="video" id="cam-icon" class="w-6 h-6 md:w-7 md:h-7"></i>
+                    </button>
 
-            <button onclick="switchCamera()" id="switch-cam-btn" class="hidden w-[3.5rem] h-[3.5rem] md:w-[4.5rem] md:h-[4.5rem] bg-[#2a2a2c] hover:bg-[#383a3f] text-white rounded-[2rem] flex items-center justify-center transition-transform hover:scale-105 active:scale-95 border border-white/5">
-                <i data-lucide="switch-camera" class="w-6 h-6 md:w-7 md:h-7"></i>
-            </button>
+                    <button onclick="toggleScreenShareStream()" id="screen-share-btn" class="w-[3.5rem] h-[3.5rem] md:w-[4.5rem] md:h-[4.5rem] bg-[#2a2a2c] hover:bg-[#383a3f] text-white rounded-[2rem] flex items-center justify-center transition-all duration-300 border border-white/5" title="مشاركة الشاشة">
+                        <i data-lucide="monitor-up" id="screen-icon" class="w-6 h-6 md:w-7 md:h-7"></i>
+                    </button>
+
+                    <button onclick="switchCamera()" id="switch-cam-btn" class="hidden w-[3.5rem] h-[3.5rem] md:w-[4.5rem] md:h-[4.5rem] bg-[#2a2a2c] hover:bg-[#383a3f] text-white rounded-[2rem] flex items-center justify-center transition-transform hover:scale-105 active:scale-95 border border-white/5">
+                        <i data-lucide="switch-camera" class="w-6 h-6 md:w-7 md:h-7"></i>
+                    </button>
         </div>
     </div>
 
@@ -3212,6 +3216,7 @@ function startFakeThinking(thinkingId) {
         let isMicMuted = false;
         let currentFacingMode = "environment"; 
         let activeAudioSources = [];
+        let isScreenSharing = false;
 
         async function toggleLiveCall(autoGreet = false) {
             const liveBtn = document.getElementById('live-call-btn');
@@ -3389,17 +3394,19 @@ function startFakeThinking(thinkingId) {
             }
         }
 
-        // دالة تشغيل وإيقاف الكاميرا بحل مشكلة التهنيج
+        // دالة تشغيل وإيقاف الكاميرا أو الشاشة بحل مشكلة التهنيج
         async function toggleCameraStream() {
             const videoContainer = document.getElementById('video-container');
             const videoPreview = document.getElementById('live-video-preview');
             const camIcon = document.getElementById('cam-icon');
             const camBtn = document.getElementById('cam-toggle-btn');
+            const screenIcon = document.getElementById('screen-icon');
+            const screenBtn = document.getElementById('screen-share-btn');
             const switchBtn = document.getElementById('switch-cam-btn');
             const spacer = document.getElementById('video-spacer');
 
             if (liveVideoStream) {
-                // قفل الكاميرا
+                // قفل أي فيديو شغال (كاميرا أو شاشة)
                 liveVideoStream.getTracks().forEach(track => track.stop());
                 liveVideoStream = null;
                 videoPreview.srcObject = null;
@@ -3410,42 +3417,141 @@ function startFakeThinking(thinkingId) {
                 
                 if (videoInterval) { clearInterval(videoInterval); videoInterval = null; }
                 
+                // إعادة الأزرار لوضعها الطبيعي
                 camIcon.setAttribute('data-lucide', 'video');
                 camBtn.classList.replace('bg-white', 'bg-[#2a2a2c]');
                 camBtn.classList.replace('text-black', 'text-white');
+                
+                if(screenIcon) screenIcon.setAttribute('data-lucide', 'monitor-up');
+                if(screenBtn) {
+                    screenBtn.classList.replace('bg-white', 'bg-[#2a2a2c]');
+                    screenBtn.classList.replace('text-black', 'text-white');
+                }
+                
                 document.getElementById('header-cam-icon').setAttribute('data-lucide', 'camera-off');
                 lucide.createIcons();
-            } else {
-                // تشغيل الكاميرا
-                try {
-                    liveVideoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: currentFacingMode } });
-                    videoPreview.srcObject = liveVideoStream;
-                    videoContainer.classList.remove('hidden');
-                    videoContainer.classList.add('flex'); 
-                    spacer.classList.add('hidden');
-                    switchBtn.classList.remove('hidden'); 
-                    
-                    camIcon.setAttribute('data-lucide', 'video-off');
-                    camBtn.classList.replace('bg-[#2a2a2c]', 'bg-white');
-                    camBtn.classList.replace('text-white', 'text-black');
-                    document.getElementById('header-cam-icon').setAttribute('data-lucide', 'camera');
-                    lucide.createIcons();
-
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    
-                    videoInterval = setInterval(() => {
-                        if (liveWs && liveWs.readyState === WebSocket.OPEN && videoPreview.readyState >= 2) {
-                            canvas.width = videoPreview.videoWidth;
-                            canvas.height = videoPreview.videoHeight;
-                            ctx.drawImage(videoPreview, 0, 0);
-                            const base64Image = canvas.toDataURL('image/jpeg', 0.5).split(',')[1];
-                            liveWs.send(JSON.stringify({ realtimeInput: { mediaChunks: [{ mimeType: "image/jpeg", data: base64Image }] } }));
-                        }
-                    }, 2000);
-                } catch (err) {
-                    showQuarkAlert('مش قادرين نوصل للكاميرا، اتأكد إنك مدي المتصفح صلاحية الكاميرا! 📷', 'error');
+                
+                // لو كنا بنقفل الكاميرا أصلاً، نخرج
+                if (!isScreenSharing) {
+                    return;
                 }
+                isScreenSharing = false;
+            }
+            
+            // تشغيل الكاميرا
+            try {
+                liveVideoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: currentFacingMode } });
+                videoPreview.srcObject = liveVideoStream;
+                videoContainer.classList.remove('hidden');
+                videoContainer.classList.add('flex'); 
+                spacer.classList.add('hidden');
+                switchBtn.classList.remove('hidden'); 
+                isScreenSharing = false;
+                
+                camIcon.setAttribute('data-lucide', 'video-off');
+                camBtn.classList.replace('bg-[#2a2a2c]', 'bg-white');
+                camBtn.classList.replace('text-white', 'text-black');
+                document.getElementById('header-cam-icon').setAttribute('data-lucide', 'camera');
+                lucide.createIcons();
+
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                videoInterval = setInterval(() => {
+                    if (liveWs && liveWs.readyState === WebSocket.OPEN && videoPreview.readyState >= 2) {
+                        canvas.width = videoPreview.videoWidth;
+                        canvas.height = videoPreview.videoHeight;
+                        ctx.drawImage(videoPreview, 0, 0);
+                        const base64Image = canvas.toDataURL('image/jpeg', 0.5).split(',')[1];
+                        liveWs.send(JSON.stringify({ realtimeInput: { mediaChunks: [{ mimeType: "image/jpeg", data: base64Image }] } }));
+                    }
+                }, 2000);
+            } catch (err) {
+                showQuarkAlert('مش قادرين نوصل للكاميرا، اتأكد إنك مدي المتصفح صلاحية الكاميرا! 📷', 'error');
+            }
+        }
+
+        // دالة مشاركة الشاشة (Screen Sharing)
+        async function toggleScreenShareStream() {
+            const videoContainer = document.getElementById('video-container');
+            const videoPreview = document.getElementById('live-video-preview');
+            const screenIcon = document.getElementById('screen-icon');
+            const screenBtn = document.getElementById('screen-share-btn');
+            const camIcon = document.getElementById('cam-icon');
+            const camBtn = document.getElementById('cam-toggle-btn');
+            const switchBtn = document.getElementById('switch-cam-btn');
+            const spacer = document.getElementById('video-spacer');
+
+            if (liveVideoStream) {
+                // لو في أي فيديو شغال، نوقفه الأول
+                liveVideoStream.getTracks().forEach(track => track.stop());
+                liveVideoStream = null;
+                videoPreview.srcObject = null;
+                videoContainer.classList.add('hidden');
+                videoContainer.classList.remove('flex'); 
+                spacer.classList.remove('hidden');
+                switchBtn.classList.add('hidden'); 
+                
+                if (videoInterval) { clearInterval(videoInterval); videoInterval = null; }
+                
+                // إعادة الأزرار لوضعها الطبيعي
+                camIcon.setAttribute('data-lucide', 'video');
+                camBtn.classList.replace('bg-white', 'bg-[#2a2a2c]');
+                camBtn.classList.replace('text-black', 'text-white');
+                
+                if(screenIcon) screenIcon.setAttribute('data-lucide', 'monitor-up');
+                if(screenBtn) {
+                    screenBtn.classList.replace('bg-white', 'bg-[#2a2a2c]');
+                    screenBtn.classList.replace('text-black', 'text-white');
+                }
+                
+                document.getElementById('header-cam-icon').setAttribute('data-lucide', 'camera-off');
+                lucide.createIcons();
+                
+                // لو كنا بنقفل الشاشة اللي كانت شغالة أصلاً، نخرج
+                if (isScreenSharing) {
+                    isScreenSharing = false;
+                    return;
+                }
+                isScreenSharing = false;
+            }
+            
+            // تشغيل مشاركة الشاشة
+            try {
+                liveVideoStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
+                isScreenSharing = true;
+                videoPreview.srcObject = liveVideoStream;
+                videoContainer.classList.remove('hidden');
+                videoContainer.classList.add('flex'); 
+                spacer.classList.add('hidden');
+                switchBtn.classList.add('hidden'); // التبديل بين الكاميرات ملوش لازمة في مشاركة الشاشة
+                
+                screenIcon.setAttribute('data-lucide', 'monitor-off');
+                screenBtn.classList.replace('bg-[#2a2a2c]', 'bg-white');
+                screenBtn.classList.replace('text-white', 'text-black');
+                document.getElementById('header-cam-icon').setAttribute('data-lucide', 'monitor');
+                lucide.createIcons();
+
+                // لو اليوزر قفل المشاركة من إشعار المتصفح نفسه (Stop sharing)
+                liveVideoStream.getVideoTracks()[0].onended = () => {
+                    if (isScreenSharing) toggleScreenShareStream();
+                };
+
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                videoInterval = setInterval(() => {
+                    if (liveWs && liveWs.readyState === WebSocket.OPEN && videoPreview.readyState >= 2) {
+                        canvas.width = videoPreview.videoWidth;
+                        canvas.height = videoPreview.videoHeight;
+                        ctx.drawImage(videoPreview, 0, 0);
+                        const base64Image = canvas.toDataURL('image/jpeg', 0.5).split(',')[1];
+                        liveWs.send(JSON.stringify({ realtimeInput: { mediaChunks: [{ mimeType: "image/jpeg", data: base64Image }] } }));
+                    }
+                }, 2000);
+            } catch (err) {
+                isScreenSharing = false;
+                // اليوزر لغى المشاركة أو المتصفح مبيدعمش
             }
         }
 
@@ -3475,6 +3581,8 @@ function startFakeThinking(thinkingId) {
             if (liveVideoStream) { liveVideoStream.getTracks().forEach(track => track.stop()); liveVideoStream = null; }
             if (videoInterval) { clearInterval(videoInterval); videoInterval = null; }
             
+            isScreenSharing = false;
+            
             document.getElementById('live-video-preview').srcObject = null;
             document.getElementById('video-container').classList.add('hidden');
             document.getElementById('video-container').classList.remove('flex');
@@ -3487,6 +3595,14 @@ function startFakeThinking(thinkingId) {
             if(camBtn) {
                 camBtn.classList.replace('bg-white', 'bg-[#2a2a2c]');
                 camBtn.classList.replace('text-black', 'text-white');
+            }
+
+            const screenIcon = document.getElementById('screen-icon');
+            const screenBtn = document.getElementById('screen-share-btn');
+            if(screenIcon) screenIcon.setAttribute('data-lucide', 'monitor-up');
+            if(screenBtn) {
+                screenBtn.classList.replace('bg-white', 'bg-[#2a2a2c]');
+                screenBtn.classList.replace('text-black', 'text-white');
             }
 
             const micIcon = document.getElementById('mic-icon');
