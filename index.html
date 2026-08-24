@@ -925,6 +925,13 @@
                     Login with Google
                 </button>
 
+                <button onclick="signInWithGitHub()" class="w-full py-3.5 px-4 mb-4 bg-transparent border border-white/20 hover:border-white/50 hover:bg-white/5 rounded-[2rem] text-[15px] flex items-center justify-center gap-3 font-medium text-white transition-all duration-300 group relative">
+                    <div class="absolute left-5">
+                        <i data-lucide="github" class="w-5 h-5 text-white"></i>
+                    </div>
+                    Login with GitHub
+                </button>
+
                 <p class="mt-8 text-[14px] text-gray-400 font-sans text-center">
                     أهلاً بك في عالم كوارك الذكي 🚀
                 </p>
@@ -1211,6 +1218,24 @@ async function signInWithGoogle() {
                 }
             });
             if (error) console.error("Error signing in:", error.message);
+        }
+
+        async function signInWithGitHub() {
+            // حفظ المحادثة المؤقتة قبل الانتقال لجيت هاب
+            if (!currentUserId && currentState.messages.length > 0) {
+                localStorage.setItem('pendingGuestSession', JSON.stringify({
+                    messages: currentState.messages
+                }));
+            }
+            
+            const { error } = await supabaseClient.auth.signInWithOAuth({
+                provider: 'github',
+                options: {
+                    redirectTo: 'https://quark-4hz.pages.dev/',
+                    scopes: 'repo user' // عشان يقدر يقرا الكود ويعمل Commits
+                }
+            });
+            if (error) console.error("Error signing in with GitHub:", error.message);
         }
 
 function openLoginPage() {
