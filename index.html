@@ -526,7 +526,7 @@
                 <div class="rounded-[2rem] w-full flex items-end p-2 bg-[#1e1e1e] border border-white/10 transition-all duration-300 focus-within:border-blue-500/50 focus-within:shadow-[0_0_15px_rgba(59,130,246,0.15)]">
                     <div class="pl-1 relative" id="attachment-container">
                     <input type="file" id="file-upload" class="hidden" multiple onchange="handleFileUpload(event)">
-                        <div id="attachment-menu" class="absolute bottom-[120%] right-0 mb-1 w-40 bg-[#1e1e1e]/95 backdrop-blur-md border border-white/10 rounded-xl shadow-[0_10px_25px_rgba(0,0,0,0.8)] overflow-hidden transition-all duration-200 opacity-0 pointer-events-none transform translate-y-2 z-50">
+                        <div id="attachment-menu" class="absolute bottom-[120%] right-0 mb-1 w-44 bg-[#1e1e1e]/95 backdrop-blur-md border border-white/10 rounded-xl shadow-[0_10px_25px_rgba(0,0,0,0.8)] overflow-hidden transition-all duration-200 opacity-0 pointer-events-none transform translate-y-2 z-50">
                             <button onclick="triggerUpload('camera')" class="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors border-b border-white/5 text-right">
                                 <div class="p-1.5 bg-green-500/20 rounded-md"><i data-lucide="camera" class="w-4 h-4 text-green-400"></i></div>
                                 <span>التقاط صورة</span>
@@ -534,6 +534,10 @@
                             <button onclick="triggerUpload('image')" class="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors border-b border-white/5 text-right">
                                 <div class="p-1.5 bg-blue-500/20 rounded-md"><i data-lucide="image" class="w-4 h-4 text-blue-400"></i></div>
                                 <span>صورة</span>
+                            </button>
+                            <button onclick="triggerUpload('audio')" class="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors border-b border-white/5 text-right">
+                                <div class="p-1.5 bg-amber-500/20 rounded-md"><i data-lucide="mic" class="w-4 h-4 text-amber-400"></i></div>
+                                <span>ملف صوتي</span>
                             </button>
                             <button onclick="triggerUpload('file')" class="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors text-right">
                                 <div class="p-1.5 bg-purple-500/20 rounded-md"><i data-lucide="file-text" class="w-4 h-4 text-purple-400"></i></div>
@@ -2934,6 +2938,7 @@ function startFakeThinking(thinkingId) {
         let attachedFiles = [];
 
         function handleFileUpload(event) {
+            const intendedType = event.target.dataset.uploadType || 'file';
             const files = Array.from(event.target.files);
             if (files.length === 0) return;
 
@@ -2953,17 +2958,15 @@ function startFakeThinking(thinkingId) {
                             const zip = await JSZip.loadAsync(e.target.result);
                             let projectContent = `تم رفع مشروع برمجي واسمه: ${file.name}\n\nهيكلة ومحتوى الملفات:\n`;
                             let fileCount = 0;
-                            
+
                             for (let [filename, zipEntry] of Object.entries(zip.files)) {
-                                // نتجاهل مجلدات node_modules و .git وملفات الصور والملفات التنفيذية
                                 if (!zipEntry.dir && !filename.includes('node_modules') && !filename.includes('.git') && !filename.match(/\.(jpg|jpeg|png|gif|ico|mp4|mp3|exe|dll|pdf|woff|ttf|eot)$/i)) {
                                     const content = await zipEntry.async('string');
                                     projectContent += `\n--- الملف: ${filename} ---\n\`\`\`\n${content.substring(0, 10000)}\n\`\`\`\n`;
                                     fileCount++;
                                 }
                             }
-                            
-                            // تحويل النص لـ base64 عشان يتبعت كملف نصي للباك إند
+
                             const encoder = new TextEncoder();
                             const uint8Array = encoder.encode(projectContent);
                             let binary = '';
@@ -2991,9 +2994,17 @@ function startFakeThinking(thinkingId) {
                     const reader = new FileReader();
                     reader.onload = function(e) {
                         const base64Data = e.target.result.split(',')[1];
+                        
+                        let finalMimeType = file.type;
+                        if (intendedType === 'audio' && (!finalMimeType || !finalMimeType.startsWith('audio/'))) {
+                            finalMimeType = 'audio/ogg'; 
+                        } else if (!finalMimeType) {
+                            finalMimeType = 'text/plain';
+                        }
+
                         const newFile = {
                             id: Date.now() + Math.random().toString(36).substr(2, 9),
-                            mimeType: file.type || 'text/plain',
+                            mimeType: finalMimeType,
                             data: base64Data,
                             name: file.name,
                             url: e.target.result
@@ -3030,8 +3041,11 @@ function startFakeThinking(thinkingId) {
             
             attachedFiles.forEach(f => {
                 const isImage = f.mimeType.startsWith('image/');
+                const isAudio = f.mimeType.startsWith('audio/');
                 const previewHtml = isImage 
                     ? `<img src="${f.url}" class="w-12 h-12 object-cover rounded border border-white/10" />`
+                    : isAudio
+                    ? `<div class="w-12 h-12 flex items-center justify-center bg-green-500/20 text-green-400 rounded border border-green-500/30"><i data-lucide="music" class="w-6 h-6"></i></div>`
                     : `<div class="w-12 h-12 flex items-center justify-center bg-blue-500/20 text-blue-400 rounded border border-blue-500/30"><i data-lucide="file-text" class="w-6 h-6"></i></div>`;
                     
                 container.innerHTML += `
@@ -3080,9 +3094,14 @@ function startFakeThinking(thinkingId) {
 
         function triggerUpload(type) {
             const input = document.getElementById('file-upload');
+            input.dataset.uploadType = type;
             if (type === 'image') { 
                 input.accept = "image/*"; 
                 input.removeAttribute('capture'); 
+            }
+            else if (type === 'audio') {
+                input.accept = "audio/*,.mp3,.wav,.m4a,.ogg";
+                input.removeAttribute('capture');
             }
             else if (type === 'file') { 
                 input.accept = ".pdf,.txt,.csv,.doc,.docx,.zip"; 
@@ -3090,7 +3109,7 @@ function startFakeThinking(thinkingId) {
             }
             else if (type === 'camera') { 
                 input.accept = "image/*"; 
-                input.setAttribute('capture', 'environment'); // ده اللي بيفتح كاميرا الموبايل فوراً
+                input.setAttribute('capture', 'environment');
             }
             input.click();
             closeAttachmentMenu();
