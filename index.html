@@ -2943,8 +2943,8 @@ function startFakeThinking(thinkingId) {
             if (files.length === 0) return;
 
             let totalSize = files.reduce((sum, file) => sum + file.size, 0);
-            if (totalSize > 20 * 1024 * 1024) {
-                showQuarkAlert('حجم الملفات مجتمعة تخطى 20 ميجابايت يا هندسة. قللهم شوية! 📁', 'error');
+            if (totalSize > 100 * 1024 * 1024) {
+                showQuarkAlert('حجم الملفات مجتمعة تخطى 100 ميجابايت يا هندسة. قللهم شوية! 📁', 'error');
                 event.target.value = '';
                 return;
             }
