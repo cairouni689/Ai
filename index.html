@@ -2563,6 +2563,17 @@ async function sendMessage() {
                                      alt="صورة مرفقة" 
                                      onclick="openImageModal(this.src)">
                             `;
+                        } else if (attachment.mimeType.startsWith('audio/')) {
+                            const audioSrc = `data:${attachment.mimeType};base64,${attachment.data}`;
+                            contentHTML += `
+                                <div class="flex flex-col gap-2 p-3 bg-[#1e1e1e]/80 rounded-xl border border-amber-500/30 w-fit min-w-[250px] max-w-[280px] shadow-lg shrink-0 pointer-events-auto">
+                                    <div class="flex items-center gap-2">
+                                        <div class="p-1.5 bg-amber-500/20 rounded-md"><i data-lucide="music" class="w-4 h-4 text-amber-400"></i></div>
+                                        <span dir="ltr" class="font-medium tracking-wide text-[11px] md:text-xs text-gray-200 truncate">${escapeHtmlText(attachment.name)}</span>
+                                    </div>
+                                    <audio controls src="${audioSrc}" class="w-full h-10 mt-1 rounded-md outline-none pointer-events-auto relative z-50" style="filter: invert(0.9) hue-rotate(180deg);"></audio>
+                                </div>
+                            `;
                         } else {
                             const fileSrc = attachment.url ? attachment.url : `data:${attachment.mimeType};base64,${attachment.data}`;
                             const safeName = escapeHtmlText(attachment.name).replace(/'/g, "\\'");
@@ -3007,7 +3018,7 @@ function startFakeThinking(thinkingId) {
                             mimeType: finalMimeType,
                             data: base64Data,
                             name: file.name,
-                            url: e.target.result
+                            url: `data:${finalMimeType};base64,${base64Data}`
                         };
                         attachedFiles.push(newFile);
 
