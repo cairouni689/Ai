@@ -494,7 +494,11 @@
         </div>
 
         <div id="sidebar-bottom-section" class="mt-auto border-t border-white/5 bg-black/40 p-4 sidebar-text">
-            </div>
+            <button onclick="openLoginPage()" class="w-full py-3 mb-4 bg-white text-black hover:bg-gray-200 rounded-xl text-sm flex items-center justify-center gap-2 font-bold transition-all shadow-[0_0_15px_rgba(255,255,255,0.2)]">
+                <i data-lucide="log-in" class="w-4 h-4"></i>
+                تسجيل الدخول
+            </button>
+        </div>
     </aside>
 
         <main id="main-content-area" class="flex-1 flex flex-col relative w-full h-full z-10 overflow-y-auto custom-scrollbar scroll-smooth">
@@ -1707,6 +1711,9 @@ function openLoginPage() {
 `;
 
         document.addEventListener('DOMContentLoaded', async () => {
+            initStars();    
+            animateStars(); 
+
             const { data, error } = await supabaseClient.auth.getSession();
             let isMigrated = false;
 
@@ -1729,8 +1736,6 @@ function openLoginPage() {
             }
             
             loadSessionsList();
-            initStars();    
-            animateStars(); 
         });
 
 
