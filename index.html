@@ -455,15 +455,6 @@
                         <i data-lucide="check" class="w-4 h-4 text-blue-400 opacity-0 transition-opacity mobile-check-icon"></i>
                     </div>
 
-                                        
-                    <div class="h-px w-full bg-white/5 my-1"></div>
-
-                    <div onclick="selectModel('allam-2-7b', 'Quark Speed', this)" class="w-full flex items-center justify-between px-4 py-2.5 hover:bg-white/5 cursor-pointer transition-colors text-gray-200 group">
-                        <div class="text-right flex-1">
-                            <span class="block font-medium text-sm font-sans text-right text-yellow-400">Quark Speed</span>
-                        </div>
-                        <i data-lucide="check" class="w-4 h-4 text-blue-400 opacity-0 transition-opacity mobile-check-icon"></i>
-                    </div>
 
                     <div class="h-px w-full bg-white/5 my-1"></div>
 
@@ -636,16 +627,7 @@
                                     <i data-lucide="check" class="w-4 h-4 text-blue-400 opacity-0 transition-opacity check-icon"></i>
                                 </div>
 
-                                
-                                <div class="h-px w-full bg-white/5 my-1"></div>
-
-                                <div onclick="selectModel('allam-2-7b', 'Quark Speed', this)" class="w-full flex items-center justify-between px-4 py-2.5 hover:bg-white/5 cursor-pointer transition-colors text-gray-200 group model-option">
-                                    <div class="text-right flex-1">
-                                        <span class="block font-medium text-sm font-sans text-right text-yellow-400">Quark Speed</span>
-                                        <span class="block text-[10px] text-gray-500 font-sans mt-0.5">سرعة صاروخية وعربي ممتاز</span>
-                                    </div>
-                                    <i data-lucide="check" class="w-4 h-4 text-blue-400 opacity-0 transition-opacity check-icon"></i>
-                                </div>
+                        
 
                                 <div class="h-px w-full bg-white/5 my-1"></div>
 
@@ -2153,7 +2135,6 @@ function openLoginPage() {
                 { id: 'settings', title: 'فتح الإعدادات', desc: 'إدارة حسابك وتخصيص كوارك', icon: 'settings', action: () => { closeCommandPalette(); openSettings(); } },
                 { id: 'model_flash', title: 'تفعيل Quark 2.5 Flash', desc: 'الموديل الذكي الشامل', icon: 'zap', action: () => { closeCommandPalette(); selectModel('gemini-2.5-flash', 'Quark 2.5 Flash'); showToast('تم التبديل إلى Flash ⚡'); } },
                 { id: 'model_glm', title: 'تفعيل Quark 2 Flash', desc: 'للرياضيات والبرمجة', icon: 'code', action: () => { closeCommandPalette(); selectModel('glm-4-flash', 'Quark 2 Flash'); showToast('تم التبديل إلى GLM 💻'); } },
-                { id: 'model_speed', title: 'تفعيل Quark Speed', desc: 'سرعة صاروخية وعربي ممتاز', icon: 'zap-fast', action: () => { closeCommandPalette(); selectModel('allam-2-7b', 'Quark Speed'); showToast('تم التبديل إلى Quark Speed 🚀'); } },
                 { id: 'model_logic', title: 'تفعيل Quark Logic', desc: 'ممتاز في التفكير والمنطق', icon: 'brain', action: () => { closeCommandPalette(); selectModel('qwen/qwen3.8-27b', 'Quark Logic'); showToast('تم التبديل إلى Quark Logic 🚀'); } },
                 { id: 'model_max', title: 'تفعيل Quark Max', desc: 'نموذج عملاق للتحليل المعقد', icon: 'database', action: () => { closeCommandPalette(); selectModel('openai/gpt-oss-120b', 'Quark Max'); showToast('تم التبديل إلى Quark Max 🚀'); } },
                 { id: 'voice_call', title: 'بدء مكالمة حية', desc: 'تحدث مع كوارك بالصوت والصورة', icon: 'mic', action: () => { closeCommandPalette(); toggleLiveCall(); } },
