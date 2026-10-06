@@ -405,7 +405,7 @@
     </style>
 </head>
 
-<body id="main-body" class="relative h-screen flex flex-col font-sans selection:bg-quark-primary selection:text-white transition-all duration-300 md:pr-80">
+<body id="main-body" class="relative h-screen flex flex-col font-sans selection:bg-quark-primary selection:text-white transition-all duration-300 md:pr-[260px]">
 
     <canvas id="space-canvas"></canvas>
 
@@ -468,7 +468,7 @@
        <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/80 z-[60] hidden transition-opacity backdrop-blur-sm md:hidden"></div>
     <aside id="sidebar" class="fixed top-0 right-0 h-full w-[260px] glass-sidebar transition-all duration-300 z-[70] flex flex-col translate-x-full md:translate-x-0">
         <div class="p-4 flex justify-between items-center h-16">
-            <div class="flex items-center gap-2 overflow-hidden">
+            <div class="flex items-center gap-2 overflow-hidden sidebar-text">
                 <div class="w-6 h-6 bg-gray-200 text-[#1a1a1a] rounded-sm flex items-center justify-center font-bold font-serif text-sm shrink-0">Z</div>
             </div>
             <button onclick="toggleSidebar()" class="p-1.5 hover:bg-[#2a2a2a] rounded-md text-gray-400 hover:text-white shrink-0 transition-colors">
@@ -2169,24 +2169,24 @@ function openLoginPage() {
                     overlay.classList.add('hidden');
                 }
             } else {
-                if (sidebar.classList.contains('w-80')) {
-                    sidebar.classList.remove('w-80');
-                    sidebar.classList.add('w-20');
+                if (sidebar.classList.contains('w-[260px]')) {
+                    sidebar.classList.remove('w-[260px]');
+                    sidebar.classList.add('w-16');
                     if (toggleIcon) toggleIcon.style.transform = 'rotate(180deg)';
                     
-                    if (mainBody) { mainBody.classList.remove('md:pr-80'); mainBody.classList.add('md:pr-20'); }
-                    if (mainHeader) { mainHeader.classList.remove('md:right-80'); mainHeader.classList.add('md:right-20'); }
-                    if (bottomBar) { bottomBar.classList.remove('md:right-80'); bottomBar.classList.add('md:right-20'); }
+                    if (mainBody) { mainBody.classList.remove('md:pr-[260px]'); mainBody.classList.add('md:pr-16'); }
+                    if (mainHeader) { mainHeader.classList.remove('md:right-[260px]'); mainHeader.classList.add('md:right-16'); }
+                    if (bottomBar) { bottomBar.classList.remove('md:right-[260px]'); bottomBar.classList.add('md:right-16'); }
                     
                     document.querySelectorAll('.sidebar-text').forEach(el => el.classList.add('hidden'));
                 } else {
-                    sidebar.classList.remove('w-20');
-                    sidebar.classList.add('w-80');
+                    sidebar.classList.remove('w-16');
+                    sidebar.classList.add('w-[260px]');
                     if (toggleIcon) toggleIcon.style.transform = 'rotate(0deg)';
                     
-                    if (mainBody) { mainBody.classList.remove('md:pr-20'); mainBody.classList.add('md:pr-80'); }
-                    if (mainHeader) { mainHeader.classList.remove('md:right-20'); mainHeader.classList.add('md:right-80'); }
-                    if (bottomBar) { bottomBar.classList.remove('md:right-20'); bottomBar.classList.add('md:right-80'); }
+                    if (mainBody) { mainBody.classList.remove('md:pr-16'); mainBody.classList.add('md:pr-[260px]'); }
+                    if (mainHeader) { mainHeader.classList.remove('md:right-16'); mainHeader.classList.add('md:right-[260px]'); }
+                    if (bottomBar) { bottomBar.classList.remove('md:right-16'); bottomBar.classList.add('md:right-[260px]'); }
                     
                     document.querySelectorAll('.sidebar-text').forEach(el => el.classList.remove('hidden'));
                 }
@@ -2601,9 +2601,6 @@ async function sendMessage() {
 
                 div.innerHTML = `
                         <div class="flex flex-row-reverse gap-4 max-w-[90%] md:max-w-[80%] items-start">
-                            <div class="w-8 h-8 rounded bg-[#222]/50 flex items-center justify-center shrink-0 border border-white/10 mt-1 relative">
-                                <i data-lucide="user" class="w-4 h-4 text-gray-500"></i>
-                            </div>
                             <div class="flex flex-col items-end pt-1 w-full relative group">
                                 ${contentHTML}
                                 <div class="message-actions-user mt-2 flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-full" dir="ltr">
@@ -2622,11 +2619,6 @@ async function sendMessage() {
                 
                 div.innerHTML = `
                     <div class="flex gap-4 max-w-[95%] md:max-w-[85%] items-start w-full">
-                        <div class="w-8 h-8 flex items-center justify-center shrink-0 mt-1">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-8 h-8 text-blue-500 drop-shadow-[0_0_10px_rgba(59,130,246,0.8)]">
-                                <path d="M12 2L2 22L12 18L22 22L12 2Z" />
-                            </svg>
-                        </div>
                         <div class="flex flex-col w-full">
                             <div id="${textId}" class="${textStyle} pt-1 whitespace-pre-wrap" dir="auto" style="unicode-bidi: plaintext; text-align: start;"></div>
                             
@@ -2794,11 +2786,6 @@ async function typeWriterHTML(element, html, scrollContainer, originalText, sour
             div.className = 'flex w-full mb-4 justify-start fade-in';
             div.innerHTML = `
                 <div class="flex gap-4 items-start w-full max-w-[95%] md:max-w-[85%]">
-                    <div class="w-8 h-8 flex items-center justify-center shrink-0 mt-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-blue-500 opacity-50">
-                            <path d="M12 2L2 22L12 18L22 22L12 2Z" />
-                        </svg>
-                    </div>
                     <div class="flex-1">
                         <div class="thinking-container" id="thinking-box-${thinkingId}">
                             <div class="thinking-header" onclick="toggleThinkingCollapse('${thinkingId}')">
