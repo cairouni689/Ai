@@ -29,7 +29,7 @@
     <meta name="twitter:description" content="المساعد الذكي الخاص بك.">
     <meta name="twitter:image" content="https://i.postimg.cc/J7HjL00c/ʿayzk-tʿmly-lwjw-202603172110.jpg">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -83,32 +83,27 @@
         }
 
                 body {
-            background-color: #000000;
-            color: #ffffff;
+            background-color: #1c1c1c; /* لون Z.ai */
+            color: #e0e0e0;
             overflow: hidden;
             height: 100%;
             margin: 0;
             padding: 0;
         }
 
-                #space-canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-            background: #000000;
-            pointer-events: none;
+        #space-canvas {
+            display: none !important; /* إخفاء الفضاء تماماً */
         }
 
         .glass-sidebar {
-            background: rgba(10, 10, 12, 0.98);
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
-            border-left: 1px solid rgba(255, 255, 255, 0.08);
+            background: #1a1a1a; /* لون السايد بار الجديد بدون بلور */
+            border-left: 1px solid #2a2a2a;
             will-change: transform;
             transform: translateZ(0);
+        }
+        
+        .font-serif {
+            font-family: 'Playfair Display', serif;
         }
         #sidebar {
             will-change: transform;
@@ -414,117 +409,103 @@
 
     <canvas id="space-canvas"></canvas>
 
-    <header id="main-header" class="fixed top-0 left-0 right-0 md:right-80 z-50 transparent-header h-16 md:h-20 flex items-center px-3 md:px-6 justify-between pointer-events-none transition-all duration-300">
+    <header id="main-header" class="fixed top-0 left-0 right-0 md:right-[260px] z-50 transparent-header h-14 md:h-16 flex items-center px-3 md:px-6 justify-between pointer-events-none transition-all duration-300">
         
-        <div class="flex md:hidden items-center gap-2 pointer-events-auto bg-[#1a1a1c]/80 backdrop-blur-md border border-white/10 rounded-2xl p-1 shadow-lg">
+        <div class="flex md:hidden items-center gap-2 pointer-events-auto bg-[#1c1c1c] border-b border-[#2a2a2a] w-full h-full px-2 absolute top-0 left-0 z-50">
             
-            <button onclick="toggleSidebar()" class="p-1.5 hover:bg-white/10 rounded-xl text-gray-300 hover:text-white transition-colors flex items-center justify-center">
+            <button onclick="toggleSidebar()" class="p-2 hover:bg-[#2a2a2a] rounded-lg text-gray-300 hover:text-white transition-colors flex items-center justify-center shrink-0">
                 <i data-lucide="menu" class="w-5 h-5"></i>
             </button>
             
-            <span class="font-bold text-sm text-white tracking-widest font-mono">QUARK</span>
+            <div class="flex-1 flex justify-center">
+                <button onclick="toggleMobileModelMenu(event)" id="mobile-model-toggle-btn" class="flex items-center gap-1.5 px-3 py-1.5 hover:bg-[#2a2a2a] rounded-lg text-gray-300 text-sm font-sans transition-colors relative">
+                    <span class="font-medium text-[10px] bg-white/10 px-1.5 py-0.5 rounded mr-1 text-gray-300 border border-white/5">Quark</span>
+                    <span id="mobile-current-model-name" class="font-medium truncate max-w-[100px]">2.5 Flash</span>
+                    <i data-lucide="chevron-down" id="mobile-model-chevron" class="w-3 h-3 transition-transform duration-200 opacity-70"></i>
+                    
+                    <div id="mobile-model-menu" class="absolute top-[120%] left-1/2 transform -translate-x-1/2 mt-1 w-56 bg-[#2a2a2a] border border-[#3a3a3a] rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.8)] overflow-hidden transition-all duration-200 opacity-0 pointer-events-none -translate-y-2 z-50 py-1.5 text-right">
+                        
+                        <!-- Mobile Models Restored -->
+                        <div onclick="selectModel('gemini-2.5-flash', '2.5 Flash', this)" class="w-full flex items-center justify-between px-4 py-2 hover:bg-[#3a3a3a] cursor-pointer transition-colors text-gray-200 group flex-row-reverse">
+                            <div class="text-right flex-1"><span class="block font-medium text-sm font-sans text-right">Quark 2.5 Flash</span></div>
+                            <i data-lucide="check" class="w-4 h-4 text-white opacity-100 transition-opacity mobile-check-icon"></i>
+                        </div>
+                        <div class="h-px w-full bg-[#3a3a3a] my-1"></div>
+                        <div onclick="selectModel('gemini-2.5-flash-lite', '2.5 Lite', this)" class="w-full flex items-center justify-between px-4 py-2 hover:bg-[#3a3a3a] cursor-pointer transition-colors text-gray-200 group flex-row-reverse">
+                            <div class="text-right flex-1"><span class="block font-medium text-sm font-sans text-right">Quark 2.5 Lite</span></div>
+                            <i data-lucide="check" class="w-4 h-4 text-white opacity-0 transition-opacity mobile-check-icon"></i>
+                        </div>
+                        <div class="h-px w-full bg-[#3a3a3a] my-1"></div>
+                        <div onclick="selectModel('glm-4-flash', '2 Flash', this)" class="w-full flex items-center justify-between px-4 py-2 hover:bg-[#3a3a3a] cursor-pointer transition-colors text-gray-200 group flex-row-reverse">
+                            <div class="text-right flex-1"><span class="block font-medium text-sm font-sans text-right">Quark 2 Flash</span></div>
+                            <i data-lucide="check" class="w-4 h-4 text-white opacity-0 transition-opacity mobile-check-icon"></i>
+                        </div>
+                        <div class="h-px w-full bg-[#3a3a3a] my-1"></div>
+                        <div onclick="selectModel('qwen/qwen3.8-27b', 'Logic', this)" class="w-full flex items-center justify-between px-4 py-2 hover:bg-[#3a3a3a] cursor-pointer transition-colors text-gray-200 group flex-row-reverse">
+                            <div class="text-right flex-1"><span class="block font-medium text-sm font-sans text-right text-yellow-400">Quark Logic</span></div>
+                            <i data-lucide="check" class="w-4 h-4 text-white opacity-0 transition-opacity mobile-check-icon"></i>
+                        </div>
+                        <div class="h-px w-full bg-[#3a3a3a] my-1"></div>
+                        <div onclick="selectModel('openai/gpt-oss-120b', 'Max', this)" class="w-full flex items-center justify-between px-4 py-2 hover:bg-[#3a3a3a] cursor-pointer transition-colors text-gray-200 group flex-row-reverse">
+                            <div class="text-right flex-1"><span class="block font-medium text-sm font-sans text-right text-yellow-400">Quark Max</span></div>
+                            <i data-lucide="check" class="w-4 h-4 text-white opacity-0 transition-opacity mobile-check-icon"></i>
+                        </div>
+                        <div class="h-px w-full bg-[#3a3a3a] my-1"></div>
+                        <div onclick="selectModel('gpt-4o-mini', '1 Flash', this)" class="w-full flex items-center justify-between px-4 py-2 hover:bg-[#3a3a3a] cursor-pointer transition-colors text-gray-200 group flex-row-reverse">
+                            <div class="text-right flex-1"><span class="block font-medium text-sm font-sans text-right">Quark 1 Flash</span></div>
+                            <i data-lucide="check" class="w-4 h-4 text-white opacity-0 transition-opacity mobile-check-icon"></i>
+                        </div>
+                    </div>
+                </button>
+            </div>
             
-            <div class="w-px h-4 bg-white/20 mx-1"></div>
-            
-            <button onclick="toggleMobileModelMenu(event)" id="mobile-model-toggle-btn" class="flex items-center gap-1 px-2 py-1.5 hover:bg-white/10 rounded-lg text-gray-300 text-xs font-sans transition-colors relative">
-                <span id="mobile-current-model-name" class="font-medium truncate max-w-[80px]">Quark 2.5 Flash</span>
-                <i data-lucide="chevron-down" id="mobile-model-chevron" class="w-3 h-3 transition-transform duration-200"></i>
-                
-                <div id="mobile-model-menu" class="absolute top-[120%] right-0 mt-1 w-48 bg-[#1a1a1c] border border-white/10 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.8)] overflow-hidden transition-all duration-200 opacity-0 pointer-events-none transform -translate-y-2 z-50 py-1.5 text-right">
-                    
-                    <div onclick="selectModel('gemini-2.5-flash', 'Quark 2.5 Flash', this)" class="w-full flex items-center justify-between px-4 py-2.5 hover:bg-white/5 cursor-pointer transition-colors text-gray-200 group">
-                        <div class="text-right flex-1">
-                            <span class="block font-medium text-sm font-sans text-right">Quark 2.5 Flash</span>
-                        </div>
-                        <i data-lucide="check" class="w-4 h-4 text-blue-400 opacity-100 transition-opacity mobile-check-icon"></i>
-                    </div>
-                    
-                    <div onclick="selectModel('gemini-2.5-flash-lite', 'Quark 2.5 Lite', this)" class="w-full flex items-center justify-between px-4 py-2.5 hover:bg-white/5 cursor-pointer transition-colors text-gray-200 group">
-                        <div class="text-right flex-1">
-                            <span class="block font-medium text-sm font-sans text-right">Quark 2.5 Lite</span>
-                        </div>
-                        <i data-lucide="check" class="w-4 h-4 text-blue-400 opacity-0 transition-opacity mobile-check-icon"></i>
-                    </div>
-                    
-                    <div class="h-px w-full bg-white/5 my-1"></div>
-                    
-                    <div onclick="selectModel('glm-4-flash', 'Quark 2 Flash', this)" class="w-full flex items-center justify-between px-4 py-2.5 hover:bg-white/5 cursor-pointer transition-colors text-gray-200 group">
-                        <div class="text-right flex-1">
-                            <span class="block font-medium text-sm font-sans text-right">Quark 2 Flash</span>
-                        </div>
-                        <i data-lucide="check" class="w-4 h-4 text-blue-400 opacity-0 transition-opacity mobile-check-icon"></i>
-                    </div>
-
-
-                    <div class="h-px w-full bg-white/5 my-1"></div>
-
-                    <div onclick="selectModel('qwen/qwen3.8-27b', 'Quark Logic', this)" class="w-full flex items-center justify-between px-4 py-2.5 hover:bg-white/5 cursor-pointer transition-colors text-gray-200 group">
-                        <div class="text-right flex-1">
-                            <span class="block font-medium text-sm font-sans text-right text-yellow-400">Quark Logic</span>
-                        </div>
-                        <i data-lucide="check" class="w-4 h-4 text-blue-400 opacity-0 transition-opacity mobile-check-icon"></i>
-                    </div>
-
-                    <div class="h-px w-full bg-white/5 my-1"></div>
-
-                    <div onclick="selectModel('openai/gpt-oss-120b', 'Quark Max', this)" class="w-full flex items-center justify-between px-4 py-2.5 hover:bg-white/5 cursor-pointer transition-colors text-gray-200 group">
-                        <div class="text-right flex-1">
-                            <span class="block font-medium text-sm font-sans text-right text-yellow-400">Quark Max</span>
-                        </div>
-                        <i data-lucide="check" class="w-4 h-4 text-blue-400 opacity-0 transition-opacity mobile-check-icon"></i>
-                    </div>
-
-                    <div class="h-px w-full bg-white/5 my-1"></div>
-                    
-                                        <div onclick="selectModel('gpt-4o-mini', 'Quark 1 Flash', this)" class="w-full flex items-center justify-between px-4 py-2.5 hover:bg-white/5 cursor-pointer transition-colors text-gray-200 group">
-                        <div class="text-right flex-1">
-                            <span class="block font-medium text-sm font-sans text-right">Quark 1 Flash</span>
-                        </div>
-                        <i data-lucide="check" class="w-4 h-4 text-blue-400 opacity-0 transition-opacity mobile-check-icon"></i>
-                    </div>
-
-                                        
-                    
-                </div>
+            <button class="p-2 hover:bg-[#2a2a2a] rounded-lg text-gray-300 hover:text-white transition-colors flex items-center justify-center shrink-0 opacity-0 pointer-events-none">
+                <i data-lucide="menu" class="w-5 h-5"></i>
             </button>
         </div>
-
-        
     </header>
 
        <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/80 z-[60] hidden transition-opacity backdrop-blur-sm md:hidden"></div>
-    <aside id="sidebar" class="fixed top-0 right-0 h-full w-80 glass-sidebar transition-all duration-300 z-[70] flex flex-col bg-black/90 translate-x-full md:translate-x-0">
-        <div class="p-5 border-b border-white/5 flex justify-between items-center">
-            <div class="flex items-center gap-3 overflow-hidden">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-8 h-8 text-blue-500 shrink-0 drop-shadow-[0_0_10px_rgba(59,130,246,0.8)]">
-                    <path d="M12 2L2 22L12 18L22 22L12 2Z" />
-                </svg>
-                <span class="font-bold text-xl text-white tracking-widest font-mono sidebar-text">QUARK</span>
+    <aside id="sidebar" class="fixed top-0 right-0 h-full w-[260px] glass-sidebar transition-all duration-300 z-[70] flex flex-col translate-x-full md:translate-x-0">
+        <div class="p-4 flex justify-between items-center h-16">
+            <div class="flex items-center gap-2 overflow-hidden">
+                <div class="w-6 h-6 bg-gray-200 text-[#1a1a1a] rounded-sm flex items-center justify-center font-bold font-serif text-sm shrink-0">Z</div>
             </div>
-            <button onclick="toggleSidebar()" class="p-2 group hover:bg-white/10 rounded-lg text-gray-400 hover:text-white shrink-0 transition-colors">
-                <i data-lucide="chevron-right" id="sidebar-toggle-icon" class="w-6 h-6 transition-transform duration-300 group-hover:scale-110 group-hover:text-blue-400"></i>
+            <button onclick="toggleSidebar()" class="p-1.5 hover:bg-[#2a2a2a] rounded-md text-gray-400 hover:text-white shrink-0 transition-colors">
+                <i data-lucide="panel-left-close" id="sidebar-toggle-icon" class="w-5 h-5 transition-transform duration-300 transform scale-x-[-1]"></i>
+            </button>
+        </div>
+
+        <div class="px-3 pb-2 flex flex-col gap-1">
+            <button class="w-full flex items-center gap-3 px-3 py-2 bg-[#2a2a2a] text-white rounded-lg text-sm font-medium transition-colors">
+                <i data-lucide="message-square" class="w-4 h-4"></i> Chat
+            </button>
+            <button class="w-full flex items-center gap-3 px-3 py-2 text-gray-400 hover:bg-[#2a2a2a] hover:text-white rounded-lg text-sm font-medium transition-colors">
+                <i data-lucide="bot" class="w-4 h-4"></i> Agent
             </button>
         </div>
         
-        <div class="p-4 border-b border-white/5 flex-1 flex flex-col overflow-hidden">
-            <button onclick="startNewSession()" class="w-full py-2.5 mb-4 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 rounded-lg text-sm flex items-center justify-center gap-2 transition-all text-blue-200 hover:text-white shadow-[0_0_10px_rgba(37,99,235,0.1)] overflow-hidden">
-                <i data-lucide="edit-3" class="w-5 h-5 shrink-0"></i> 
-                <span class="sidebar-text whitespace-nowrap">شات جديد</span>
+        <div class="px-3 py-2 flex-1 flex flex-col overflow-hidden">
+            <button onclick="startNewSession()" class="w-full py-2 mb-4 hover:bg-[#2a2a2a] text-gray-300 rounded-lg text-sm flex items-center gap-3 transition-colors text-right">
+                <i data-lucide="plus" class="w-4 h-4 shrink-0"></i> 
+                <span class="sidebar-text whitespace-nowrap">New Chat</span>
+            </button>
+            <button class="w-full py-2 mb-4 hover:bg-[#2a2a2a] text-gray-300 rounded-lg text-sm flex items-center gap-3 transition-colors text-right">
+                <i data-lucide="presentation" class="w-4 h-4 shrink-0"></i> 
+                <span class="sidebar-text whitespace-nowrap">AI PPT</span>
             </button>
             
+            <div class="text-[11px] text-gray-500 font-medium mb-2 px-1 sidebar-text">Previous 7 days</div>
             
-            <div class="p-2 bg-black/50 text-[10px] text-gray-500 uppercase tracking-widest text-center py-1 rounded sidebar-text">Mission Log</div>
-            
-            <div id="history-list" class="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1 sidebar-text">
+            <div id="history-list" class="flex-1 overflow-y-auto custom-scrollbar space-y-0.5 sidebar-text">
                 <div class="flex flex-col items-center justify-center h-20 text-gray-600 gap-2 mt-4">
-                    <i data-lucide="radar" class="w-6 h-6 opacity-40"></i>
-                    <span class="text-xs font-mono">NO DATA</span>
+                    <span class="text-xs font-sans">No chats yet</span>
                 </div>
             </div>
         </div>
 
-        <div id="sidebar-bottom-section" class="mt-auto border-t border-white/5 bg-black/40 p-4 sidebar-text">
-            <button onclick="openLoginPage()" class="w-full py-3 mb-4 bg-white text-black hover:bg-gray-200 rounded-xl text-sm flex items-center justify-center gap-2 font-bold transition-all shadow-[0_0_15px_rgba(255,255,255,0.2)]">
+        <div id="sidebar-bottom-section" class="mt-auto p-3 border-t border-[#2a2a2a] sidebar-text">
+            <button onclick="openLoginPage()" class="w-full py-2 bg-transparent text-gray-300 hover:bg-[#2a2a2a] hover:text-white rounded-lg text-sm flex items-center gap-3 font-medium transition-colors">
                 <i data-lucide="log-in" class="w-4 h-4"></i>
                 تسجيل الدخول
             </button>
@@ -533,150 +514,122 @@
 
         <main id="main-content-area" class="flex-1 flex flex-col relative w-full h-full z-10 overflow-y-auto custom-scrollbar scroll-smooth">
         <!-- خلينا الماين بياخد الشاشة كلها والسكرول بيشمل الاطراف -->
-<div id="welcome-screen" class="flex-1 flex flex-col items-center justify-center p-6 pt-24 pb-48 transition-all duration-500 z-20 max-w-5xl mx-auto w-full">
     
-    <!-- صغرنا اللوجو والمسافات شوية عشان الشاشة تفرد -->
-    <div id="welcome-logo-container" class="mb-4 relative group cursor-default mt-4 flex flex-col items-center">
-        <div class="absolute -inset-8 bg-blue-500/10 rounded-full blur-3xl animate-pulse-slow z-0"></div>
-        <svg id="welcome-plane" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-28 h-28 md:w-32 md:h-32 text-white drop-shadow-[0_0_20px_rgba(59,130,246,0.6)] transition-transform duration-700 z-10 relative">
-            <path d="M12 2L1 21L12 17L23 21L12 2Z" />
-        </svg>
-        <h1 class="text-2xl md:text-3xl font-bold tracking-[0.3em] text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-200 mt-2 font-mono z-10 relative drop-shadow-md">QUARK</h1>
+        <div id="welcome-screen" class="flex-1 flex flex-col items-center justify-center p-6 pt-10 pb-48 transition-all duration-500 z-20 max-w-4xl mx-auto w-full relative" dir="ltr">
+    
+    <!-- شكل 7 الوهمي في الخلفية زي Z.ai - واخد id welcome-plane عشان الـ JS ميكراش ويبعت -->
+    <div id="welcome-plane" class="absolute top-20 text-[20rem] font-bold text-white/5 select-none pointer-events-none z-0 italic font-serif leading-none transition-transform duration-700">7</div>
+    
+    <div id="welcome-logo-container" class="mb-4 relative group cursor-default flex flex-col items-center text-center z-10">
+        <h1 class="text-4xl md:text-5xl font-serif text-[#ececec] mt-2 tracking-tight">What can I build for you?</h1>
+        <p class="text-sm md:text-base text-gray-400 mt-6 font-sans">Interact with Quark and explore the boundless creative world</p>
     </div>
     
-    <div id="welcome-prompts" class="flex flex-wrap justify-center gap-3 mt-6 w-full max-w-3xl z-30 relative"></div>
-        </div>
+    <div id="welcome-prompts" class="flex flex-wrap justify-center gap-3 mt-6 w-full max-w-3xl z-30 relative hidden"></div>
+</div>
 
         <div id="chat-container" class="hidden flex-1 w-full max-w-5xl mx-auto px-4 pt-40 md:pt-32 pb-48 relative z-10"></div>
     </main>
 
-    <div id="bottom-input-area" class="fixed bottom-0 left-0 right-0 md:right-80 z-40 bg-gradient-to-t from-black via-black/95 to-transparent pt-4 pb-6 px-4 transition-all duration-300">
-        <div class="max-w-4xl w-full mx-auto">
+    <div id="bottom-input-area" class="fixed bottom-0 left-0 right-0 md:right-[260px] z-40 bg-gradient-to-t from-[#1c1c1c] via-[#1c1c1c]/95 to-transparent pt-8 pb-4 md:pb-6 px-3 md:px-4 transition-all duration-300">
+        <div class="max-w-3xl w-full mx-auto">
             <div class="flex-1 relative w-full">
-                <div id="file-preview-container" class="hidden mb-3 relative flex flex-wrap gap-3 max-h-32 overflow-y-auto custom-scrollbar">
-                    <!-- الملفات المرفقة هتترص هنا بالـ JS -->
-                </div>
+                <div id="file-preview-container" class="hidden mb-3 relative flex flex-wrap gap-3 max-h-32 overflow-y-auto custom-scrollbar"></div>
 
-                <div class="rounded-[2rem] w-full flex items-end p-2 bg-[#1e1e1e] border border-white/10 transition-all duration-300 focus-within:border-blue-500/50 focus-within:shadow-[0_0_15px_rgba(59,130,246,0.15)]">
-                    <div class="pl-1 relative" id="attachment-container">
-                    <input type="file" id="file-upload" class="hidden" multiple onchange="handleFileUpload(event)">
-                        <div id="attachment-menu" class="absolute bottom-[120%] right-0 mb-1 w-44 bg-[#1e1e1e]/95 backdrop-blur-md border border-white/10 rounded-xl shadow-[0_10px_25px_rgba(0,0,0,0.8)] overflow-hidden transition-all duration-200 opacity-0 pointer-events-none transform translate-y-2 z-50">
-                            <button onclick="triggerUpload('camera')" class="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors border-b border-white/5 text-right">
-                                <div class="p-1.5 bg-green-500/20 rounded-md"><i data-lucide="camera" class="w-4 h-4 text-green-400"></i></div>
-                                <span>التقاط صورة</span>
-                            </button>
-                            <button onclick="triggerUpload('image')" class="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors border-b border-white/5 text-right">
-                                <div class="p-1.5 bg-blue-500/20 rounded-md"><i data-lucide="image" class="w-4 h-4 text-blue-400"></i></div>
-                                <span>صورة</span>
-                            </button>
-                            <button onclick="triggerUpload('audio')" class="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors border-b border-white/5 text-right">
-                                <div class="p-1.5 bg-amber-500/20 rounded-md"><i data-lucide="mic" class="w-4 h-4 text-amber-400"></i></div>
-                                <span>ملف صوتي</span>
-                            </button>
-                            <button onclick="triggerUpload('file')" class="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors text-right">
-                                <div class="p-1.5 bg-purple-500/20 rounded-md"><i data-lucide="file-text" class="w-4 h-4 text-purple-400"></i></div>
-                                <span>مستند</span>
-                            </button>
-                        </div>
-                        <button onclick="toggleAttachmentMenu(event)" class="p-2.5 text-gray-400 hover:text-blue-400 hover:bg-white/5 rounded-full transition-colors flex items-center justify-center relative z-10 group">
-                            <i id="attachment-icon" data-lucide="plus" class="w-5 h-5 transition-transform duration-300 transform"></i>
-                        </button>
+                <div class="rounded-[1.25rem] w-full flex flex-col p-2.5 md:p-3 bg-[#2a2a2a] border border-[#3a3a3a] transition-all duration-300 focus-within:border-[#555] shadow-lg">
+                    
+                    <!-- Text Area (Top of the box) -->
+                    <div class="relative w-full flex items-center mb-1 md:mb-2">
+                        <div id="ghost-text" class="absolute inset-0 w-full h-full py-2 px-3 text-[15px] md:text-base leading-relaxed font-sans text-right pointer-events-none text-gray-500 whitespace-pre-wrap break-words overflow-hidden z-0" dir="rtl" style="opacity: 0.5;"></div>
+                        <textarea id="user-input" rows="1" dir="rtl" class="w-full bg-transparent border-none focus:ring-0 focus:outline-none text-white placeholder-gray-500 resize-none py-2 px-3 max-h-32 text-[15px] md:text-base leading-relaxed font-sans text-right [unicode-bidi:plaintext] relative z-10" placeholder="اسأل Quark (اضغط Tab للإكمال)"></textarea>
                     </div>
 
-                    <div class="flex-1 relative flex items-center">
-                    
-                        <!-- مساحة الإدخال مع الإكمال التلقائي الشبح -->
-                        <div class="relative w-full flex items-center">
-                            <div id="ghost-text" class="absolute inset-0 w-full h-full py-3 pl-16 md:pl-32 pr-4 text-base leading-relaxed font-sans text-right pointer-events-none text-gray-600 whitespace-pre-wrap break-words overflow-hidden z-0" dir="rtl" style="opacity: 0.5;"></div>
+                    <!-- Bottom Toolbar inside the box -->
+                    <div class="flex justify-between items-center w-full mt-1">
+                        
+                        <!-- Left Actions (+ and Mic/Live) -->
+                        <div class="flex items-center gap-0.5 md:gap-1 relative" id="attachment-container">
+                            <input type="file" id="file-upload" class="hidden" multiple onchange="handleFileUpload(event)">
+                            <button onclick="toggleAttachmentMenu(event)" class="p-2 md:p-2.5 text-gray-400 hover:text-white hover:bg-[#3a3a3a] rounded-lg transition-colors flex items-center justify-center relative z-10">
+                                <i id="attachment-icon" data-lucide="plus" class="w-4 h-4 md:w-5 md:h-5 transition-transform duration-300"></i>
+                            </button>
                             
-                            <textarea id="user-input" rows="1" dir="rtl" class="w-full bg-transparent border-none focus:ring-0 focus:outline-none text-white placeholder-gray-500 resize-none py-3 pl-16 md:pl-32 pr-4 max-h-32 text-base leading-relaxed font-sans text-right [unicode-bidi:plaintext] relative z-10" placeholder="اسأل Quark (اضغط Tab للإكمال)"></textarea>
-                        </div>
-
-                        <div class="absolute left-2 z-20 hidden md:block" id="model-dropdown-container">
-                            <input type="hidden" id="model-selector" value="gemini-2.5-flash">
-                            
-                            <button onclick="toggleModelMenu(event)" id="model-toggle-btn" class="flex items-center gap-1.5 px-3 py-1.5 bg-[#1a1a1c] hover:bg-[#252528] rounded-full text-gray-300 text-xs font-sans transition-colors border border-white/10 shadow-sm" title="تغيير النموذج">
-                                <span id="current-model-name" class="font-medium truncate max-w-[100px]">Quark 2.5 Flash</span>
-                                <i data-lucide="chevron-down" id="model-chevron" class="w-3 h-3 transition-transform duration-200"></i>
+                            <button id="live-call-btn" onclick="toggleLiveCall()" class="p-2 md:p-2.5 text-gray-400 hover:text-white hover:bg-[#3a3a3a] rounded-lg transition-colors flex items-center justify-center relative z-10 group" title="بدأ مكالمة مباشرة مع كوارك">
+                                <i data-lucide="mic" id="live-mic-icon" class="w-4 h-4 md:w-5 md:h-5 group-hover:scale-110 transition-transform"></i>
+                                <span id="live-indicator" class="hidden absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full animate-pulse border border-[#2a2a2a]"></span>
                             </button>
 
-                            <div id="custom-model-menu" class="absolute bottom-[120%] left-0 mb-1 w-56 bg-[#1a1a1c] border border-white/10 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.8)] overflow-hidden transition-all duration-200 opacity-0 pointer-events-none transform translate-y-2 z-50 py-1.5">
-                                <div onclick="selectModel('gemini-2.5-flash', 'Quark 2.5 Flash', this)" class="w-full flex items-center justify-between px-4 py-2.5 hover:bg-white/5 cursor-pointer transition-colors text-gray-200 group model-option">
-                                    <div class="text-right flex-1">
-                                        <span class="block font-medium text-sm font-sans text-right">Quark 2.5 Flash</span>
-                                        <span class="block text-[10px] text-gray-500 font-sans mt-0.5">مساعدة متكاملة</span>
-                                    </div>
-                                    <i data-lucide="check" class="w-4 h-4 text-blue-400 opacity-100 transition-opacity check-icon"></i>
-                                </div>
-                                
-                                <div onclick="selectModel('gemini-2.5-flash-lite', 'Quark 2.5 Lite', this)" class="w-full flex items-center justify-between px-4 py-2.5 hover:bg-white/5 cursor-pointer transition-colors text-gray-200 group model-option">
-                                    <div class="text-right flex-1">
-                                        <span class="block font-medium text-sm font-sans text-right">Quark 2.5 Lite</span>
-                                        <span class="block text-[10px] text-gray-500 font-sans mt-0.5">أسرع الإجابات</span>
-                                    </div>
-                                    <i data-lucide="check" class="w-4 h-4 text-blue-400 opacity-0 transition-opacity check-icon"></i>
-                                </div>
-
-                                <div class="h-px w-full bg-white/5 my-1"></div>
-
-                                <div onclick="selectModel('glm-4-flash', 'Quark 2 Flash', this)" class="w-full flex items-center justify-between px-4 py-2.5 hover:bg-white/5 cursor-pointer transition-colors text-gray-200 group model-option">
-                                    <div class="text-right flex-1">
-                                        <span class="block font-medium text-sm font-sans text-right">Quark 2 Flash</span>
-                                        <span class="block text-[10px] text-gray-500 font-sans mt-0.5">الرياضيات والبرمجة</span>
-                                    </div>
-                                    <i data-lucide="check" class="w-4 h-4 text-blue-400 opacity-0 transition-opacity check-icon"></i>
-                                </div>
-
-                        
-
-                                <div class="h-px w-full bg-white/5 my-1"></div>
-
-                                <div onclick="selectModel('qwen/qwen3.8-27b', 'Quark Logic', this)" class="w-full flex items-center justify-between px-4 py-2.5 hover:bg-white/5 cursor-pointer transition-colors text-gray-200 group model-option">
-                                    <div class="text-right flex-1">
-                                        <span class="block font-medium text-sm font-sans text-right text-yellow-400">Quark Logic</span>
-                                        <span class="block text-[10px] text-gray-500 font-sans mt-0.5">ممتاز في التفكير والمنطق</span>
-                                    </div>
-                                    <i data-lucide="check" class="w-4 h-4 text-blue-400 opacity-0 transition-opacity check-icon"></i>
-                                </div>
-
-                                <div class="h-px w-full bg-white/5 my-1"></div>
-
-                                <div onclick="selectModel('openai/gpt-oss-120b', 'Quark Max', this)" class="w-full flex items-center justify-between px-4 py-2.5 hover:bg-white/5 cursor-pointer transition-colors text-gray-200 group model-option">
-                                    <div class="text-right flex-1">
-                                        <span class="block font-medium text-sm font-sans text-right text-yellow-400">Quark Max</span>
-                                        <span class="block text-[10px] text-gray-500 font-sans mt-0.5">نموذج عملاق للتحليل المعقد</span>
-                                    </div>
-                                    <i data-lucide="check" class="w-4 h-4 text-blue-400 opacity-0 transition-opacity check-icon"></i>
-                                </div>
-
-                                <div class="h-px w-full bg-white/5 my-1"></div>
-
-                                <div onclick="selectModel('gpt-4o-mini', 'Quark 1 Flash', this)" class="w-full flex items-center justify-between px-4 py-2.5 hover:bg-white/5 cursor-pointer transition-colors text-gray-200 group model-option">
-                                    <div class="text-right flex-1">
-                                        <span class="block font-medium text-sm font-sans text-right">Quark 1 Flash</span>
-                                        <span class="block text-[10px] text-gray-500 font-sans mt-0.5">الجيل الأول من كوارك</span>
-                                    </div>
-                                    <i data-lucide="check" class="w-4 h-4 text-blue-400 opacity-0 transition-opacity check-icon"></i>
-                                </div>
+                            <!-- Attachment Menu (Hidden by default) -->
+                            <div id="attachment-menu" class="absolute bottom-[120%] left-0 mb-1 w-44 bg-[#2a2a2a] border border-[#3a3a3a] rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.8)] overflow-hidden transition-all duration-200 opacity-0 pointer-events-none transform translate-y-2 z-50 text-right">
+                                <button onclick="triggerUpload('camera')" class="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-[#3a3a3a] transition-colors border-b border-[#3a3a3a] flex-row-reverse">
+                                    <div class="p-1.5 bg-green-500/20 rounded-md"><i data-lucide="camera" class="w-4 h-4 text-green-400"></i></div><span>التقاط صورة</span>
+                                </button>
+                                <button onclick="triggerUpload('image')" class="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-[#3a3a3a] transition-colors border-b border-[#3a3a3a] flex-row-reverse">
+                                    <div class="p-1.5 bg-blue-500/20 rounded-md"><i data-lucide="image" class="w-4 h-4 text-blue-400"></i></div><span>صورة</span>
+                                </button>
+                                <button onclick="triggerUpload('audio')" class="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-[#3a3a3a] transition-colors border-b border-[#3a3a3a] flex-row-reverse">
+                                    <div class="p-1.5 bg-amber-500/20 rounded-md"><i data-lucide="mic" class="w-4 h-4 text-amber-400"></i></div><span>ملف صوتي</span>
+                                </button>
+                                <button onclick="triggerUpload('file')" class="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-[#3a3a3a] transition-colors flex-row-reverse">
+                                    <div class="p-1.5 bg-purple-500/20 rounded-md"><i data-lucide="file-text" class="w-4 h-4 text-purple-400"></i></div><span>مستند</span>
+                                </button>
                             </div>
                         </div>
-                    </div>
 
-                    <button onclick="sendMessage()" id="send-btn" class="p-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-full shadow-lg transition-all flex items-center justify-center ml-1 w-11 h-11 shrink-0">
-                        <i data-lucide="send-horizontal" class="w-5 h-5 transform rotate-180"></i>
-                    </button>
-                    <button id="live-call-btn" onclick="toggleLiveCall()" class="p-2.5 bg-purple-600/20 border border-purple-500/50 hover:bg-purple-500/40 text-purple-400 hover:text-white rounded-full shadow-lg transition-all flex items-center justify-center ml-2 w-11 h-11 shrink-0 group relative" title="بدأ مكالمة مباشرة مع كوارك">
-                        <i data-lucide="mic" id="live-mic-icon" class="w-5 h-5 group-hover:scale-110 transition-transform"></i>
-                        <span id="live-indicator" class="hidden absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse border border-black"></span>
-                    </button>
+                        <!-- Right Actions (Model Selector & Send) -->
+                        <div class="flex items-center gap-1 md:gap-2 relative flex-row-reverse" id="model-dropdown-container">
+                            
+                            <button onclick="sendMessage()" id="send-btn" class="p-1.5 md:p-2 bg-[#444] hover:bg-[#666] text-white rounded-lg transition-all flex items-center justify-center w-8 h-8 md:w-9 md:h-9 shrink-0">
+                                <i data-lucide="arrow-up" class="w-4 h-4 md:w-5 md:h-5"></i>
+                            </button>
+
+                            <input type="hidden" id="model-selector" value="gemini-2.5-flash">
+                            
+                            <button onclick="toggleModelMenu(event)" id="model-toggle-btn" class="hidden md:flex items-center gap-1.5 px-3 py-1.5 hover:bg-[#3a3a3a] rounded-lg text-gray-400 hover:text-white text-xs font-sans transition-colors flex-row-reverse" title="تغيير النموذج">
+                                <span class="font-medium text-[10px] bg-white/10 px-1.5 py-0.5 rounded ml-1 text-gray-300 border border-white/5">Quark</span>
+                                <span id="current-model-name" class="font-medium truncate max-w-[100px]">2.5 Flash</span>
+                                <i data-lucide="chevron-down" id="model-chevron" class="w-3 h-3 transition-transform duration-200 opacity-70"></i>
+                            </button>
+
+                            <!-- Model Menu (Hidden) -->
+                            <div id="custom-model-menu" class="absolute bottom-[120%] right-0 mb-1 w-56 bg-[#2a2a2a] border border-[#3a3a3a] rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.8)] overflow-hidden transition-all duration-200 opacity-0 pointer-events-none transform translate-y-2 z-50 py-1.5 text-right">
+                                <!-- All Models Restored -->
+                                <div onclick="selectModel('gemini-2.5-flash', '2.5 Flash', this)" class="w-full flex items-center justify-between px-4 py-2.5 hover:bg-[#3a3a3a] cursor-pointer transition-colors text-gray-200 group model-option flex-row-reverse">
+                                    <div class="text-right flex-1"><span class="block font-medium text-sm font-sans text-right">Quark 2.5 Flash</span></div>
+                                    <i data-lucide="check" class="w-4 h-4 text-white opacity-100 transition-opacity check-icon"></i>
+                                </div>
+                                <div class="h-px w-full bg-[#3a3a3a] my-1"></div>
+                                <div onclick="selectModel('gemini-2.5-flash-lite', '2.5 Lite', this)" class="w-full flex items-center justify-between px-4 py-2.5 hover:bg-[#3a3a3a] cursor-pointer transition-colors text-gray-200 group model-option flex-row-reverse">
+                                    <div class="text-right flex-1"><span class="block font-medium text-sm font-sans text-right">Quark 2.5 Lite</span></div>
+                                    <i data-lucide="check" class="w-4 h-4 text-white opacity-0 transition-opacity check-icon"></i>
+                                </div>
+                                <div class="h-px w-full bg-[#3a3a3a] my-1"></div>
+                                <div onclick="selectModel('glm-4-flash', '2 Flash', this)" class="w-full flex items-center justify-between px-4 py-2.5 hover:bg-[#3a3a3a] cursor-pointer transition-colors text-gray-200 group model-option flex-row-reverse">
+                                    <div class="text-right flex-1"><span class="block font-medium text-sm font-sans text-right">Quark 2 Flash</span></div>
+                                    <i data-lucide="check" class="w-4 h-4 text-white opacity-0 transition-opacity check-icon"></i>
+                                </div>
+                                <div class="h-px w-full bg-[#3a3a3a] my-1"></div>
+                                <div onclick="selectModel('qwen/qwen3.8-27b', 'Logic', this)" class="w-full flex items-center justify-between px-4 py-2.5 hover:bg-[#3a3a3a] cursor-pointer transition-colors text-gray-200 group model-option flex-row-reverse">
+                                    <div class="text-right flex-1"><span class="block font-medium text-sm font-sans text-right text-yellow-400">Quark Logic</span></div>
+                                    <i data-lucide="check" class="w-4 h-4 text-white opacity-0 transition-opacity check-icon"></i>
+                                </div>
+                                <div class="h-px w-full bg-[#3a3a3a] my-1"></div>
+                                <div onclick="selectModel('openai/gpt-oss-120b', 'Max', this)" class="w-full flex items-center justify-between px-4 py-2.5 hover:bg-[#3a3a3a] cursor-pointer transition-colors text-gray-200 group model-option flex-row-reverse">
+                                    <div class="text-right flex-1"><span class="block font-medium text-sm font-sans text-right text-yellow-400">Quark Max</span></div>
+                                    <i data-lucide="check" class="w-4 h-4 text-white opacity-0 transition-opacity check-icon"></i>
+                                </div>
+                                <div class="h-px w-full bg-[#3a3a3a] my-1"></div>
+                                <div onclick="selectModel('gpt-4o-mini', '1 Flash', this)" class="w-full flex items-center justify-between px-4 py-2.5 hover:bg-[#3a3a3a] cursor-pointer transition-colors text-gray-200 group model-option flex-row-reverse">
+                                    <div class="text-right flex-1"><span class="block font-medium text-sm font-sans text-right">Quark 1 Flash</span></div>
+                                    <i data-lucide="check" class="w-4 h-4 text-white opacity-0 transition-opacity check-icon"></i>
+                                </div>
+                            </div>
+
+                                </div>
+
+                            </div>
                 </div>
 
-                <div class="text-center mt-3">
-                    <p class="text-[11px] text-gray-500 font-normal flex items-center justify-center gap-1.5">
-                        <i data-lucide="shield-alert" class="w-3 h-3 opacity-70"></i>
-                        يمكن أن تصدر عن Quark بعض الأخطاء. لذلك يجب التحقق من المعلومات المهمة.
-                    </p>
-                </div>
             </div>
         </div>
     </div>
@@ -2300,18 +2253,18 @@ function openLoginPage() {
             const btn = document.getElementById('send-btn');
             if (generating) {
                 btn.innerHTML = `
-                    <div class="relative flex items-center justify-center w-6 h-6">
+                    <div class="relative flex items-center justify-center w-5 h-5 md:w-6 md:h-6">
                         <div class="absolute inset-0 border-[2.5px] border-white/30 border-t-white rounded-full animate-spin"></div>
-                        <div class="w-2 h-2 bg-white rounded-[2px]"></div>
+                        <div class="w-1.5 h-1.5 md:w-2 md:h-2 bg-white rounded-[2px]"></div>
                     </div>
                 `;
-                btn.classList.remove('bg-blue-600', 'hover:bg-blue-500');
-                btn.classList.add('bg-red-500', 'hover:bg-red-600');
+                btn.classList.remove('bg-[#444]', 'hover:bg-[#666]');
+                btn.classList.add('bg-[#333]', 'hover:bg-[#444]');
             } else {
-                btn.innerHTML = `<i data-lucide="send-horizontal" class="w-5 h-5 transform rotate-180"></i>`;
-                btn.classList.remove('bg-red-500', 'hover:bg-red-600');
-                btn.classList.add('bg-blue-600', 'hover:bg-blue-500');
-                lucide.createIcons();
+                btn.innerHTML = `<i data-lucide="arrow-up" class="w-4 h-4 md:w-5 md:h-5"></i>`;
+                btn.classList.remove('bg-[#333]', 'hover:bg-[#444]');
+                btn.classList.add('bg-[#444]', 'hover:bg-[#666]');
+                lucide.createIcons({root: btn});
             }
         }
 
