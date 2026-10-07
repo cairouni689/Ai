@@ -703,8 +703,8 @@
         <div id="settings-modal-content" class="bg-[#101010] border border-white/10 rounded-2xl w-full max-w-4xl transform translate-y-10 scale-95 transition-all duration-300 shadow-[0_0_60px_rgba(0,0,0,0.8)] flex flex-col h-[80vh] max-h-[800px] overflow-hidden" onclick="event.stopPropagation()">
             
             <div class="flex justify-between items-center px-6 py-4 border-b border-white/10 shrink-0">
-                <h2 class="text-lg font-bold text-gray-200 flex items-center gap-2 font-mono">
-                    <i data-lucide="settings" class="w-5 h-5 text-gray-400"></i> Settings
+                <h2 id="i18n-settings-title" class="text-lg font-bold text-gray-200 flex items-center gap-2 font-mono">
+                    <i data-lucide="settings" class="w-5 h-5 text-gray-400"></i> الإعدادات
                 </h2>
                 <button onclick="closeSettings()" class="text-gray-500 hover:text-white transition-colors p-1.5 rounded-md hover:bg-white/10">
                     <i data-lucide="x" class="w-5 h-5"></i>
@@ -712,26 +712,26 @@
             </div>
             
             <div class="flex flex-1 overflow-hidden">
-                <div class="w-1/4 border-l border-white/10 bg-[#161618] py-4 px-3 flex flex-col gap-1 z-10">
+                <div class="w-1/4 border-white/10 bg-[#161618] py-4 px-3 flex flex-col gap-1 z-10 rtl:border-l ltr:border-r">
                     <button onclick="switchSettingsTab('account')" id="tab-account" class="settings-tab flex items-center gap-3 w-full px-4 py-2.5 rounded-lg bg-white/10 text-white transition-all text-xs font-bold">
-                        <i data-lucide="user" class="w-4 h-4"></i> الحساب
+                        <i data-lucide="user" class="w-4 h-4"></i> <span id="i18n-tab-account">الحساب</span>
                     </button>
                     <button onclick="switchSettingsTab('customize')" id="tab-customize" class="settings-tab flex items-center gap-3 w-full px-4 py-2.5 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-all text-xs font-bold">
-                        <i data-lucide="sliders-horizontal" class="w-4 h-4"></i> المظهر
+                        <i data-lucide="sliders-horizontal" class="w-4 h-4"></i> <span id="i18n-tab-customize">المظهر</span>
                     </button>
                     <button onclick="switchSettingsTab('voice')" id="tab-voice" class="settings-tab flex items-center gap-3 w-full px-4 py-2.5 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-all text-xs font-bold">
-                        <i data-lucide="mic" class="w-4 h-4"></i> الأصوات
+                        <i data-lucide="mic" class="w-4 h-4"></i> <span id="i18n-tab-voice">الأصوات</span>
                     </button>
                     <button onclick="switchSettingsTab('dashboard')" id="tab-dashboard" class="settings-tab flex items-center gap-3 w-full px-4 py-2.5 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-all text-xs font-bold mt-2 border-t border-white/5 pt-3">
-                        <i data-lucide="bar-chart-2" class="w-4 h-4 text-blue-400"></i> الإحصائيات
+                        <i data-lucide="bar-chart-2" class="w-4 h-4 text-blue-400"></i> <span id="i18n-tab-dashboard">الإحصائيات</span>
                     </button>
                 </div>
                 
                 <div class="w-3/4 p-8 overflow-y-auto custom-scrollbar relative bg-[#101010]">
                     <div id="view-account" class="settings-view flex flex-col space-y-6 fade-in max-w-2xl mx-auto">
                         <div class="text-center mb-2">
-                            <h3 class="text-lg font-bold text-white">إعدادات الحساب</h3>
-                            <p class="text-[11px] text-gray-500 mt-1">إدارة معلوماتك الشخصية في Quark</p>
+                            <h3 id="i18n-acc-title" class="text-lg font-bold text-white">إعدادات الحساب</h3>
+                            <p id="i18n-acc-sub" class="text-[11px] text-gray-500 mt-1">إدارة معلوماتك الشخصية في Quark</p>
                         </div>
                         <div id="settings-user-info" class="flex items-center gap-4 bg-[#161618] border border-white/5 rounded-xl p-4"></div>
                         
@@ -836,8 +836,8 @@
 
                     <div id="view-dashboard" class="settings-view hidden flex flex-col space-y-6 max-w-3xl mx-auto w-full">
                         <div class="text-center mb-2">
-                            <h3 class="text-lg font-bold text-white">لوحة الاستخدام والإحصائيات</h3>
-                            <p class="text-[11px] text-gray-500 mt-1">نظرة عامة على نشاطك مع Quark (بيانات محلية)</p>
+                            <h3 id="i18n-dash-title" class="text-lg font-bold text-white">لوحة الاستخدام والإحصائيات</h3>
+                            <p id="i18n-dash-sub" class="text-[11px] text-gray-500 mt-1">نظرة عامة على نشاطك مع Quark (بيانات محلية)</p>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div class="bg-[#161618] border border-white/5 rounded-2xl p-5 flex flex-col items-center justify-center text-center shadow-lg">
@@ -991,7 +991,16 @@
                 prevDays: "آخر 7 أيام",
                 welcomeTitle: "ماذا يمكنني أن أبني لك؟",
                 welcomeSub: "تفاعل مع كوارك واكتشف عالماً إبداعياً لا حدود له",
-                loginBtn: "تسجيل الدخول"
+                loginBtn: "تسجيل الدخول",
+                settingsTitle: "الإعدادات",
+                tabAccount: "الحساب",
+                tabCustomize: "المظهر",
+                tabVoice: "الأصوات",
+                tabDashboard: "الإحصائيات",
+                accTitle: "إعدادات الحساب",
+                accSub: "إدارة معلوماتك الشخصية في Quark",
+                dashTitle: "لوحة الاستخدام والإحصائيات",
+                dashSub: "نظرة عامة على نشاطك مع Quark (بيانات محلية)"
             },
             en: { 
                 placeholder: "Ask Quark (Press Tab to complete)",
@@ -999,9 +1008,18 @@
                 prevDays: "Previous 7 days",
                 welcomeTitle: "What can I build for you?",
                 welcomeSub: "Interact with Quark and explore the boundless creative world",
-                loginBtn: "Login"
+                loginBtn: "Login",
+                settingsTitle: "Settings",
+                tabAccount: "Account",
+                tabCustomize: "Appearance",
+                tabVoice: "Voices",
+                tabDashboard: "Dashboard",
+                accTitle: "Account Settings",
+                accSub: "Manage your personal information in Quark",
+                dashTitle: "Usage Dashboard",
+                dashSub: "Overview of your activity with Quark (Local data)"
             }
-        };        
+        };   
 
         let currentLang = localStorage.getItem('quark_lang') || 'ar';
 
@@ -1041,6 +1059,31 @@
             if(tWelcomeSub) tWelcomeSub.innerText = i18n[currentLang].welcomeSub;
             if(tLoginBtnStatic) tLoginBtnStatic.innerHTML = `<i data-lucide="log-in" class="w-4 h-4"></i> ${i18n[currentLang].loginBtn}`;
             if(tLoginBtn) tLoginBtn.innerHTML = `<i data-lucide="log-in" class="w-4 h-4"></i> ${i18n[currentLang].loginBtn}`;
+
+            const mSettings = document.getElementById('i18n-menu-settings');
+            const mLogout = document.getElementById('i18n-menu-logout');
+            if(mSettings) mSettings.innerHTML = `<i data-lucide="settings" class="w-4 h-4 text-gray-400 group-hover:text-blue-400 transition-colors"></i> ${i18n[currentLang].settingsTitle}`;
+            if(mLogout) mLogout.innerHTML = `<i data-lucide="log-out" class="w-4 h-4"></i> ${i18n[currentLang].loginBtn === 'Login' ? 'Logout' : 'تسجيل الخروج'}`;
+
+            const sTitle = document.getElementById('i18n-settings-title');
+            const tAcc = document.getElementById('i18n-tab-account');
+            const tCus = document.getElementById('i18n-tab-customize');
+            const tVoi = document.getElementById('i18n-tab-voice');
+            const tDash = document.getElementById('i18n-tab-dashboard');
+            const aTitle = document.getElementById('i18n-acc-title');
+            const aSub = document.getElementById('i18n-acc-sub');
+            const dTitle = document.getElementById('i18n-dash-title');
+            const dSub = document.getElementById('i18n-dash-sub');
+
+            if(sTitle) sTitle.innerHTML = `<i data-lucide="settings" class="w-5 h-5 text-gray-400"></i> ${i18n[currentLang].settingsTitle}`;
+            if(tAcc) tAcc.innerText = i18n[currentLang].tabAccount;
+            if(tCus) tCus.innerText = i18n[currentLang].tabCustomize;
+            if(tVoi) tVoi.innerText = i18n[currentLang].tabVoice;
+            if(tDash) tDash.innerText = i18n[currentLang].tabDashboard;
+            if(aTitle) aTitle.innerText = i18n[currentLang].accTitle;
+            if(aSub) aSub.innerText = i18n[currentLang].accSub;
+            if(dTitle) dTitle.innerText = i18n[currentLang].dashTitle;
+            if(dSub) dSub.innerText = i18n[currentLang].dashSub;
             
             const sidebar = document.getElementById('sidebar');
             const mainBody = document.getElementById('main-body');
@@ -1431,12 +1474,12 @@ function openLoginPage() {
                 bottomSection.innerHTML = `
                     <div class="relative w-full">
                         <div id="profile-popup-menu" class="absolute bottom-[110%] left-0 w-full mb-2 bg-[#1a1a1c]/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.8)] overflow-hidden transition-all duration-200 opacity-0 pointer-events-none transform translate-y-2 z-50 flex flex-col">
-                            <button onclick="event.stopPropagation(); openSettings(); closeProfileMenu();" class="flex items-center gap-3 px-4 py-3.5 text-sm font-bold text-gray-200 hover:text-white hover:bg-white/5 transition-colors text-right group">
-                                <i data-lucide="settings" class="w-4 h-4 text-gray-400 group-hover:text-blue-400 transition-colors"></i> الإعدادات
+                            <button onclick="event.stopPropagation(); openSettings(); closeProfileMenu();" id="i18n-menu-settings" class="flex items-center gap-3 px-4 py-3.5 text-sm font-bold text-gray-200 hover:text-white hover:bg-white/5 transition-colors text-right group">
+                                <i data-lucide="settings" class="w-4 h-4 text-gray-400 group-hover:text-blue-400 transition-colors"></i> ${currentLang === 'ar' ? 'الإعدادات' : 'Settings'}
                             </button>
                             <div class="h-px w-full bg-white/10"></div>
-                            <button onclick="event.stopPropagation(); signOut();" class="flex items-center gap-3 px-4 py-3.5 text-sm font-bold text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors text-right">
-                                <i data-lucide="log-out" class="w-4 h-4"></i> تسجيل الخروج
+                            <button onclick="event.stopPropagation(); signOut();" id="i18n-menu-logout" class="flex items-center gap-3 px-4 py-3.5 text-sm font-bold text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors text-right">
+                                <i data-lucide="log-out" class="w-4 h-4"></i> ${currentLang === 'ar' ? 'تسجيل الخروج' : 'Logout'}
                             </button>
                         </div>
 
