@@ -1480,6 +1480,9 @@ async function signInWithGoogle() {
             modal.classList.add('opacity-0');
             setTimeout(() => {
                 modal.classList.add('hidden');
+                if (!currentState.sessionId && !new URLSearchParams(window.location.search).has('settings')) {
+                    document.getElementById('welcome-screen').classList.remove('hidden-force');
+                }
             }, 500);
         }
 
@@ -1810,6 +1813,9 @@ async function signInWithGoogle() {
             
             setTimeout(() => {
                 modal.classList.add('hidden');
+                if (!currentState.sessionId && !new URLSearchParams(window.location.search).has('login')) {
+                    document.getElementById('welcome-screen').classList.remove('hidden-force');
+                }
             }, 300);
         }
         function saveCustomInstructions() {
@@ -1935,6 +1941,15 @@ async function signInWithGoogle() {
 `;
 
         document.addEventListener('DOMContentLoaded', async () => {
+            // منع رمشة الشاشة الرئيسية (Flicker) بالقراءة المباشرة للرابط قبل أي انتظار (await)
+            const syncUrlParams = new URLSearchParams(window.location.search);
+            if (syncUrlParams.has('chat') || syncUrlParams.has('settings') || syncUrlParams.has('login')) {
+                document.getElementById('welcome-screen').classList.add('hidden-force');
+                if (syncUrlParams.has('chat')) {
+                    document.getElementById('chat-container').classList.remove('hidden');
+                }
+            }
+
             initStars();    
             animateStars(); 
 
