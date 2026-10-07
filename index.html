@@ -1452,7 +1452,12 @@ async function signInWithGoogle() {
             if (error) console.error("Error signing in with GitHub:", error.message);
         }
 
-function openLoginPage() {
+    function openLoginPage(skipHistory = false) {
+            if (!skipHistory) {
+                const url = new URL(window.location);
+                url.searchParams.set('login', '1');
+                window.history.pushState({}, '', url);
+            }
             const modal = document.getElementById('login-page-modal');
             modal.classList.remove('hidden');
             setTimeout(() => {
@@ -1465,7 +1470,12 @@ function openLoginPage() {
             }
         }
 
-        function closeLoginPage() {
+        function closeLoginPage(skipHistory = false) {
+            if (!skipHistory) {
+                const url = new URL(window.location);
+                url.searchParams.delete('login');
+                window.history.pushState({}, '', url);
+            }
             const modal = document.getElementById('login-page-modal');
             modal.classList.add('opacity-0');
             setTimeout(() => {
@@ -1730,7 +1740,12 @@ function openLoginPage() {
             showToast('تم حفظ إعدادات التخصيص والمظهر يا معلم! 🚀');
         }
 
-        function openSettings() {
+        function openSettings(skipHistory = false) {
+            if (!skipHistory) {
+                const url = new URL(window.location);
+                url.searchParams.set('settings', '1');
+                window.history.pushState({}, '', url);
+            }
             const modal = document.getElementById('settings-page');
             const content = document.getElementById('settings-modal-content');
             
@@ -1780,7 +1795,12 @@ function openLoginPage() {
             }
         }
 
-        function closeSettings() {
+        function closeSettings(skipHistory = false) {
+            if (!skipHistory) {
+                const url = new URL(window.location);
+                url.searchParams.delete('settings');
+                window.history.pushState({}, '', url);
+            }
             const modal = document.getElementById('settings-page');
             const content = document.getElementById('settings-modal-content');
             
@@ -1930,21 +1950,60 @@ function openLoginPage() {
                 isMigrated = await migrateGuestSession();
             }
 
-            // كود فحص رابط المشاركة (هيشتغل لو مفيش محادثة مؤقتة رجعت)
-            const urlParams = new URLSearchParams(window.location.search);
-            const chatId = urlParams.get('chat');
-            if (chatId && !isMigrated) {
-                document.getElementById('welcome-screen').classList.add('hidden-force');
-                document.getElementById('chat-container').classList.remove('hidden');
-                loadSharedSession(chatId); 
-            }
+            // تشغيل نظام التوجيه (Routing)
+            await handleAppRouting(isMigrated);
             
             loadSessionsList();
         });
 
+        // دالة التوجيه الرئيسية للتحكم في الـ URL والـ Back/Forward
+        async function handleAppRouting(isMigrated) {
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            // 1. التعامل مع الشات
+            const chatId = urlParams.get('chat');
+            if (chatId && !isMigrated) {
+                if (currentUserId) {
+                    await loadSession(chatId, true);
+                } else {
+                    document.getElementById('welcome-screen').classList.add('hidden-force');
+                    document.getElementById('chat-container').classList.remove('hidden');
+                    await loadSharedSession(chatId);
+                }
+            } else if (!chatId) {
+                if (currentState.sessionId !== null) {
+                    startNewSession(true);
+                }
+            }
+
+            // 2. التعامل مع الإعدادات
+            if (urlParams.has('settings')) {
+                openSettings(true);
+            } else {
+                closeSettings(true);
+            }
+
+            // 3. التعامل مع تسجيل الدخول
+            if (urlParams.has('login')) {
+                openLoginPage(true);
+            } else {
+                closeLoginPage(true);
+            }
+        }
+
+        // مراقبة زراير الـ Back والـ Forward في المتصفح
+        window.addEventListener('popstate', async function(e) {
+            await handleAppRouting(false);
+        });
 
 
-        function startNewSession() {
+
+        function startNewSession(skipHistory = false) {
+            if (!skipHistory) {
+                const url = new URL(window.location);
+                url.searchParams.delete('chat');
+                window.history.pushState({}, '', url);
+            }
             if (isGenerating) stopGeneration();
             currentState.sessionId = null; 
             currentState.messages = [];
@@ -2057,7 +2116,12 @@ function openLoginPage() {
             lucide.createIcons({root: listContainer});
         }
 
-        async function loadSession(id) {
+        async function loadSession(id, skipHistory = false) {
+            if (!skipHistory) {
+                const url = new URL(window.location);
+                url.searchParams.set('chat', id);
+                window.history.pushState({}, '', url);
+            }
             if (isGenerating) stopGeneration();
             
             const { data: messages, error } = await supabaseClient
@@ -2524,16 +2588,22 @@ function openLoginPage() {
 async function saveMessageToSession(role, content, fileObj = null) {
     let isNewSession = false;
     if (!currentState.sessionId) {
-        currentState.sessionId = crypto.randomUUID();
-        isNewSession = true;
-        let tempTitle = 'محادثة جديدة ✨';
-        
-        if (currentUserId) {
-            await supabaseClient.from('sessions').insert([
-                { id: currentState.sessionId, user_id: currentUserId, title: tempTitle }
-            ]);
-        }
-    }
+                currentState.sessionId = crypto.randomUUID();
+                isNewSession = true;
+                
+                // تحديث الرابط بصمت عشان لو عمل ريفريش يفضل في نفس الشات
+                const url = new URL(window.location);
+                url.searchParams.set('chat', currentState.sessionId);
+                window.history.replaceState({}, '', url);
+
+                let tempTitle = 'محادثة جديدة ✨';
+                
+                if (currentUserId) {
+                    await supabaseClient.from('sessions').insert([
+                        { id: currentState.sessionId, user_id: currentUserId, title: tempTitle }
+                    ]);
+                }
+            }
 
     currentState.messages.push({ role, content, timestamp: Date.now() });
 
