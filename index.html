@@ -2873,25 +2873,26 @@ async function sendMessage() {
             const textId = `msg-text-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
             if (isUser) {
-                let contentHTML = '';
+                let textHTML = '';
                 if (text && text.trim() !== '') {
-                    contentHTML += `<div class="message-content-wrapper ${textStyle} bg-white/5 border border-white/10 rounded-2xl p-4 shadow-lg leading-relaxed whitespace-pre-wrap" dir="auto" style="unicode-bidi: plaintext; text-align: start;" data-raw-text="${escapeHtmlText(text)}">${escapeHtmlText(text)}</div>`;
+                    textHTML = `<div class="message-content-wrapper ${textStyle} bg-white/5 border border-white/10 rounded-2xl p-4 shadow-lg leading-relaxed whitespace-pre-wrap" dir="auto" style="unicode-bidi: plaintext; text-align: start;" data-raw-text="${escapeHtmlText(text)}">${escapeHtmlText(text)}</div>`;
                 }
                 
+                let attachmentsHTML = '';
                 if (attachments && attachments.length > 0) {
-                    contentHTML += `<div class="mt-3 flex flex-wrap gap-2 justify-end w-full">`;
+                    attachmentsHTML += `<div class="mb-3 flex flex-wrap gap-2 justify-end w-full">`;
                     attachments.forEach(attachment => {
                         if (attachment.mimeType.startsWith('image/')) {
                             const imgSrc = attachment.url ? attachment.url : `data:${attachment.mimeType};base64,${attachment.data}`;
-                            contentHTML += `
+                            attachmentsHTML += `
                                 <img src="${imgSrc}" 
-                                     class="w-[120px] h-[120px] md:w-[150px] md:h-[150px] rounded-xl border border-white/10 shadow-lg object-cover cursor-pointer hover:opacity-80 transition-opacity duration-200" 
+                                     class="max-w-[280px] md:max-w-[400px] max-h-[350px] w-auto h-auto rounded-2xl border border-white/10 shadow-lg object-contain cursor-pointer hover:opacity-80 transition-opacity duration-200" 
                                      alt="صورة مرفقة" 
                                      onclick="openImageModal(this.src)">
                             `;
                         } else if (attachment.mimeType.startsWith('audio/')) {
                             const audioSrc = `data:${attachment.mimeType};base64,${attachment.data}`;
-                            contentHTML += `
+                            attachmentsHTML += `
                                 <div class="flex flex-col gap-2 p-3 bg-[#1e1e1e]/80 rounded-xl border border-amber-500/30 w-fit min-w-[250px] max-w-[280px] shadow-lg shrink-0 pointer-events-auto">
                                     <div class="flex items-center gap-2">
                                         <div class="p-1.5 bg-amber-500/20 rounded-md"><i data-lucide="music" class="w-4 h-4 text-amber-400"></i></div>
@@ -2903,7 +2904,7 @@ async function sendMessage() {
                         } else {
                             const fileSrc = attachment.url ? attachment.url : `data:${attachment.mimeType};base64,${attachment.data}`;
                             const safeName = escapeHtmlText(attachment.name).replace(/'/g, "\\'");
-                            contentHTML += `
+                            attachmentsHTML += `
                                 <div onclick="openDocumentModal('${fileSrc}', '${safeName}')" class="flex items-center gap-3 p-3 bg-[#1e1e1e]/80 hover:bg-[#2a2a2c] rounded-xl border border-white/10 hover:border-blue-500/50 text-sm text-gray-200 w-fit max-w-[200px] cursor-pointer transition-all duration-300 group shadow-lg shrink-0">
                                     <div class="p-2 bg-blue-500/10 rounded-lg group-hover:bg-blue-500/20 transition-colors">
                                         <i data-lucide="file-text" class="w-4 h-4 text-blue-400 group-hover:scale-110 transition-transform"></i>
@@ -2913,8 +2914,10 @@ async function sendMessage() {
                             `;
                         }
                     });
-                    contentHTML += `</div>`;
+                    attachmentsHTML += `</div>`;
                 }
+
+                let contentHTML = attachmentsHTML + textHTML;
 
                 div.innerHTML = `
                         <div class="flex flex-row-reverse gap-4 max-w-[90%] md:max-w-[80%] items-start">
