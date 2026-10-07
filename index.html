@@ -2227,6 +2227,45 @@ function openLoginPage() {
             }
         });
 
+        // ⚡ دعم لصق الصور مباشرة (Ctrl+V)
+        userInput.addEventListener('paste', function(e) {
+            const items = (e.clipboardData || window.clipboardData).items;
+            for (let index in items) {
+                const item = items[index];
+                if (item.kind === 'file' && item.type.startsWith('image/')) {
+                    e.preventDefault(); // نمنع اللصق الافتراضي عشان ميبوظش المربع
+                    const file = item.getAsFile();
+                    
+                    // التأكد إن حجم الصورة مش كبير أوي
+                    if (file.size > 20 * 1024 * 1024) {
+                        showQuarkAlert('حجم الصورة كبير جداً! 🖼️', 'error');
+                        return;
+                    }
+
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const base64Data = event.target.result.split(',')[1];
+                        const newFile = {
+                            id: Date.now() + Math.random().toString(36).substr(2, 9),
+                            mimeType: file.type,
+                            data: base64Data,
+                            name: "Screenshot_" + new Date().getTime() + ".png",
+                            url: `data:${file.type};base64,${base64Data}`
+                        };
+                        attachedFiles.push(newFile);
+
+                        let currentFilesMb = parseFloat(localStorage.getItem('quark_total_files_mb') || '0');
+                        currentFilesMb += (file.size / (1024 * 1024));
+                        localStorage.setItem('quark_total_files_mb', currentFilesMb.toString());
+
+                        renderFilePreviews();
+                        showToast('تم إرفاق لقطة الشاشة بنجاح! 📸');
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+        });
+
         // ⚡ لوحة الأوامر (Command Palette - Ctrl+K)
         document.addEventListener('keydown', function(e) {
             if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
